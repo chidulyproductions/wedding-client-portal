@@ -395,6 +395,62 @@
 
     .saved-pill.visible { display: inline-block; }
 
+
+    /* ── REMOVE BUTTON ── */
+    .remove-btn {
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #555;
+      border: 1px solid #333;
+      background: transparent;
+      padding: 4px 12px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .remove-btn:hover {
+      color: #ff4444;
+      border-color: #ff4444;
+    }
+
+    .undo-bar {
+      display: none;
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 4px;
+      padding: 14px 20px;
+      font-size: 0.8rem;
+      color: var(--gray);
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .undo-bar.visible { display: flex; }
+
+    .undo-btn {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      background: transparent;
+      padding: 4px 14px;
+      border-radius: 100px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .undo-btn:hover {
+      background: var(--accent);
+      color: var(--black);
+    }
+
+    .music-section.removed { display: none; }
     /* ── FOOTER ── */
     footer {
       position: relative;
@@ -458,7 +514,7 @@
     <p class="hero-tag" id="hero-tag">Your Spotify Picks</p>
     <h1>Setting The <em id="client-name">Mood.</em></h1>
     <p class="hero-desc" id="hero-desc">
-      Copy your song and playlist links below. If you need help finding the links, a search function is featured as well.
+      Copy your song and playlist links below. If you need help finding the links, a search function is featured as well. Need inspiration? Scroll down for Chi Duly's sample playlists.
     </p>
   </section>
 
@@ -487,6 +543,11 @@
         </div>
       </div>
     </div>
+    <div class="undo-bar" id="undo-dinner">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('dinner')">↩ Undo</button>
+    </div>
+
   </div>
 
   <hr class="divider" />
@@ -495,12 +556,13 @@
   <div class="sections">
 
     <!-- FIRST DANCE -->
-    <div class="music-section" id="section-first-dance">
-      <div class="section-header">
+    <div class="music-section" id="section-first-dance" data-section="first-dance">
+      <div class="section-header" style="position:relative;">
         <div>
           <div class="section-number">Single Song</div>
           <div class="section-title">First Dance</div>
         </div>
+        <button class="remove-btn" onclick="removeSection('first-dance')" id="remove-first-dance">Remove Section</button>
         <div class="section-desc">The song for your first dance together as a married couple.</div>
       </div>
       <div class="section-body">
@@ -525,13 +587,19 @@
       </div>
     </div>
 
+    <div class="undo-bar" id="undo-first-dance">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('first-dance')">↩ Undo</button>
+    </div>
+
     <!-- FATHER / DAUGHTER -->
-    <div class="music-section" id="section-father-daughter">
-      <div class="section-header">
+    <div class="music-section" id="section-father-daughter" data-section="father-daughter">
+      <div class="section-header" style="position:relative;">
         <div>
           <div class="section-number">Single Song</div>
           <div class="section-title">Father / Daughter</div>
         </div>
+        <button class="remove-btn" onclick="removeSection('father-daughter')" id="remove-father-daughter">Remove Section</button>
         <div class="section-desc">A special dance between the bride and her father.</div>
       </div>
       <div class="section-body">
@@ -556,13 +624,19 @@
       </div>
     </div>
 
+    <div class="undo-bar" id="undo-father-daughter">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('father-daughter')">↩ Undo</button>
+    </div>
+
     <!-- MOTHER / SON -->
-    <div class="music-section" id="section-mother-son">
-      <div class="section-header">
+    <div class="music-section" id="section-mother-son" data-section="mother-son">
+      <div class="section-header" style="position:relative;">
         <div>
           <div class="section-number">Single Song</div>
           <div class="section-title">Mother / Son</div>
         </div>
+        <button class="remove-btn" onclick="removeSection('mother-son')" id="remove-mother-son">Remove Section</button>
         <div class="section-desc">A special dance between the groom and his mother.</div>
       </div>
       <div class="section-body">
@@ -587,13 +661,19 @@
       </div>
     </div>
 
+    <div class="undo-bar" id="undo-mother-son">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('mother-son')">↩ Undo</button>
+    </div>
+
     <!-- COCKTAIL HOUR -->
-    <div class="music-section playlist-section" id="section-cocktail">
-      <div class="section-header">
+    <div class="music-section playlist-section" id="section-cocktail" data-section="cocktail">
+      <div class="section-header" style="position:relative;">
         <div>
           <div class="section-number">Playlist</div>
           <div class="section-title">Cocktail Hour</div>
         </div>
+        <button class="remove-btn" onclick="removeSection('cocktail')" id="remove-cocktail">Remove Section</button>
         <div class="section-desc">Share a Spotify playlist or search for one. You can also describe your vibe if you don't have a playlist yet.</div>
       </div>
       <div class="section-body">
@@ -630,13 +710,19 @@
       </div>
     </div>
 
+    <div class="undo-bar" id="undo-cocktail">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('cocktail')">↩ Undo</button>
+    </div>
+
     <!-- DINNER HOUR -->
-    <div class="music-section playlist-section" id="section-dinner">
-      <div class="section-header">
+    <div class="music-section playlist-section" id="section-dinner" data-section="dinner">
+      <div class="section-header" style="position:relative;">
         <div>
           <div class="section-number">Playlist</div>
           <div class="section-title">Dinner Hour</div>
         </div>
+        <button class="remove-btn" onclick="removeSection('dinner')" id="remove-dinner">Remove Section</button>
         <div class="section-desc">Share a Spotify playlist for your dinner reception, or describe the feel you're going for.</div>
       </div>
       <div class="section-body">
@@ -882,6 +968,17 @@
       document.getElementById(sectionId + '-saved').classList.add('visible');
     }
 
+
+    // ── REMOVE / UNDO SECTIONS ──
+    function removeSection(sectionId) {
+      document.getElementById('section-' + sectionId).classList.add('removed');
+      document.getElementById('undo-' + sectionId).classList.add('visible');
+    }
+
+    function undoRemove(sectionId) {
+      document.getElementById('section-' + sectionId).classList.remove('removed');
+      document.getElementById('undo-' + sectionId).classList.remove('visible');
+    }
     // ── ENTER KEY SUPPORT ──
     document.querySelectorAll('.text-input').forEach(input => {
       input.addEventListener('keydown', function(e) {
