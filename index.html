@@ -210,16 +210,12 @@
     }
 
     .form-body {
-      padding: 0;
+      padding: 16px;
     }
 
-    iframe {
-      display: block;
+    .fillout-wrapper {
       width: 100%;
-      border: none;
-      background: var(--mid);
-      /* invert to match dark theme */
-      filter: invert(1) hue-rotate(180deg);
+      min-height: 500px;
     }
 
     /* ── FOOTER ── */
@@ -266,7 +262,6 @@
     @media (max-width: 600px) {
       .steps { flex-direction: column; gap: 16px; }
       .form-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-      iframe { height: 4200px; }
     }
   </style>
 </head>
@@ -280,7 +275,7 @@
 
   <!-- HERO -->
   <section class="hero">
-    <p class="hero-tag">Your Wedding Program </p>
+    <p class="hero-tag">Your Wedding Program</p>
     <h1>Let's Build <em>Your Sound.</em></h1>
     <p class="hero-desc">
       Every great event starts with the right music. Fill out the form below so we can craft a personalized experience that perfectly matches your vision — from the first dance to the final song of the night.
@@ -319,15 +314,8 @@
         <span class="form-meta">Confidential · Secure</span>
       </div>
       <div class="form-body">
-        <iframe
-          src="https://docs.google.com/forms/d/e/1FAIpQLSc1yBjoDox5dOcy4Uq9SNQ5IEW1m3Bvhxm9eUHtPIqFJDkavw/viewform?embedded=true"
-          width="640"
-          height="3918"
-          frameborder="0"
-          marginheight="0"
-          marginwidth="0">
-          Loading…
-        </iframe>
+        <div class="fillout-wrapper" data-fillout-id="8hiSGdV9Svus" data-fillout-embed-type="standard" data-fillout-inherit-parameters data-fillout-dynamic-resize></div>
+        <script src="https://server.fillout.com/embed/v1/"></script>
       </div>
     </div>
   </section>
