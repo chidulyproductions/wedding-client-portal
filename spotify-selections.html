@@ -54,7 +54,7 @@
     }
 
     .logo { text-decoration: none; display: flex; align-items: center; }
-    .logo-img { height: 44px; width: auto; filter: invert(1) sepia(1) saturate(2) hue-rotate(5deg) brightness(0.9); }
+    .logo-img { height: 44px; width: auto; filter: invert(1); }
 
     .badge {
       font-size: 0.7rem;
@@ -518,7 +518,7 @@
   <!-- HERO -->
   <section class="hero">
     <p class="hero-tag" id="hero-tag">Your Spotify Picks</p>
-    <h1>Setting The <em id="client-name">Mood.</em></h1>
+    <h1><span style="color: #ffffff;">Setting The</span> <em id="client-name">Mood.</em></h1>
     <p class="hero-desc" id="hero-desc">
       Copy your song and playlist links below. If you need help finding the links, a search function is featured as well. Need inspiration? Scroll down for Chi Duly's sample playlists.
     </p>
@@ -1094,7 +1094,7 @@
     if (name) {
       const decoded = decodeURIComponent(name);
       document.getElementById('hero-tag').textContent = decoded + "'s Spotify Picks";
-      document.getElementById('client-name').textContent = "Mood for " + decoded + ".";
+      document.getElementById('client-name').innerHTML = '<span style="color:#ffffff; font-style:normal;">Mood for </span>' + decoded + '.';
       document.getElementById('hero-desc').textContent =
         "Hey " + decoded + "! Copy your song and playlist links below. If you need help finding the links, a search function is featured as well. Need inspiration? Scroll down for Chi Duly's sample playlists.";
       document.title = decoded + "'s Music Selections | Chi Duly Productions";
