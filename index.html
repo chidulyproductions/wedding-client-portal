@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Music Selection | Chi Duly Productions</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #f5f5f0;
+      --accent: #e8ff00;
+      --mid: #1a1a1a;
+      --gray: #888;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--black);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 0 5vw;
+      border-bottom: 1px solid #222;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+    }
+
+    .logo {
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .logo-img {
+      height: 44px;
+      width: auto;
+      filter: invert(1);
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gray);
+      border: 1px solid #333;
+      padding: 4px 12px;
+      border-radius: 100px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      padding: 80px 5vw 60px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .hero-tag {
+      font-size: 0.72rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hero-tag::before {
+      content: '';
+      display: block;
+      width: 32px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3.5rem, 10vw, 8rem);
+      line-height: 0.92;
+      letter-spacing: 0.02em;
+      margin-bottom: 32px;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--accent);
+      display: block;
+    }
+
+    .hero-desc {
+      max-width: 520px;
+      font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+      line-height: 1.7;
+      color: #aaa;
+      margin-bottom: 48px;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      border: none;
+      border-top: 1px solid #222;
+      margin: 0 5vw;
+    }
+
+    /* ── STEPS BAR ── */
+    .steps {
+      display: flex;
+      gap: 0;
+      padding: 32px 5vw;
+      max-width: 1100px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step {
+      flex: 1;
+      padding-right: 40px;
+    }
+
+    .step-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      color: #2a2a2a;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .step-label {
+      font-size: 0.78rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gray);
+    }
+
+    .step.active .step-num { color: var(--accent); }
+    .step.active .step-label { color: var(--white); }
+
+    /* ── FORM SECTION ── */
+    .form-section {
+      position: relative;
+      z-index: 1;
+      padding: 20px 5vw 80px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .form-card {
+      background: var(--mid);
+      border: 1px solid #2a2a2a;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .form-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent);
+    }
+
+    .form-header {
+      padding: 32px 40px 24px;
+      border-bottom: 1px solid #2a2a2a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .form-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: 0.1em;
+    }
+
+    .form-meta {
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gray);
+    }
+
+    .form-body {
+      padding: 0;
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      border: none;
+      background: var(--mid);
+      /* invert to match dark theme */
+      filter: invert(1) hue-rotate(180deg);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid #1a1a1a;
+      padding: 32px 5vw;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.2rem;
+      letter-spacing: 0.12em;
+      color: #444;
+    }
+
+    .footer-logo span { color: #555; }
+
+    .footer-note {
+      font-size: 0.75rem;
+      color: #444;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-tag  { animation: fadeUp 0.6s ease both; }
+    h1         { animation: fadeUp 0.6s 0.1s ease both; }
+    .hero-desc { animation: fadeUp 0.6s 0.2s ease both; }
+    .steps     { animation: fadeUp 0.6s 0.3s ease both; }
+    .form-card { animation: fadeUp 0.6s 0.4s ease both; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .steps { flex-direction: column; gap: 16px; }
+      .form-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      iframe { height: 4200px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <a class="logo" href="#"><img src="logo.png" alt="Chi Duly Productions" class="logo-img" /></a>
+    <span class="badge">Client Portal</span>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <p class="hero-tag">Your Event Music</p>
+    <h1>Let's Build <em>Your Sound.</em></h1>
+    <p class="hero-desc">
+      Every great event starts with the right music. Fill out the form below so we can craft a personalized experience that perfectly matches your vision — from the first dance to the final song of the night.
+    </p>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- STEPS -->
+  <div class="steps">
+    <div class="step active">
+      <div class="step-num">01</div>
+      <div class="step-label">Complete Form</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-label">We Review</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-label">Confirm Playlist</div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-label">Enjoy Your Day</div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- FORM -->
+  <section class="form-section">
+    <div class="form-card">
+      <div class="form-header">
+        <span class="form-title">Music Selection Form</span>
+        <span class="form-meta">Confidential · Secure</span>
+      </div>
+      <div class="form-body">
+        <iframe
+          src="https://docs.google.com/forms/d/e/1FAIpQLSc1yBjoDox5dOcy4Uq9SNQ5IEW1m3Bvhxm9eUHtPIqFJDkavw/viewform?embedded=true"
+          width="640"
+          height="3918"
+          frameborder="0"
+          marginheight="0"
+          marginwidth="0">
+          Loading…
+        </iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">Chi Duly <span>Productions</span></div>
+    <div class="footer-note">© 2026 Chi Duly Productions · All rights reserved</div>
+  </footer>
+
+</body>
+</html>
