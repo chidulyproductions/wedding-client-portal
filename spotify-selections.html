@@ -762,6 +762,118 @@
   </div>
 
 
+
+    <!-- RECESSIONAL: WEDDING PARTY -->
+    <div class="music-section" id="section-recessional-party" data-section="recessional-party">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Single Song</div>
+          <div class="section-title">Recessional: Wedding Party</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('recessional-party')" id="remove-recessional-party">Remove Section</button>
+        <div class="section-desc">The song that plays as the wedding party exits the ceremony.</div>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+          <label class="input-label">Paste Spotify Link & Embed</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="recessional-party-link" placeholder="https://open.spotify.com/track/..." />
+            <button class="btn" onclick="embedSpotify('recessional-party')">Embed</button>
+          </div>
+        </div>
+        <div class="or-divider"><span class="or-text">Search For Links on Spotify</span></div>
+        <div class="input-group">
+          <label class="input-label">Search For Links on Spotify</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="recessional-party-search" placeholder="Type song name or artist..." />
+            <button class="btn btn-outline-yellow" onclick="searchSpotify('recessional-party-search')">🔍 Search Spotify</button>
+          </div>
+          <div class="search-hint">Spotify opens in a new tab → find your song → click ··· → Share → Copy Song Link → paste above</div>
+        </div>
+        <div class="embed-area" id="recessional-party-embed"></div>
+        <div class="saved-pill" id="recessional-party-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-recessional-party">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('recessional-party')">↩ Undo</button>
+    </div>
+
+    <!-- WEDDING PARTY ENTRANCE -->
+    <div class="music-section" id="section-party-entrance" data-section="party-entrance">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Single Song</div>
+          <div class="section-title">Wedding Party Entrance (Reception)</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('party-entrance')" id="remove-party-entrance">Remove Section</button>
+        <div class="section-desc">The song that plays as the wedding party enters the reception.</div>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+          <label class="input-label">Paste Spotify Link & Embed</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="party-entrance-link" placeholder="https://open.spotify.com/track/..." />
+            <button class="btn" onclick="embedSpotify('party-entrance')">Embed</button>
+          </div>
+        </div>
+        <div class="or-divider"><span class="or-text">Search For Links on Spotify</span></div>
+        <div class="input-group">
+          <label class="input-label">Search For Links on Spotify</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="party-entrance-search" placeholder="Type song name or artist..." />
+            <button class="btn btn-outline-yellow" onclick="searchSpotify('party-entrance-search')">🔍 Search Spotify</button>
+          </div>
+          <div class="search-hint">Spotify opens in a new tab → find your song → click ··· → Share → Copy Song Link → paste above</div>
+        </div>
+        <div class="embed-area" id="party-entrance-embed"></div>
+        <div class="saved-pill" id="party-entrance-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-party-entrance">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('party-entrance')">↩ Undo</button>
+    </div>
+
+    <!-- GRAND ENTRANCE -->
+    <div class="music-section" id="section-grand-entrance" data-section="grand-entrance">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Single Song</div>
+          <div class="section-title">Grand Entrance (Reception)</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('grand-entrance')" id="remove-grand-entrance">Remove Section</button>
+        <div class="section-desc">The big moment — the couple enters the reception for the first time.</div>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+          <label class="input-label">Paste Spotify Link & Embed</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="grand-entrance-link" placeholder="https://open.spotify.com/track/..." />
+            <button class="btn" onclick="embedSpotify('grand-entrance')">Embed</button>
+          </div>
+        </div>
+        <div class="or-divider"><span class="or-text">Search For Links on Spotify</span></div>
+        <div class="input-group">
+          <label class="input-label">Search For Links on Spotify</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="grand-entrance-search" placeholder="Type song name or artist..." />
+            <button class="btn btn-outline-yellow" onclick="searchSpotify('grand-entrance-search')">🔍 Search Spotify</button>
+          </div>
+          <div class="search-hint">Spotify opens in a new tab → find your song → click ··· → Share → Copy Song Link → paste above</div>
+        </div>
+        <div class="embed-area" id="grand-entrance-embed"></div>
+        <div class="saved-pill" id="grand-entrance-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-grand-entrance">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('grand-entrance')">↩ Undo</button>
+    </div>
+
   <hr class="divider" />
 
   <!-- SAMPLE PLAYLISTS -->
