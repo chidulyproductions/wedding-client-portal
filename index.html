@@ -275,9 +275,9 @@
 
   <!-- HERO -->
   <section class="hero">
-    <p class="hero-tag">Your Wedding Program</p>
-    <h1>Let's Build <em>Your Sound.</em></h1>
-    <p class="hero-desc">
+    <p class="hero-tag" id="hero-tag">Your Wedding Program</p>
+    <h1 id="headline">Let's Build <em id="client-name">Your Sound.</em></h1>
+    <p class="hero-desc" id="hero-desc">
       Every great event starts with the right music. Fill out the form below so we can craft a personalized experience that perfectly matches your vision — from the first dance to the final song of the night.
     </p>
   </section>
@@ -310,7 +310,7 @@
   <section class="form-section">
     <div class="form-card">
       <div class="form-header">
-        <span class="form-title">Music Selection Form</span>
+        <span class="form-title" id="form-title">Music Selection Form</span>
         <span class="form-meta">Confidential · Secure</span>
       </div>
       <div class="form-body">
@@ -325,6 +325,33 @@
     <div class="footer-logo">Chi Duly <span>Productions</span></div>
     <div class="footer-note">© 2026 Chi Duly Productions · All rights reserved</div>
   </footer>
+
+  <!-- PERSONALIZATION SCRIPT -->
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get('name');
+
+    if (name) {
+      // Decode and clean up the name
+      const decoded = decodeURIComponent(name);
+
+      // Update hero tag
+      document.getElementById('hero-tag').textContent = decoded + "'s Wedding Program";
+
+      // Update headline accent
+      document.getElementById('client-name').textContent = decoded + "'s Sound.";
+
+      // Update form title
+      document.getElementById('form-title').textContent = decoded + " — Music Selection";
+
+      // Update welcome message
+      document.getElementById('hero-desc').textContent =
+        "Hey " + decoded + "! Every great event starts with the right music. Fill out the form below so we can craft a personalized experience that perfectly matches your vision — from the first dance to the final song of the night.";
+
+      // Update page title
+      document.title = decoded + "'s Music Selection | Chi Duly Productions";
+    }
+  </script>
 
 </body>
 </html>
