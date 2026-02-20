@@ -666,109 +666,13 @@
       <button class="undo-btn" onclick="undoRemove('mother-son')">↩ Undo</button>
     </div>
 
-    <!-- COCKTAIL HOUR -->
-    <div class="music-section playlist-section" id="section-cocktail" data-section="cocktail">
-      <div class="section-header" style="position:relative;">
-        <div>
-          <div class="section-number">Playlist</div>
-          <div class="section-title">Cocktail Hour</div>
-        </div>
-        <button class="remove-btn" onclick="removeSection('cocktail')" id="remove-cocktail">Remove Section</button>
-        <div class="section-desc">Share a Spotify playlist or search for one. You can also describe your vibe if you don't have a playlist yet.</div>
-      </div>
-      <div class="section-body">
-        <div class="input-group">
-          <label class="input-label">Paste Spotify Playlist Link & Embed</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="cocktail-link" placeholder="https://open.spotify.com/playlist/..." />
-            <button class="btn btn-green" onclick="embedSpotify('cocktail')">Embed</button>
-          </div>
-        </div>
-        
-        <div class="input-group">
-          <label class="input-label">Search For Links on Spotify</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="cocktail-search" placeholder="e.g. Jazz cocktail hour, Frank Sinatra..." />
-            <button class="btn btn-outline" onclick="searchSpotify('cocktail-search', true)">🔍 Search Spotify</button>
-          </div>
-          <div class="search-hint">Spotify opens in a new tab → find a playlist → click ··· → Share → Copy Playlist Link → paste above</div>
-        </div>
-        <div class="or-divider"><span class="or-text">or just describe your vibe</span></div>
-        <div class="input-group">
-          <label class="input-label">Describe Your Cocktail Hour Vibe</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="cocktail-vibe" placeholder="e.g. Smooth jazz, relaxed and sophisticated..." />
-            <button class="btn btn-green" onclick="saveVibe('cocktail')">Save Vibe</button>
-          </div>
-        </div>
-        <div class="embed-area" id="cocktail-embed"></div>
-        <div class="manual-display" id="cocktail-manual">
-          <div class="manual-tag">Vibe Notes</div>
-          <div id="cocktail-vibe-display" style="font-size:0.95rem; color: #ccc; line-height:1.6;"></div>
-        </div>
-        <div class="saved-pill" id="cocktail-saved">✓ Saved</div>
-      </div>
-    </div>
-
-    <div class="undo-bar" id="undo-cocktail">
-      <span>Section removed</span>
-      <button class="undo-btn" onclick="undoRemove('cocktail')">↩ Undo</button>
-    </div>
-
-    <!-- DINNER HOUR -->
-    <div class="music-section playlist-section" id="section-dinner" data-section="dinner">
-      <div class="section-header" style="position:relative;">
-        <div>
-          <div class="section-number">Playlist</div>
-          <div class="section-title">Dinner Hour</div>
-        </div>
-        <button class="remove-btn" onclick="removeSection('dinner')" id="remove-dinner">Remove Section</button>
-        <div class="section-desc">Share a Spotify playlist for your dinner reception, or describe the feel you're going for.</div>
-      </div>
-      <div class="section-body">
-        <div class="input-group">
-          <label class="input-label">Paste Spotify Playlist Link & Embed</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="dinner-link" placeholder="https://open.spotify.com/playlist/..." />
-            <button class="btn btn-green" onclick="embedSpotify('dinner')">Embed</button>
-          </div>
-        </div>
-        
-        <div class="input-group">
-          <label class="input-label">Search For Links on Spotify</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="dinner-search" placeholder="e.g. R&B dinner, acoustic wedding..." />
-            <button class="btn btn-outline" onclick="searchSpotify('dinner-search', true)">🔍 Search Spotify</button>
-          </div>
-          <div class="search-hint">Spotify opens in a new tab → find a playlist → click ··· → Share → Copy Playlist Link → paste above</div>
-        </div>
-        <div class="or-divider"><span class="or-text">or just describe your vibe</span></div>
-        <div class="input-group">
-          <label class="input-label">Describe Your Dinner Hour Vibe</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="dinner-vibe" placeholder="e.g. Neo soul, elegant, background R&B..." />
-            <button class="btn btn-green" onclick="saveVibe('dinner')">Save Vibe</button>
-          </div>
-        </div>
-        <div class="embed-area" id="dinner-embed"></div>
-        <div class="manual-display" id="dinner-manual">
-          <div class="manual-tag">Vibe Notes</div>
-          <div id="dinner-vibe-display" style="font-size:0.95rem; color: #ccc; line-height:1.6;"></div>
-        </div>
-        <div class="saved-pill" id="dinner-saved">✓ Saved</div>
-      </div>
-    </div>
-
-  </div>
-
-
 
     <!-- RECESSIONAL: WEDDING PARTY -->
     <div class="music-section" id="section-recessional-party" data-section="recessional-party">
       <div class="section-header" style="position:relative;">
         <div>
           <div class="section-number">Single Song</div>
-          <div class="section-title">Recessional: Wedding Party</div>
+          <div class="section-title">Wedding Party Walk</div>
         </div>
         <button class="remove-btn" onclick="removeSection('recessional-party')" id="remove-recessional-party">Remove Section</button>
         <div class="section-desc">The song that plays as the wedding party exits the ceremony.</div>
@@ -873,6 +777,163 @@
       <span>Section removed</span>
       <button class="undo-btn" onclick="undoRemove('grand-entrance')">↩ Undo</button>
     </div>
+
+    <!-- GUEST SEATING -->
+    <div class="music-section playlist-section" id="section-guest-seating" data-section="guest-seating">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Playlist</div>
+          <div class="section-title">Guest Seating</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('guest-seating')" id="remove-guest-seating">Remove Section</button>
+        <div class="section-desc">Share a Spotify playlist for guests as they find their seats before the ceremony.</div>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+          <label class="input-label">Paste Spotify Playlist Link & Embed</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="guest-seating-link" placeholder="https://open.spotify.com/playlist/..." />
+            <button class="btn btn-green" onclick="embedSpotify('guest-seating')">Embed</button>
+          </div>
+        </div>
+        <div class="or-divider"><span class="or-text">Search For Links on Spotify</span></div>
+        <div class="input-group">
+          <label class="input-label">Search For Links on Spotify</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="guest-seating-search" placeholder="e.g. Soft jazz, classical, acoustic..." />
+            <button class="btn btn-outline" onclick="searchSpotify('guest-seating-search', true)">🔍 Search Spotify</button>
+          </div>
+          <div class="search-hint">Spotify opens in a new tab → find a playlist → click ··· → Share → Copy Playlist Link → paste above</div>
+        </div>
+        <div class="or-divider"><span class="or-text">or just describe your vibe</span></div>
+        <div class="input-group">
+          <label class="input-label">Describe Your Guest Seating Vibe</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="guest-seating-vibe" placeholder="e.g. Soft, welcoming, classical..." />
+            <button class="btn btn-green" onclick="saveVibe('guest-seating')">Save Vibe</button>
+          </div>
+        </div>
+        <div class="embed-area" id="guest-seating-embed"></div>
+        <div class="manual-display" id="guest-seating-manual">
+          <div class="manual-tag">Vibe Notes</div>
+          <div id="guest-seating-vibe-display" style="font-size:0.95rem; color: #ccc; line-height:1.6;"></div>
+        </div>
+        <div class="input-group" style="margin-top: 20px;">
+          <label class="input-label">Notes for Chi Duly</label>
+          <textarea class="text-input" id="guest-seating-notes" placeholder="Any additional notes or requests for this part of the evening..." style="width:100%; min-height: 80px; resize: vertical; line-height: 1.6;"></textarea>
+        </div>
+        <div class="saved-pill" id="guest-seating-saved">✓ Saved</div>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-guest-seating">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('guest-seating')">↩ Undo</button>
+    </div>
+
+    <!-- COCKTAIL HOUR -->
+    <div class="music-section playlist-section" id="section-cocktail" data-section="cocktail">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Playlist</div>
+          <div class="section-title">Cocktail Hour</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('cocktail')" id="remove-cocktail">Remove Section</button>
+        <div class="section-desc">Share a Spotify playlist or search for one. You can also describe your vibe if you don't have a playlist yet.</div>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+          <label class="input-label">Paste Spotify Playlist Link & Embed</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="cocktail-link" placeholder="https://open.spotify.com/playlist/..." />
+            <button class="btn btn-green" onclick="embedSpotify('cocktail')">Embed</button>
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label class="input-label">Search For Links on Spotify</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="cocktail-search" placeholder="e.g. Jazz cocktail hour, Frank Sinatra..." />
+            <button class="btn btn-outline" onclick="searchSpotify('cocktail-search', true)">🔍 Search Spotify</button>
+          </div>
+          <div class="search-hint">Spotify opens in a new tab → find a playlist → click ··· → Share → Copy Playlist Link → paste above</div>
+        </div>
+        <div class="or-divider"><span class="or-text">or just describe your vibe</span></div>
+        <div class="input-group">
+          <label class="input-label">Describe Your Cocktail Hour Vibe</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="cocktail-vibe" placeholder="e.g. Smooth jazz, relaxed and sophisticated..." />
+            <button class="btn btn-green" onclick="saveVibe('cocktail')">Save Vibe</button>
+          </div>
+        </div>
+        <div class="embed-area" id="cocktail-embed"></div>
+        <div class="manual-display" id="cocktail-manual">
+          <div class="manual-tag">Vibe Notes</div>
+          <div id="cocktail-vibe-display" style="font-size:0.95rem; color: #ccc; line-height:1.6;"></div>
+        </div>
+        <div class="input-group" style="margin-top: 20px;">
+          <label class="input-label">Notes for Chi Duly</label>
+          <textarea class="text-input" id="cocktail-notes" placeholder="Any additional notes or requests for this part of the evening..." style="width:100%; min-height: 80px; resize: vertical; line-height: 1.6;"></textarea>
+        </div>
+        <div class="saved-pill" id="cocktail-saved">✓ Saved</div>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-cocktail">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('cocktail')">↩ Undo</button>
+    </div>
+
+    <!-- DINNER HOUR -->
+    <div class="music-section playlist-section" id="section-dinner" data-section="dinner">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Playlist</div>
+          <div class="section-title">Dinner Hour</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('dinner')" id="remove-dinner">Remove Section</button>
+        <div class="section-desc">Share a Spotify playlist for your dinner reception, or describe the feel you're going for.</div>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+          <label class="input-label">Paste Spotify Playlist Link & Embed</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="dinner-link" placeholder="https://open.spotify.com/playlist/..." />
+            <button class="btn btn-green" onclick="embedSpotify('dinner')">Embed</button>
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label class="input-label">Search For Links on Spotify</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="dinner-search" placeholder="e.g. R&B dinner, acoustic wedding..." />
+            <button class="btn btn-outline" onclick="searchSpotify('dinner-search', true)">🔍 Search Spotify</button>
+          </div>
+          <div class="search-hint">Spotify opens in a new tab → find a playlist → click ··· → Share → Copy Playlist Link → paste above</div>
+        </div>
+        <div class="or-divider"><span class="or-text">or just describe your vibe</span></div>
+        <div class="input-group">
+          <label class="input-label">Describe Your Dinner Hour Vibe</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="dinner-vibe" placeholder="e.g. Neo soul, elegant, background R&B..." />
+            <button class="btn btn-green" onclick="saveVibe('dinner')">Save Vibe</button>
+          </div>
+        </div>
+        <div class="embed-area" id="dinner-embed"></div>
+        <div class="manual-display" id="dinner-manual">
+          <div class="manual-tag">Vibe Notes</div>
+          <div id="dinner-vibe-display" style="font-size:0.95rem; color: #ccc; line-height:1.6;"></div>
+        </div>
+        <div class="input-group" style="margin-top: 20px;">
+          <label class="input-label">Notes for Chi Duly</label>
+          <textarea class="text-input" id="dinner-notes" placeholder="Any additional notes or requests for this part of the evening..." style="width:100%; min-height: 80px; resize: vertical; line-height: 1.6;"></textarea>
+        </div>
+        <div class="saved-pill" id="dinner-saved">✓ Saved</div>
+      </div>
+    </div>
+
+  </div>
+
 
   <hr class="divider" />
 
@@ -993,6 +1054,23 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+
+  <!-- ADDITIONAL NOTES -->
+  <div style="position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 5vw 80px;">
+    <div class="music-section">
+      <div class="section-header">
+        <div>
+          <div class="section-number">Additional Notes</div>
+          <div class="section-title">Anything Else?</div>
+        </div>
+        <div class="section-desc">Any extra requests, special moments, or things you'd like Chi Duly to know about your day.</div>
+      </div>
+      <div class="section-body">
+        <textarea class="text-input" id="additional-notes" placeholder="" style="width:100%; min-height: 160px; resize: vertical; line-height: 1.6;"></textarea>
+      </div>
     </div>
   </div>
 
