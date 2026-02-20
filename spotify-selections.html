@@ -456,7 +456,7 @@
   <!-- HERO -->
   <section class="hero">
     <p class="hero-tag" id="hero-tag">Your Spotify Picks</p>
-    <h1>Set The <em id="client-name">Mood.</em></h1>
+    <h1>Setting The <em id="client-name">Mood.</em></h1>
     <p class="hero-desc" id="hero-desc">
       Search for your songs directly on Spotify, copy the link, and paste it below. Each section has a search button to make it easy — no Spotify account required to preview.
     </p>
@@ -812,7 +812,7 @@
     if (name) {
       const decoded = decodeURIComponent(name);
       document.getElementById('hero-tag').textContent = decoded + "'s Spotify Picks";
-      document.getElementById('client-name').textContent = decoded + "'s Mood.";
+      document.getElementById('client-name').textContent = "Mood for " + decoded + ".";
       document.getElementById('hero-desc').textContent =
         "Hey " + decoded + "! Search for your songs using the buttons below — Spotify opens in a new tab, you copy the link, and paste it back to embed a live player right here.";
       document.title = decoded + "'s Music Selections | Chi Duly Productions";
