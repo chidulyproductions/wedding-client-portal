@@ -122,6 +122,94 @@
       margin-bottom: 48px;
     }
 
+    /* ── COUNTDOWN ── */
+    .countdown-section {
+      position: relative;
+      z-index: 1;
+      padding: 0 5vw 0;
+      max-width: 1100px;
+      margin: 0 auto 0;
+    }
+
+    .countdown-card {
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+      padding: 28px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .countdown-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 8px;
+    }
+
+    .countdown-blocks {
+      display: flex;
+      gap: 16px;
+      align-items: flex-end;
+    }
+
+    .countdown-block {
+      text-align: center;
+    }
+
+    .countdown-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      color: var(--accent);
+      line-height: 1;
+      display: block;
+      min-width: 2ch;
+    }
+
+    .countdown-unit {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-top: 4px;
+    }
+
+    .countdown-sep {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      color: #333;
+      padding-bottom: 8px;
+    }
+
+    .countdown-date-display {
+      text-align: right;
+    }
+
+    .countdown-date-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 6px;
+    }
+
+    .countdown-date-val {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 0.08em;
+      color: var(--white);
+    }
+
+    .countdown-hidden {
+      display: none;
+    }
+
     /* ── DIVIDER ── */
     .divider {
       border: none;
@@ -252,16 +340,19 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    .hero-tag  { animation: fadeUp 0.6s ease both; }
-    h1         { animation: fadeUp 0.6s 0.1s ease both; }
-    .hero-desc { animation: fadeUp 0.6s 0.2s ease both; }
-    .steps     { animation: fadeUp 0.6s 0.3s ease both; }
-    .form-card { animation: fadeUp 0.6s 0.4s ease both; }
+    .hero-tag      { animation: fadeUp 0.6s ease both; }
+    h1             { animation: fadeUp 0.6s 0.1s ease both; }
+    .hero-desc     { animation: fadeUp 0.6s 0.2s ease both; }
+    .countdown-card{ animation: fadeUp 0.6s 0.25s ease both; }
+    .steps         { animation: fadeUp 0.6s 0.3s ease both; }
+    .form-card     { animation: fadeUp 0.6s 0.4s ease both; }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 600px) {
       .steps { flex-direction: column; gap: 16px; }
       .form-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .countdown-card { flex-direction: column; }
+      .countdown-date-display { text-align: left; }
     }
   </style>
 </head>
@@ -276,11 +367,45 @@
   <!-- HERO -->
   <section class="hero">
     <p class="hero-tag" id="hero-tag">Your Wedding Program</p>
-    <h1 id="headline">Let's Build <em id="client-name">Your Sound.</em></h1>
+    <h1>Let's Build <em id="client-name">Your Sound.</em></h1>
     <p class="hero-desc" id="hero-desc">
       Every great event starts with the right music. Fill out the form below so we can craft a personalized experience that perfectly matches your vision — from the first dance to the final song of the night.
     </p>
   </section>
+
+  <!-- COUNTDOWN -->
+  <div class="countdown-section" id="countdown-section">
+    <div class="countdown-card">
+      <div>
+        <div class="countdown-label">Time Until Your Big Day</div>
+        <div class="countdown-blocks">
+          <div class="countdown-block">
+            <span class="countdown-num" id="cd-days">--</span>
+            <div class="countdown-unit">Days</div>
+          </div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-block">
+            <span class="countdown-num" id="cd-hours">--</span>
+            <div class="countdown-unit">Hours</div>
+          </div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-block">
+            <span class="countdown-num" id="cd-mins">--</span>
+            <div class="countdown-unit">Mins</div>
+          </div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-block">
+            <span class="countdown-num" id="cd-secs">--</span>
+            <div class="countdown-unit">Secs</div>
+          </div>
+        </div>
+      </div>
+      <div class="countdown-date-display">
+        <div class="countdown-date-label">Wedding Date</div>
+        <div class="countdown-date-val" id="cd-date-display">—</div>
+      </div>
+    </div>
+  </div>
 
   <hr class="divider" />
 
@@ -326,30 +451,61 @@
     <div class="footer-note">© 2026 Chi Duly Productions · All rights reserved</div>
   </footer>
 
-  <!-- PERSONALIZATION SCRIPT -->
+  <!-- PERSONALIZATION + COUNTDOWN SCRIPT -->
   <script>
     const params = new URLSearchParams(window.location.search);
     const name = params.get('name');
+    const dateParam = params.get('date');
 
+    // ── NAME PERSONALIZATION ──
     if (name) {
-      // Decode and clean up the name
       const decoded = decodeURIComponent(name);
-
-      // Update hero tag
       document.getElementById('hero-tag').textContent = decoded + "'s Wedding Program";
-
-      // Update headline accent
       document.getElementById('client-name').textContent = decoded + "'s Sound.";
-
-      // Update form title
       document.getElementById('form-title').textContent = decoded + " — Music Selection";
-
-      // Update welcome message
       document.getElementById('hero-desc').textContent =
         "Hey " + decoded + "! Every great event starts with the right music. Fill out the form below so we can craft a personalized experience that perfectly matches your vision — from the first dance to the final song of the night.";
-
-      // Update page title
       document.title = decoded + "'s Music Selection | Chi Duly Productions";
+    }
+
+    // ── COUNTDOWN TIMER ──
+    if (dateParam) {
+      const weddingDate = new Date(dateParam + 'T00:00:00');
+
+      // Format the date nicely e.g. "September 12, 2026"
+      const formatted = weddingDate.toLocaleDateString('en-US', {
+        month: 'long', day: 'numeric', year: 'numeric'
+      });
+      document.getElementById('cd-date-display').textContent = formatted;
+
+      function updateCountdown() {
+        const now = new Date();
+        const diff = weddingDate - now;
+
+        if (diff <= 0) {
+          document.getElementById('cd-days').textContent = '🎉';
+          document.getElementById('cd-hours').textContent = '00';
+          document.getElementById('cd-mins').textContent = '00';
+          document.getElementById('cd-secs').textContent = '00';
+          return;
+        }
+
+        const days  = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins  = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs  = Math.floor((diff % (1000 * 60)) / 1000);
+
+        document.getElementById('cd-days').textContent  = String(days).padStart(2, '0');
+        document.getElementById('cd-hours').textContent = String(hours).padStart(2, '0');
+        document.getElementById('cd-mins').textContent  = String(mins).padStart(2, '0');
+        document.getElementById('cd-secs').textContent  = String(secs).padStart(2, '0');
+      }
+
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+    } else {
+      // Hide countdown if no date provided
+      document.getElementById('countdown-section').style.display = 'none';
     }
   </script>
 
