@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spotify Music Selections | Chi Duly Productions</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #f5f5f0;
+      --accent: #e8ff00;
+      --green: #1DB954;
+      --mid: #1a1a1a;
+      --card: #141414;
+      --gray: #888;
+      --border: #2a2a2a;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--black);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 0 5vw;
+      border-bottom: 1px solid #222;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+    }
+
+    .logo { text-decoration: none; display: flex; align-items: center; }
+    .logo-img { height: 44px; width: auto; filter: invert(1); }
+
+    .badge {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gray);
+      border: 1px solid #333;
+      padding: 4px 12px;
+      border-radius: 100px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      padding: 80px 5vw 60px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .hero-tag {
+      font-size: 0.72rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hero-tag::before {
+      content: '';
+      display: block;
+      width: 32px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3.5rem, 10vw, 8rem);
+      line-height: 0.92;
+      letter-spacing: 0.02em;
+      margin-bottom: 32px;
+    }
+
+    h1 em { font-style: normal; color: var(--accent); display: block; }
+
+    .hero-desc {
+      max-width: 560px;
+      font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+      line-height: 1.7;
+      color: #aaa;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-it-works {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 5vw 40px;
+    }
+
+    .steps-inline {
+      display: flex;
+      gap: 0;
+      background: #111;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .step-inline {
+      flex: 1;
+      padding: 20px 24px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .step-inline:last-child { border-right: none; }
+
+    .step-inline-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      color: var(--accent);
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .step-inline-text {
+      font-size: 0.8rem;
+      color: var(--gray);
+      line-height: 1.5;
+      padding-top: 2px;
+    }
+
+    .step-inline-text strong {
+      display: block;
+      color: var(--white);
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      border: none;
+      border-top: 1px solid #222;
+      margin: 40px 5vw;
+    }
+
+    /* ── SECTIONS CONTAINER ── */
+    .sections {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 5vw 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    /* ── MUSIC SECTION CARD ── */
+    .music-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .music-section::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent);
+    }
+
+    .music-section.playlist-section::before { background: var(--green); }
+
+    .section-header {
+      padding: 28px 36px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .section-number {
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .playlist-section .section-number { color: var(--green); }
+
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 0.08em;
+    }
+
+    .section-desc {
+      font-size: 0.8rem;
+      color: var(--gray);
+      max-width: 360px;
+      line-height: 1.5;
+    }
+
+    /* ── SEARCH BLOCK ── */
+    .section-body { padding: 28px 36px; }
+
+    .input-group { margin-bottom: 20px; }
+
+    .input-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .input-row { display: flex; gap: 10px; }
+
+    .text-input {
+      flex: 1;
+      background: #0f0f0f;
+      border: 1px solid #333;
+      border-radius: 3px;
+      padding: 12px 16px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .text-input:focus { border-color: var(--accent); }
+    .playlist-section .text-input:focus { border-color: var(--green); }
+    .text-input::placeholder { color: #444; }
+
+    .btn {
+      background: var(--accent);
+      color: var(--black);
+      border: none;
+      border-radius: 3px;
+      padding: 12px 20px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover { opacity: 0.85; }
+
+    .btn-green { background: var(--green); color: #fff; }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--green);
+      border: 1px solid var(--green);
+    }
+
+    .btn-outline:hover { background: var(--green); color: #fff; }
+
+    .btn-outline-yellow {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    .btn-outline-yellow:hover { background: var(--accent); color: var(--black); }
+
+    /* ── SEARCH HINT ── */
+    .search-hint {
+      font-size: 0.75rem;
+      color: #555;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    .search-hint a { color: var(--green); text-decoration: none; }
+    .search-hint a:hover { text-decoration: underline; }
+
+    /* ── OR DIVIDER ── */
+    .or-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .or-divider::before,
+    .or-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #2a2a2a;
+    }
+
+    .or-text {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #444;
+    }
+
+    /* ── EMBED AREA ── */
+    .embed-area {
+      margin-top: 20px;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .embed-area iframe {
+      display: block;
+      width: 100%;
+      border: none;
+      border-radius: 3px;
+    }
+
+    /* ── MANUAL DISPLAY ── */
+    .manual-display {
+      display: none;
+      background: #0f0f0f;
+      border: 1px solid #333;
+      border-radius: 3px;
+      padding: 20px 24px;
+      margin-top: 20px;
+    }
+
+    .manual-display.visible { display: block; }
+
+    .manual-song {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 0.05em;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+
+    .manual-artist { font-size: 0.85rem; color: var(--gray); }
+    .manual-tag {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    /* ── SAVED PILL ── */
+    .saved-pill {
+      display: none;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--green);
+      border: 1px solid var(--green);
+      padding: 3px 10px;
+      border-radius: 100px;
+      margin-top: 12px;
+    }
+
+    .saved-pill.visible { display: inline-block; }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid #1a1a1a;
+      padding: 32px 5vw;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.2rem;
+      letter-spacing: 0.12em;
+      color: #444;
+    }
+
+    .footer-logo span { color: #555; }
+    .footer-note { font-size: 0.75rem; color: #444; letter-spacing: 0.05em; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-tag  { animation: fadeUp 0.6s ease both; }
+    h1         { animation: fadeUp 0.6s 0.1s ease both; }
+    .hero-desc { animation: fadeUp 0.6s 0.2s ease both; }
+    .how-it-works { animation: fadeUp 0.6s 0.25s ease both; }
+    .music-section:nth-child(1) { animation: fadeUp 0.5s 0.2s ease both; }
+    .music-section:nth-child(2) { animation: fadeUp 0.5s 0.3s ease both; }
+    .music-section:nth-child(3) { animation: fadeUp 0.5s 0.4s ease both; }
+    .music-section:nth-child(4) { animation: fadeUp 0.5s 0.5s ease both; }
+    .music-section:nth-child(5) { animation: fadeUp 0.5s 0.6s ease both; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 700px) {
+      .steps-inline { flex-direction: column; }
+      .step-inline { border-right: none; border-bottom: 1px solid var(--border); }
+      .step-inline:last-child { border-bottom: none; }
+      .section-header { flex-direction: column; align-items: flex-start; }
+      .input-row { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <a class="logo" href="#"><img src="logo.png" alt="Chi Duly Productions" class="logo-img" /></a>
+    <span class="badge">Music Selections</span>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <p class="hero-tag" id="hero-tag">Your Spotify Picks</p>
+    <h1>Set The <em id="client-name">Mood.</em></h1>
+    <p class="hero-desc" id="hero-desc">
+      Search for your songs directly on Spotify, copy the link, and paste it below. Each section has a search button to make it easy — no Spotify account required to preview.
+    </p>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <div class="how-it-works">
+    <div class="steps-inline">
+      <div class="step-inline">
+        <div class="step-inline-num">01</div>
+        <div class="step-inline-text">
+          <strong>Search</strong>
+          Type a song or artist, click "Search Spotify" — it opens Spotify with your results
+        </div>
+      </div>
+      <div class="step-inline">
+        <div class="step-inline-num">02</div>
+        <div class="step-inline-text">
+          <strong>Copy the Link</strong>
+          On the song, click ··· → Share → Copy Link
+        </div>
+      </div>
+      <div class="step-inline">
+        <div class="step-inline-num">03</div>
+        <div class="step-inline-text">
+          <strong>Paste & Embed</strong>
+          Paste the link back here and click Embed — it plays right on the page
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- SECTIONS -->
+  <div class="sections">
+
+    <!-- FIRST DANCE -->
+    <div class="music-section" id="section-first-dance">
+      <div class="section-header">
+        <div>
+          <div class="section-number">01 · Single Song</div>
+          <div class="section-title">First Dance</div>
+        </div>
+        <div class="section-desc">The song for your first dance together as a married couple.</div>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+          <label class="input-label">Step 1 — Search for your song</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="first-dance-search" placeholder="Type song name or artist..." />
+            <button class="btn btn-outline-yellow" onclick="searchSpotify('first-dance-search')">🔍 Search Spotify</button>
+          </div>
+          <div class="search-hint">Spotify will open in a new tab. Find your song → click ··· → Share → Copy Song Link</div>
+        </div>
+        <div class="or-divider"><span class="or-text">then paste the link here</span></div>
+        <div class="input-group">
+          <label class="input-label">Step 2 — Paste Spotify Link & Embed</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="first-dance-link" placeholder="https://open.spotify.com/track/..." />
+            <button class="btn" onclick="embedSpotify('first-dance')">Embed</button>
+          </div>
+        </div>
+        <div class="embed-area" id="first-dance-embed"></div>
+        <div class="saved-pill" id="first-dance-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <!-- FATHER / DAUGHTER -->
+    <div class="music-section" id="section-father-daughter">
+      <div class="section-header">
+        <div>
+          <div class="section-number">02 · Single Song</div>
+          <div class="section-title">Father / Daughter</div>
+        </div>
+        <div class="section-desc">A special dance between the bride and her father.</div>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+          <label class="input-label">Step 1 — Search for your song</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="father-daughter-search" placeholder="Type song name or artist..." />
+            <button class="btn btn-outline-yellow" onclick="searchSpotify('father-daughter-search')">🔍 Search Spotify</button>
+          </div>
+          <div class="search-hint">Spotify will open in a new tab. Find your song → click ··· → Share → Copy Song Link</div>
+        </div>
+        <div class="or-divider"><span class="or-text">then paste the link here</span></div>
+        <div class="input-group">
+          <label class="input-label">Step 2 — Paste Spotify Link & Embed</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="father-daughter-link" placeholder="https://open.spotify.com/track/..." />
+            <button class="btn" onclick="embedSpotify('father-daughter')">Embed</button>
+          </div>
+        </div>
+        <div class="embed-area" id="father-daughter-embed"></div>
+        <div class="saved-pill" id="father-daughter-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <!-- MOTHER / SON -->
+    <div class="music-section" id="section-mother-son">
+      <div class="section-header">
+        <div>
+          <div class="section-number">03 · Single Song</div>
+          <div class="section-title">Mother / Son</div>
+        </div>
+        <div class="section-desc">A special dance between the groom and his mother.</div>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+          <label class="input-label">Step 1 — Search for your song</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="mother-son-search" placeholder="Type song name or artist..." />
+            <button class="btn btn-outline-yellow" onclick="searchSpotify('mother-son-search')">🔍 Search Spotify</button>
+          </div>
+          <div class="search-hint">Spotify will open in a new tab. Find your song → click ··· → Share → Copy Song Link</div>
+        </div>
+        <div class="or-divider"><span class="or-text">then paste the link here</span></div>
+        <div class="input-group">
+          <label class="input-label">Step 2 — Paste Spotify Link & Embed</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="mother-son-link" placeholder="https://open.spotify.com/track/..." />
+            <button class="btn" onclick="embedSpotify('mother-son')">Embed</button>
+          </div>
+        </div>
+        <div class="embed-area" id="mother-son-embed"></div>
+        <div class="saved-pill" id="mother-son-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <!-- COCKTAIL HOUR -->
+    <div class="music-section playlist-section" id="section-cocktail">
+      <div class="section-header">
+        <div>
+          <div class="section-number">04 · Playlist</div>
+          <div class="section-title">Cocktail Hour</div>
+        </div>
+        <div class="section-desc">Share a Spotify playlist or search for one. You can also describe your vibe if you don't have a playlist yet.</div>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+          <label class="input-label">Step 1 — Search for a playlist or artist vibe</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="cocktail-search" placeholder="e.g. Jazz cocktail hour, Frank Sinatra..." />
+            <button class="btn btn-outline" onclick="searchSpotify('cocktail-search', true)">🔍 Search Spotify</button>
+          </div>
+          <div class="search-hint">Find a playlist you love → click ··· → Share → Copy Playlist Link</div>
+        </div>
+        <div class="or-divider"><span class="or-text">then paste the playlist link here</span></div>
+        <div class="input-group">
+          <label class="input-label">Step 2 — Paste Spotify Playlist Link & Embed</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="cocktail-link" placeholder="https://open.spotify.com/playlist/..." />
+            <button class="btn btn-green" onclick="embedSpotify('cocktail')">Embed</button>
+          </div>
+        </div>
+        <div class="or-divider"><span class="or-text">or just describe your vibe</span></div>
+        <div class="input-group">
+          <label class="input-label">Describe Your Cocktail Hour Vibe</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="cocktail-vibe" placeholder="e.g. Smooth jazz, relaxed and sophisticated..." />
+            <button class="btn btn-green" onclick="saveVibe('cocktail')">Save Vibe</button>
+          </div>
+        </div>
+        <div class="embed-area" id="cocktail-embed"></div>
+        <div class="manual-display" id="cocktail-manual">
+          <div class="manual-tag">Vibe Notes</div>
+          <div id="cocktail-vibe-display" style="font-size:0.95rem; color: #ccc; line-height:1.6;"></div>
+        </div>
+        <div class="saved-pill" id="cocktail-saved">✓ Saved</div>
+      </div>
+    </div>
+
+    <!-- DINNER HOUR -->
+    <div class="music-section playlist-section" id="section-dinner">
+      <div class="section-header">
+        <div>
+          <div class="section-number">05 · Playlist</div>
+          <div class="section-title">Dinner Hour</div>
+        </div>
+        <div class="section-desc">Share a Spotify playlist for your dinner reception, or describe the feel you're going for.</div>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+          <label class="input-label">Step 1 — Search for a playlist or artist vibe</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="dinner-search" placeholder="e.g. R&B dinner, acoustic wedding..." />
+            <button class="btn btn-outline" onclick="searchSpotify('dinner-search', true)">🔍 Search Spotify</button>
+          </div>
+          <div class="search-hint">Find a playlist you love → click ··· → Share → Copy Playlist Link</div>
+        </div>
+        <div class="or-divider"><span class="or-text">then paste the playlist link here</span></div>
+        <div class="input-group">
+          <label class="input-label">Step 2 — Paste Spotify Playlist Link & Embed</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="dinner-link" placeholder="https://open.spotify.com/playlist/..." />
+            <button class="btn btn-green" onclick="embedSpotify('dinner')">Embed</button>
+          </div>
+        </div>
+        <div class="or-divider"><span class="or-text">or just describe your vibe</span></div>
+        <div class="input-group">
+          <label class="input-label">Describe Your Dinner Hour Vibe</label>
+          <div class="input-row">
+            <input type="text" class="text-input" id="dinner-vibe" placeholder="e.g. Neo soul, elegant, background R&B..." />
+            <button class="btn btn-green" onclick="saveVibe('dinner')">Save Vibe</button>
+          </div>
+        </div>
+        <div class="embed-area" id="dinner-embed"></div>
+        <div class="manual-display" id="dinner-manual">
+          <div class="manual-tag">Vibe Notes</div>
+          <div id="dinner-vibe-display" style="font-size:0.95rem; color: #ccc; line-height:1.6;"></div>
+        </div>
+        <div class="saved-pill" id="dinner-saved">✓ Saved</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">Chi Duly <span>Productions</span></div>
+    <div class="footer-note">© 2026 Chi Duly Productions · All rights reserved</div>
+  </footer>
+
+  <script>
+    // ── URL PERSONALIZATION ──
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get('name');
+
+    if (name) {
+      const decoded = decodeURIComponent(name);
+      document.getElementById('hero-tag').textContent = decoded + "'s Spotify Picks";
+      document.getElementById('client-name').textContent = decoded + "'s Mood.";
+      document.getElementById('hero-desc').textContent =
+        "Hey " + decoded + "! Search for your songs using the buttons below — Spotify opens in a new tab, you copy the link, and paste it back to embed a live player right here.";
+      document.title = decoded + "'s Music Selections | Chi Duly Productions";
+    }
+
+    // ── OPEN SPOTIFY SEARCH ──
+    function searchSpotify(inputId, isPlaylist = false) {
+      const query = document.getElementById(inputId).value.trim();
+      if (!query) {
+        document.getElementById(inputId).focus();
+        return;
+      }
+      const type = isPlaylist ? 'playlists' : 'tracks';
+      const url = `https://open.spotify.com/search/${encodeURIComponent(query)}/${type}`;
+      window.open(url, '_blank');
+    }
+
+    // ── EXTRACT SPOTIFY ID ──
+    function extractSpotifyId(url) {
+      const match = url.match(/spotify\.com\/(track|playlist|album)\/([a-zA-Z0-9]+)/);
+      if (match) return { type: match[1], id: match[2] };
+      return null;
+    }
+
+    // ── EMBED SPOTIFY ──
+    function embedSpotify(sectionId) {
+      const linkInput = document.getElementById(sectionId + '-link');
+      const url = linkInput.value.trim();
+      if (!url) {
+        linkInput.focus();
+        return;
+      }
+
+      const extracted = extractSpotifyId(url);
+      if (!extracted) {
+        linkInput.style.borderColor = '#ff4444';
+        linkInput.placeholder = 'Invalid link — make sure it starts with open.spotify.com';
+        setTimeout(() => {
+          linkInput.style.borderColor = '#333';
+          linkInput.placeholder = 'https://open.spotify.com/track/...';
+        }, 3000);
+        return;
+      }
+
+      const isPlaylist = extracted.type === 'playlist';
+      const height = isPlaylist ? '380' : '152';
+      const embedUrl = `https://open.spotify.com/embed/${extracted.type}/${extracted.id}?utm_source=generator&theme=0`;
+      const iframe = `<iframe src="${embedUrl}" width="100%" height="${height}" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+
+      document.getElementById(sectionId + '-embed').innerHTML = iframe;
+
+      // Hide vibe display if showing
+      const manual = document.getElementById(sectionId + '-manual');
+      if (manual) manual.classList.remove('visible');
+
+      document.getElementById(sectionId + '-saved').classList.add('visible');
+    }
+
+    // ── SAVE VIBE ──
+    function saveVibe(sectionId) {
+      const vibe = document.getElementById(sectionId + '-vibe').value.trim();
+      if (!vibe) return;
+      const display = document.getElementById(sectionId + '-vibe-display');
+      if (display) display.textContent = vibe;
+      document.getElementById(sectionId + '-manual').classList.add('visible');
+      document.getElementById(sectionId + '-embed').innerHTML = '';
+      document.getElementById(sectionId + '-saved').classList.add('visible');
+    }
+
+    // ── ENTER KEY SUPPORT ──
+    document.querySelectorAll('.text-input').forEach(input => {
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          const btn = this.closest('.input-row')?.querySelector('.btn');
+          if (btn) btn.click();
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
