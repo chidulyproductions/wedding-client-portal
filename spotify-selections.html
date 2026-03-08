@@ -1311,8 +1311,9 @@
         const song = item.querySelector('.program-song');
         const map = sectionProgramMap[sectionId];
         if (map && moment && moment.textContent.trim() === map.label) {
-          const formattedTitle = '"' + title.toUpperCase() + '"';
-          const formattedArtist = artist ? artist.toUpperCase() : '';
+          const toTitleCase = str => str.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+          const formattedTitle = '"' + toTitleCase(title) + '"';
+          const formattedArtist = artist ? toTitleCase(artist) : '';
           song.textContent = formattedArtist ? formattedArtist + ' · ' + formattedTitle : formattedTitle;
           song.style.color = 'var(--blush)';
         }
