@@ -1311,7 +1311,9 @@
         const song = item.querySelector('.program-song');
         const map = sectionProgramMap[sectionId];
         if (map && moment && moment.textContent.trim() === map.label) {
-          song.textContent = artist ? title + ' · ' + artist : title;
+          const formattedTitle = '"' + title.toUpperCase() + '"';
+          const formattedArtist = artist ? artist.toUpperCase() : '';
+          song.textContent = formattedArtist ? formattedArtist + ' · ' + formattedTitle : formattedTitle;
           song.style.color = 'var(--blush)';
         }
       });
@@ -1333,14 +1335,30 @@
           body: JSON.stringify({ spotifyUrl: url })
         });
         const data = await response.json();
+        console.log('Spotify API response:', JSON.stringify(data));
+        console.log('Section ID:', sectionId);
         if (data.title) {
           updateProgram(sectionId, data.title, data.artist || data.owner || '');
+        } else {
+          console.log('No title found in response');
         }
         return data;
       } catch (err) {
         console.log('Could not fetch Spotify info:', err);
         return null;
       }
+    }
+
+    // ── UPDATE PROGRAM ──  (debug version)
+    function updateProgramDebug(sectionId, title, artist) {
+      const items = document.querySelectorAll('.program-list li');
+      console.log('Program items found:', items.length);
+      items.forEach(item => {
+        const moment = item.querySelector('.program-moment');
+        const song = item.querySelector('.program-song');
+        const map = sectionProgramMap[sectionId];
+        console.log('Checking:', moment?.textContent.trim(), 'vs map label:', map?.label);
+      });
     }
 
     // ── EMBED SPOTIFY ──
