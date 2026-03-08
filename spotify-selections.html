@@ -1292,6 +1292,31 @@
       window.open(url, '_blank');
     }
 
+    // ── SECTION TO PROGRAM MAPPING ──
+    const sectionProgramMap = {
+      'first-dance':       { category: 'special', label: 'First Dance' },
+      'father-daughter':   { category: 'special', label: 'Father / Daughter' },
+      'mother-son':        { category: 'special', label: 'Mother / Son' },
+      'recessional-party': { category: 'ceremony', label: 'Wedding Party Walk' },
+      'party-entrance':    { category: 'introductions', label: 'Wedding Party Entrance' },
+      'grand-entrance':    { category: 'introductions', label: 'Grand Entrance' },
+      'guest-seating':     { category: 'ceremony', label: 'Guest Seating' },
+    };
+
+    // ── UPDATE PROGRAM ──
+    function updateProgram(sectionId, title, artist) {
+      const items = document.querySelectorAll('.program-list li');
+      items.forEach(item => {
+        const moment = item.querySelector('.program-moment');
+        const song = item.querySelector('.program-song');
+        const map = sectionProgramMap[sectionId];
+        if (map && moment && moment.textContent.trim() === map.label) {
+          song.textContent = artist ? title + ' · ' + artist : title;
+          song.style.color = 'var(--blush)';
+        }
+      });
+    }
+
     // ── EXTRACT SPOTIFY ID ──
     function extractSpotifyId(url) {
       const match = url.match(/spotify\.com\/(track|playlist|album)\/([a-zA-Z0-9]+)/);
@@ -1299,8 +1324,25 @@
       return null;
     }
 
+    // ── FETCH SPOTIFY INFO FROM NETLIFY FUNCTION ──
+    async function fetchSpotifyInfo(url, sectionId) {
+      try {
+        const response = await fetch('/.netlify/functions/spotify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ spotifyUrl: url })
+        });
+        const data = await response.json();
+        if (data.title) {
+          updateProgram(sectionId, data.title, data.artist || data.owner || '');
+        }
+      } catch (err) {
+        console.log('Could not fetch Spotify info:', err);
+      }
+    }
+
     // ── EMBED SPOTIFY ──
-    function embedSpotify(sectionId) {
+    async function embedSpotify(sectionId) {
       const linkInput = document.getElementById(sectionId + '-link');
       const url = linkInput.value.trim();
       if (!url) {
@@ -1331,6 +1373,9 @@
       if (manual) manual.classList.remove('visible');
 
       document.getElementById(sectionId + '-saved').classList.add('visible');
+
+      // Fetch song info and update program
+      await fetchSpotifyInfo(url, sectionId);
     }
 
     // ── SAVE VIBE ──
