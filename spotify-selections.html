@@ -1402,7 +1402,10 @@
 
       // Save to Supabase (only when user clicks, not on load)
       if (!silent) {
-        await saveSelection(sectionId, url, info?.title || null, info?.artist || null);
+        // If Spotify API failed, extract a fallback title from the URL
+        const fallbackTitle = info?.title || extracted.id;
+        const fallbackArtist = info?.artist || info?.owner || null;
+        await saveSelection(sectionId, url, fallbackTitle, fallbackArtist);
       }
     }
 
@@ -1507,12 +1510,11 @@
             if (linkInput) {
               linkInput.value = row.spotify_url;
               embedSpotify(sid, true);
+              // Use stored song info directly - no re-fetch needed
+              if (row.song_title) {
+                updateProgram(sid, row.song_title, row.artist || '');
+              }
             }
-          }
-
-          // Update program if we have song info
-          if (row.song_title) {
-            updateProgram(sid, row.song_title, row.artist || '');
           }
         });
 
