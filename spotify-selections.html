@@ -1336,28 +1336,32 @@
         if (data.title) {
           updateProgram(sectionId, data.title, data.artist || data.owner || '');
         }
+        return data;
       } catch (err) {
         console.log('Could not fetch Spotify info:', err);
+        return null;
       }
     }
 
     // ── EMBED SPOTIFY ──
-    async function embedSpotify(sectionId) {
+    async function embedSpotify(sectionId, silent = false) {
       const linkInput = document.getElementById(sectionId + '-link');
       const url = linkInput.value.trim();
       if (!url) {
-        linkInput.focus();
+        if (!silent) linkInput.focus();
         return;
       }
 
       const extracted = extractSpotifyId(url);
       if (!extracted) {
-        linkInput.style.borderColor = '#ff4444';
-        linkInput.placeholder = 'Invalid link — make sure it starts with open.spotify.com';
-        setTimeout(() => {
-          linkInput.style.borderColor = '#333';
-          linkInput.placeholder = 'https://open.spotify.com/track/...';
-        }, 3000);
+        if (!silent) {
+          linkInput.style.borderColor = '#ff4444';
+          linkInput.placeholder = 'Invalid link — make sure it starts with open.spotify.com';
+          setTimeout(() => {
+            linkInput.style.borderColor = '#333';
+            linkInput.placeholder = 'https://open.spotify.com/track/...';
+          }, 3000);
+        }
         return;
       }
 
@@ -1375,18 +1379,26 @@
       document.getElementById(sectionId + '-saved').classList.add('visible');
 
       // Fetch song info and update program
-      await fetchSpotifyInfo(url, sectionId);
+      const info = await fetchSpotifyInfo(url, sectionId);
+
+      // Save to Supabase (only when user clicks, not on load)
+      if (!silent) {
+        await saveSelection(sectionId, url, info?.title || null, info?.artist || null);
+      }
     }
 
     // ── SAVE VIBE ──
-    function saveVibe(sectionId) {
-      const vibe = document.getElementById(sectionId + '-vibe').value.trim();
+    function saveVibe(sectionId, silent = false) {
+      const vibeInput = document.getElementById(sectionId + '-vibe');
+      if (!vibeInput) return;
+      const vibe = vibeInput.value.trim();
       if (!vibe) return;
       const display = document.getElementById(sectionId + '-vibe-display');
       if (display) display.textContent = vibe;
       document.getElementById(sectionId + '-manual').classList.add('visible');
       document.getElementById(sectionId + '-embed').innerHTML = '';
       document.getElementById(sectionId + '-saved').classList.add('visible');
+      if (!silent) saveNotes(sectionId, vibe);
     }
 
 
@@ -1400,6 +1412,99 @@
       document.getElementById('section-' + sectionId).classList.remove('removed');
       document.getElementById('undo-' + sectionId).classList.remove('visible');
     }
+
+    // ── CLIENT KEY ──
+    function getClientKey() {
+      const params = new URLSearchParams(window.location.search);
+      const name = params.get('name') || 'default';
+      const date = params.get('date') || 'nodate';
+      return (name + '-' + date).toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    }
+
+    // ── SAVE SELECTION TO SUPABASE ──
+    async function saveSelection(sectionId, spotifyUrl, songTitle, artist) {
+      try {
+        await fetch('/.netlify/functions/save-selection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clientKey: getClientKey(),
+            sectionId,
+            spotifyUrl: spotifyUrl || null,
+            songTitle: songTitle || null,
+            artist: artist || null
+          })
+        });
+      } catch (err) {
+        console.log('Save error:', err);
+      }
+    }
+
+    // ── SAVE NOTES TO SUPABASE ──
+    async function saveNotes(sectionId, notes) {
+      try {
+        await fetch('/.netlify/functions/save-selection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clientKey: getClientKey(),
+            sectionId: sectionId + '-notes',
+            notes
+          })
+        });
+      } catch (err) {
+        console.log('Save notes error:', err);
+      }
+    }
+
+    // ── LOAD ALL SELECTIONS ON PAGE LOAD ──
+    async function loadSelections() {
+      try {
+        const clientKey = getClientKey();
+        const response = await fetch(`/.netlify/functions/load-selections?clientKey=${encodeURIComponent(clientKey)}`);
+        const data = await response.json();
+
+        if (!Array.isArray(data)) return;
+
+        data.forEach(row => {
+          const sid = row.section_id;
+
+          // Handle notes
+          if (sid.endsWith('-notes')) {
+            const baseSid = sid.replace('-notes', '');
+            const vibeInput = document.getElementById(baseSid + '-vibe');
+            if (vibeInput && row.notes) {
+              vibeInput.value = row.notes;
+              saveVibe(baseSid, true);
+            }
+            const notesInput = document.getElementById(baseSid + '-notes');
+            if (notesInput && row.notes) notesInput.value = row.notes;
+            return;
+          }
+
+          // Handle spotify links
+          if (row.spotify_url) {
+            const linkInput = document.getElementById(sid + '-link');
+            if (linkInput) {
+              linkInput.value = row.spotify_url;
+              embedSpotify(sid, true);
+            }
+          }
+
+          // Update program if we have song info
+          if (row.song_title) {
+            updateProgram(sid, row.song_title, row.artist || '');
+          }
+        });
+
+      } catch (err) {
+        console.log('Load error:', err);
+      }
+    }
+
+    // Load on page start
+    window.addEventListener('DOMContentLoaded', loadSelections);
+
     // ── ENTER KEY SUPPORT ──
     document.querySelectorAll('.text-input').forEach(input => {
       input.addEventListener('keydown', function(e) {
