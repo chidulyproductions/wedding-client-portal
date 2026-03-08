@@ -9,15 +9,15 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --black: #0e0e0f;
-      --white: #f0ece6;
-      --accent: #c9a96e;
+      --black: #f5f0ea;
+      --white: #1a1218;
+      --accent: #a07840;
       --green: var(--accent);
-      --mid: #181618;
-      --card: #131214;
+      --mid: #ede8e2;
+      --card: #faf6f1;
       --gray: #7a7275;
-      --border: #2e2a2e;
-      --blush: #c4899a;
+      --border: #ddd8d2;
+      --blush: #b06878;
     }
 
     html { scroll-behavior: smooth; }
@@ -38,7 +38,7 @@
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
       pointer-events: none;
       z-index: 0;
-      opacity: 0.4;
+      opacity: 0.15;
     }
 
     /* ── HEADER ── */
@@ -46,7 +46,7 @@
       position: relative;
       z-index: 10;
       padding: 0 5vw;
-      border-bottom: 1px solid #222;
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -61,7 +61,7 @@
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--gray);
-      border: 1px solid #3a3040;
+      border: 1px solid var(--border);
       padding: 4px 12px;
       border-radius: 100px;
     }
@@ -125,7 +125,7 @@
     .steps-inline {
       display: flex;
       gap: 0;
-      background: #111;
+      background: #ede8e2;
       border: 1px solid var(--border);
       border-radius: 4px;
       overflow: hidden;
@@ -168,7 +168,7 @@
     /* ── DIVIDER ── */
     .divider {
       border: none;
-      border-top: 1px solid #222;
+      border-top: 1px solid var(--border);
       margin: 40px 5vw;
     }
 
@@ -221,7 +221,7 @@
       margin-bottom: 4px;
     }
 
-    .playlist-section .section-number { color: #0e0e0f; background: #ffffff; padding: 2px 10px; display: inline-block; letter-spacing: 0.2em; }
+    .playlist-section .section-number { color: #faf6f1; background: #1a1218; padding: 2px 10px; display: inline-block; letter-spacing: 0.2em; }
 
     .section-title {
       font-family: 'Bodoni Moda', serif;
@@ -256,8 +256,8 @@
 
     .text-input {
       flex: 1;
-      background: #0f0f0f;
-      border: 1px solid #333;
+      background: #ffffff;
+      border: 1px solid #ccc8c2;
       border-radius: 3px;
       padding: 12px 16px;
       color: var(--white);
@@ -273,7 +273,7 @@
 
     .btn {
       background: var(--accent);
-      color: #1a1218;
+      color: #ffffff;
       border: none;
       border-radius: 3px;
       padding: 12px 20px;
@@ -333,14 +333,14 @@
       content: '';
       flex: 1;
       height: 1px;
-      background: #2a2a2a;
+      background: var(--border);
     }
 
     .or-text {
       font-size: 0.7rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: #444;
+      color: #999;
     }
 
     /* ── EMBED AREA ── */
@@ -360,8 +360,8 @@
     /* ── MANUAL DISPLAY ── */
     .manual-display {
       display: none;
-      background: #0f0f0f;
-      border: 1px solid #333;
+      background: #ffffff;
+      border: 1px solid #ccc8c2;
       border-radius: 3px;
       padding: 20px 24px;
       margin-top: 20px;
@@ -424,7 +424,7 @@
 
     .undo-bar {
       display: none;
-      background: #111;
+      background: #ede8e2;
       border: 1px solid #2a2a2a;
       border-radius: 4px;
       padding: 14px 20px;
@@ -457,11 +457,145 @@
     }
 
     .music-section.removed { display: none; }
+
+    /* ── WEDDING PROGRAM ── */
+    .program-wrapper {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+      padding: 80px 5vw 60px;
+    }
+
+    .program {
+      width: 100%;
+      max-width: 560px;
+      text-align: center;
+      font-family: 'Bodoni Moda', serif;
+    }
+
+    .program-header {
+      margin-bottom: 40px;
+    }
+
+    .program-couple {
+      font-family: 'Bodoni Moda', serif;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 400;
+      font-style: italic;
+      color: var(--blush);
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .program-title {
+      font-family: 'Bodoni Moda', serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .program-date {
+      font-family: 'Raleway', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 28px;
+    }
+
+    .program-rule {
+      width: 100%;
+      height: 1px;
+      background: var(--white);
+      opacity: 0.3;
+      margin: 0 auto;
+    }
+
+    .program-rule-thin {
+      width: 40px;
+      height: 1px;
+      background: var(--accent);
+      margin: 24px auto;
+      opacity: 0.6;
+    }
+
+    .program-section {
+      padding: 24px 0 0;
+      margin-bottom: 4px;
+    }
+
+    .program-category {
+      font-family: 'Bodoni Moda', serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3em;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .program-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .program-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      font-size: 0.9rem;
+    }
+
+    .program-list li::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px dotted var(--border);
+      margin: 0 8px;
+      position: relative;
+      top: -3px;
+    }
+
+    .program-moment {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 400;
+      color: var(--white);
+      white-space: nowrap;
+    }
+
+    .program-song {
+      font-family: 'Bodoni Moda', serif;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--gray);
+      white-space: nowrap;
+      font-size: 0.85rem;
+    }
+
+    .program-footer {
+      font-family: 'Raleway', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-top: 28px;
+      opacity: 0.6;
+    }
+
     /* ── FOOTER ── */
     footer {
       position: relative;
       z-index: 1;
-      border-top: 1px solid #1a1a1a;
+      border-top: 1px solid var(--border);
       padding: 32px 5vw;
       display: flex;
       align-items: center;
@@ -474,10 +608,10 @@
       font-family: 'Bodoni Moda', serif;
       font-size: 1.2rem;
       letter-spacing: 0.12em;
-      color: #444;
+      color: #999;
     }
 
-    .footer-logo span { color: #555; }
+    .footer-logo span { color: #aaa; }
     .footer-note { font-size: 0.75rem; color: #444; letter-spacing: 0.05em; }
 
     /* ── ANIMATIONS ── */
@@ -516,9 +650,74 @@
   </header>
 
   <!-- HERO -->
+
+
+
+  <!-- WEDDING PROGRAM -->
+  <div class="program-wrapper">
+
+    <div class="program">
+      <div class="program-header">
+        <div class="program-couple" id="program-couple">Sierra &amp; Thad</div>
+        <h2 class="program-title">Wedding Music Program</h2>
+        <div class="program-date" id="program-date">June 6, 2026</div>
+        <div class="program-rule"></div>
+      </div>
+
+      <div class="program-section">
+        <div class="program-category">Ceremony</div>
+        <ul class="program-list">
+          <li><span class="program-moment">Guest Seating</span><span class="program-song">— —</span></li>
+          <li><span class="program-moment">Wedding Party Walk</span><span class="program-song">— —</span></li>
+          <li><span class="program-moment">Bride Walk</span><span class="program-song">— —</span></li>
+          <li><span class="program-moment">The Kiss</span><span class="program-song">— —</span></li>
+        </ul>
+      </div>
+
+      <div class="program-rule-thin"></div>
+
+      <div class="program-section">
+        <div class="program-category">Introductions</div>
+        <ul class="program-list">
+          <li><span class="program-moment">Wedding Party Entrance</span><span class="program-song">— —</span></li>
+          <li><span class="program-moment">Grand Entrance</span><span class="program-song">— —</span></li>
+        </ul>
+      </div>
+
+      <div class="program-rule-thin"></div>
+
+      <div class="program-section">
+        <div class="program-category">Special Dances</div>
+        <ul class="program-list">
+          <li><span class="program-moment">First Dance</span><span class="program-song">— —</span></li>
+          <li><span class="program-moment">Father / Daughter</span><span class="program-song">— —</span></li>
+          <li><span class="program-moment">Mother / Son</span><span class="program-song">— —</span></li>
+        </ul>
+      </div>
+
+      <div class="program-rule-thin"></div>
+
+      <div class="program-section">
+        <div class="program-category">Additional</div>
+        <ul class="program-list">
+          <li><span class="program-moment">Cake Cutting</span><span class="program-song">— —</span></li>
+          <li><span class="program-moment">Bouquet Toss</span><span class="program-song">— —</span></li>
+        </ul>
+      </div>
+
+      <div class="program-rule"></div>
+      <div class="program-footer">Chi Duly Productions</div>
+    </div>
+
+  </div>
+
+  <hr class="divider" />
+
+  <hr class="divider" />
+
   <section class="hero">
     <p class="hero-tag" id="hero-tag">Your Spotify Picks</p>
-    <h1><span style="color: #ffffff;">Setting The</span> <em id="client-name">Mood.</em></h1>
+    <h1><span style="color: #1a1218;">The</span> <em id="client-name">Details.</em></h1>
     <p class="hero-desc" id="hero-desc">
       Copy your song and playlist links below. If you need help finding the links, a search function is featured as well. Need inspiration? Scroll down for Chi Duly's sample playlists.
     </p>
@@ -556,7 +755,7 @@
 
   </div>
 
-  <hr class="divider" />
+
 
   <!-- SECTIONS -->
   <div class="sections">
@@ -572,7 +771,7 @@
       </div>
       <div class="section-body">
         <div class="input-group">
-          <label class="input-label" style="color: #ffffff; font-weight: 500;">Spotify Link</label>
+          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
           <div class="input-row">
             <input type="text" class="text-input" id="first-dance-link" placeholder="https://open.spotify.com/track/..." />
             <button class="btn" onclick="embedSpotify('first-dance')">upload</button>
@@ -607,7 +806,7 @@
       </div>
       <div class="section-body">
         <div class="input-group">
-          <label class="input-label" style="color: #ffffff; font-weight: 500;">Spotify Link</label>
+          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
           <div class="input-row">
             <input type="text" class="text-input" id="father-daughter-link" placeholder="https://open.spotify.com/track/..." />
             <button class="btn" onclick="embedSpotify('father-daughter')">upload</button>
@@ -642,7 +841,7 @@
       </div>
       <div class="section-body">
         <div class="input-group">
-          <label class="input-label" style="color: #ffffff; font-weight: 500;">Spotify Link</label>
+          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
           <div class="input-row">
             <input type="text" class="text-input" id="mother-son-link" placeholder="https://open.spotify.com/track/..." />
             <button class="btn" onclick="embedSpotify('mother-son')">upload</button>
@@ -678,7 +877,7 @@
       </div>
       <div class="section-body">
         <div class="input-group">
-          <label class="input-label" style="color: #ffffff; font-weight: 500;">Spotify Link</label>
+          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
           <div class="input-row">
             <input type="text" class="text-input" id="recessional-party-link" placeholder="https://open.spotify.com/track/..." />
             <button class="btn" onclick="embedSpotify('recessional-party')">upload</button>
@@ -713,7 +912,7 @@
       </div>
       <div class="section-body">
         <div class="input-group">
-          <label class="input-label" style="color: #ffffff; font-weight: 500;">Spotify Link</label>
+          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
           <div class="input-row">
             <input type="text" class="text-input" id="party-entrance-link" placeholder="https://open.spotify.com/track/..." />
             <button class="btn" onclick="embedSpotify('party-entrance')">upload</button>
@@ -748,7 +947,7 @@
       </div>
       <div class="section-body">
         <div class="input-group">
-          <label class="input-label" style="color: #ffffff; font-weight: 500;">Spotify Link</label>
+          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
           <div class="input-row">
             <input type="text" class="text-input" id="grand-entrance-link" placeholder="https://open.spotify.com/track/..." />
             <button class="btn" onclick="embedSpotify('grand-entrance')">upload</button>
@@ -783,7 +982,7 @@
       </div>
       <div class="section-body">
         <div class="input-group">
-          <label class="input-label" style="color: #ffffff; font-weight: 500;">Spotify Link</label>
+          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
           <div class="input-row">
             <input type="text" class="text-input" id="guest-seating-link" placeholder="https://open.spotify.com/playlist/..." />
             <button class="btn btn-green" onclick="embedSpotify('guest-seating')">upload</button>
@@ -834,7 +1033,7 @@
       </div>
       <div class="section-body">
         <div class="input-group">
-          <label class="input-label" style="color: #ffffff; font-weight: 500;">Spotify Link</label>
+          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
           <div class="input-row">
             <input type="text" class="text-input" id="cocktail-link" placeholder="https://open.spotify.com/playlist/..." />
             <button class="btn btn-green" onclick="embedSpotify('cocktail')">upload</button>
@@ -885,7 +1084,7 @@
       </div>
       <div class="section-body">
         <div class="input-group">
-          <label class="input-label" style="color: #ffffff; font-weight: 500;">Spotify Link</label>
+          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
           <div class="input-row">
             <input type="text" class="text-input" id="dinner-link" placeholder="https://open.spotify.com/playlist/..." />
             <button class="btn btn-green" onclick="embedSpotify('dinner')">upload</button>
@@ -1075,7 +1274,7 @@
     if (name) {
       const decoded = decodeURIComponent(name);
       document.getElementById('hero-tag').textContent = decoded + "'s Spotify Picks";
-      document.getElementById('client-name').innerHTML = '<span style="color:#ffffff; font-style:normal;">Mood for </span>' + decoded + '.';
+      document.getElementById('client-name').innerHTML = '<span style="color:#1a1218; font-style:normal;">Details for </span>' + decoded + '.';
       document.getElementById('hero-desc').textContent =
         "Hey " + decoded + "! Copy your song and playlist links below. If you need help finding the links, a search function is featured as well. Need inspiration? Scroll down for Chi Duly's sample playlists.";
       document.title = decoded + "'s Music Selections | Chi Duly Productions";
