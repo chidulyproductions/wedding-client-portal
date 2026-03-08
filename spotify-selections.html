@@ -545,24 +545,19 @@
       margin: 0;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 14px;
     }
 
     .program-list li {
       display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 12px;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
       font-size: 0.9rem;
     }
 
     .program-list li::after {
-      content: '';
-      flex: 1;
-      border-bottom: 1px dotted var(--border);
-      margin: 0 8px;
-      position: relative;
-      top: -3px;
+      display: none;
     }
 
     .program-moment {
@@ -570,6 +565,7 @@
       font-weight: 400;
       color: var(--white);
       white-space: nowrap;
+      text-align: center;
     }
 
     .program-song {
@@ -579,6 +575,7 @@
       color: var(--gray);
       white-space: nowrap;
       font-size: 0.85rem;
+      text-align: center;
     }
 
     .program-footer {
