@@ -1295,18 +1295,19 @@
     const name = params.get('name');
     const dateParam = params.get('date');
 
-    if (name) {
-      const decoded = decodeURIComponent(name);
-      document.getElementById('hero-tag').textContent = decoded + "'s Spotify Picks";
-      document.getElementById('client-name').innerHTML = '<span style="color:#1a1218; font-style:normal;">Details for </span>' + decoded + '.';
-      document.getElementById('program-couple').textContent = decoded;
-      document.title = decoded + "'s Music Selections | Chi Duly Productions";
-    }
-
-    if (dateParam) {
-      const d = new Date(dateParam + 'T00:00:00');
-      const formatted = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-      document.getElementById('program-date').textContent = formatted;
+    function applyPersonalization() {
+      if (name) {
+        const decoded = decodeURIComponent(name);
+        document.getElementById('hero-tag').textContent = decoded + "'s Spotify Picks";
+        document.getElementById('client-name').innerHTML = '<span style="color:#1a1218; font-style:normal;">Details for </span>' + decoded + '.';
+        document.getElementById('program-couple').textContent = decoded;
+        document.title = decoded + "'s Music Selections | Chi Duly Productions";
+      }
+      if (dateParam) {
+        const d = new Date(dateParam + 'T00:00:00');
+        const formatted = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        document.getElementById('program-date').textContent = formatted;
+      }
     }
 
 
@@ -1682,6 +1683,7 @@
 
     // Load on page start
     window.addEventListener('DOMContentLoaded', () => {
+      applyPersonalization();
       checkLockStatus();
       initMakeSelectionLinks();
       loadSelections();
