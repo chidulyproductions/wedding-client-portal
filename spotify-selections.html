@@ -227,7 +227,7 @@
 
     .text-input:focus { border-color: var(--blush); }
     .playlist-section .text-input:focus { border-color: var(--accent); }
-    .text-input::placeholder { color: #444; }
+    .text-input::placeholder { color: #aaa; font-style: italic; }
 
     .btn {
       background: var(--accent);
@@ -370,18 +370,18 @@
 
     /* ── REMOVE BUTTON ── */
     .remove-btn {
-      font-size: 0.65rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: #555;
-      border: 1px solid #333;
-      background: transparent;
-      padding: 4px 12px;
-      border-radius: 100px;
+      background: none;
+      border: none;
       cursor: pointer;
-      transition: color 0.2s, border-color 0.2s;
-      font-family: 'Raleway', sans-serif;
+      font-size: 1rem;
+      opacity: 0.3;
+      transition: opacity 0.2s;
+      padding: 4px;
+      line-height: 1;
+      flex-shrink: 0;
     }
+
+    .remove-btn:hover { opacity: 0.8; }
 
     .remove-btn:hover {
       color: #ff4444;
@@ -728,21 +728,19 @@
           <div class="section-number">Playlist Link</div>
           <div class="section-title">GUEST SEATING</div>
         </div>
-        <button class="remove-btn" onclick="removeSection('guest-seating')" id="remove-guest-seating">Remove Section</button>
+        <button class="remove-btn" onclick="removeSection('guest-seating')" id="remove-guest-seating" title="Remove section">🗑</button>
       </div>
       <div class="section-body">
         <div class="input-group">
                     <div class="input-row">
-            <input type="text" class="text-input" id="guest-seating-link" placeholder="Playlist link here" />
+            <input type="text" class="text-input" id="guest-seating-link" placeholder="Playlist link here..." />
             <button class="btn" onclick="embedSpotify('guest-seating')">upload</button>
           </div>
         </div>
-        <div class="input-group" style="margin-top:12px;">
-        </div>
+        <div class="embed-area" id="guest-seating-embed"></div>
         <div class="input-group" style="margin-top:12px;">
           <textarea class="text-input" id="guest-seating-notes" placeholder="Notes for Chi Duly..." style="height:80px; resize:vertical;"></textarea>
         </div>
-        <div class="embed-area" id="guest-seating-embed"></div>
         <div class="saved-pill" id="guest-seating-saved">✓ Saved</div>
         <button class="clear-btn" id="guest-seating-clear" onclick="clearSelection('guest-seating')">✕ Clear Selection</button>
       </div>
@@ -760,12 +758,12 @@
           <div class="section-number">Song Link</div>
           <div class="section-title">WEDDING PARTY WALK</div>
         </div>
-        <button class="remove-btn" onclick="removeSection('recessional-party')" id="remove-recessional-party">Remove Section</button>
+        <button class="remove-btn" onclick="removeSection('recessional-party')" id="remove-recessional-party" title="Remove section">🗑</button>
       </div>
       <div class="section-body">
         <div class="input-group">
                     <div class="input-row">
-            <input type="text" class="text-input" id="recessional-party-link" placeholder="Song link here" />
+            <input type="text" class="text-input" id="recessional-party-link" placeholder="Song link here..." />
             <button class="btn" onclick="embedSpotify('recessional-party')">upload</button>
           </div>
         </div>
@@ -787,12 +785,12 @@
           <div class="section-number">Song Link</div>
           <div class="section-title">BRIDE WALK</div>
         </div>
-        <button class="remove-btn" onclick="removeSection('bride-walk')" id="remove-bride-walk">Remove Section</button>
+        <button class="remove-btn" onclick="removeSection('bride-walk')" id="remove-bride-walk" title="Remove section">🗑</button>
       </div>
       <div class="section-body">
         <div class="input-group">
                     <div class="input-row">
-            <input type="text" class="text-input" id="bride-walk-link" placeholder="Song link here" />
+            <input type="text" class="text-input" id="bride-walk-link" placeholder="Song link here..." />
             <button class="btn" onclick="embedSpotify('bride-walk')">upload</button>
           </div>
         </div>
@@ -814,12 +812,12 @@
           <div class="section-number">Song Link</div>
           <div class="section-title">THE KISS</div>
         </div>
-        <button class="remove-btn" onclick="removeSection('the-kiss')" id="remove-the-kiss">Remove Section</button>
+        <button class="remove-btn" onclick="removeSection('the-kiss')" id="remove-the-kiss" title="Remove section">🗑</button>
       </div>
       <div class="section-body">
         <div class="input-group">
                     <div class="input-row">
-            <input type="text" class="text-input" id="the-kiss-link" placeholder="Song link here" />
+            <input type="text" class="text-input" id="the-kiss-link" placeholder="Song link here..." />
             <button class="btn" onclick="embedSpotify('the-kiss')">upload</button>
           </div>
         </div>
@@ -841,12 +839,12 @@
           <div class="section-number">Song Link</div>
           <div class="section-title">WEDDING PARTY ENTRANCE (RECEPTION)</div>
         </div>
-        <button class="remove-btn" onclick="removeSection('party-entrance')" id="remove-party-entrance">Remove Section</button>
+        <button class="remove-btn" onclick="removeSection('party-entrance')" id="remove-party-entrance" title="Remove section">🗑</button>
       </div>
       <div class="section-body">
         <div class="input-group">
                     <div class="input-row">
-            <input type="text" class="text-input" id="party-entrance-link" placeholder="Song link here" />
+            <input type="text" class="text-input" id="party-entrance-link" placeholder="Song link here..." />
             <button class="btn" onclick="embedSpotify('party-entrance')">upload</button>
           </div>
         </div>
@@ -868,12 +866,12 @@
           <div class="section-number">Song Link</div>
           <div class="section-title">GRAND ENTRANCE (RECEPTION)</div>
         </div>
-        <button class="remove-btn" onclick="removeSection('grand-entrance')" id="remove-grand-entrance">Remove Section</button>
+        <button class="remove-btn" onclick="removeSection('grand-entrance')" id="remove-grand-entrance" title="Remove section">🗑</button>
       </div>
       <div class="section-body">
         <div class="input-group">
                     <div class="input-row">
-            <input type="text" class="text-input" id="grand-entrance-link" placeholder="Song link here" />
+            <input type="text" class="text-input" id="grand-entrance-link" placeholder="Song link here..." />
             <button class="btn" onclick="embedSpotify('grand-entrance')">upload</button>
           </div>
         </div>
@@ -895,12 +893,12 @@
           <div class="section-number">Song Link</div>
           <div class="section-title">FIRST DANCE</div>
         </div>
-        <button class="remove-btn" onclick="removeSection('first-dance')" id="remove-first-dance">Remove Section</button>
+        <button class="remove-btn" onclick="removeSection('first-dance')" id="remove-first-dance" title="Remove section">🗑</button>
       </div>
       <div class="section-body">
         <div class="input-group">
                     <div class="input-row">
-            <input type="text" class="text-input" id="first-dance-link" placeholder="Song link here" />
+            <input type="text" class="text-input" id="first-dance-link" placeholder="Song link here..." />
             <button class="btn" onclick="embedSpotify('first-dance')">upload</button>
           </div>
         </div>
@@ -923,12 +921,12 @@
           <div class="section-number">Song Link</div>
           <div class="section-title">FATHER / DAUGHTER</div>
         </div>
-        <button class="remove-btn" onclick="removeSection('father-daughter')" id="remove-father-daughter">Remove Section</button>
+        <button class="remove-btn" onclick="removeSection('father-daughter')" id="remove-father-daughter" title="Remove section">🗑</button>
       </div>
       <div class="section-body">
         <div class="input-group">
                     <div class="input-row">
-            <input type="text" class="text-input" id="father-daughter-link" placeholder="Song link here" />
+            <input type="text" class="text-input" id="father-daughter-link" placeholder="Song link here..." />
             <button class="btn" onclick="embedSpotify('father-daughter')">upload</button>
           </div>
         </div>
@@ -951,12 +949,12 @@
           <div class="section-number">Song Link</div>
           <div class="section-title">MOTHER / SON</div>
         </div>
-        <button class="remove-btn" onclick="removeSection('mother-son')" id="remove-mother-son">Remove Section</button>
+        <button class="remove-btn" onclick="removeSection('mother-son')" id="remove-mother-son" title="Remove section">🗑</button>
       </div>
       <div class="section-body">
         <div class="input-group">
                     <div class="input-row">
-            <input type="text" class="text-input" id="mother-son-link" placeholder="Song link here" />
+            <input type="text" class="text-input" id="mother-son-link" placeholder="Song link here..." />
             <button class="btn" onclick="embedSpotify('mother-son')">upload</button>
           </div>
         </div>
@@ -979,12 +977,12 @@
           <div class="section-number">Song Link</div>
           <div class="section-title">CAKE CUTTING</div>
         </div>
-        <button class="remove-btn" onclick="removeSection('cake-cutting')" id="remove-cake-cutting">Remove Section</button>
+        <button class="remove-btn" onclick="removeSection('cake-cutting')" id="remove-cake-cutting" title="Remove section">🗑</button>
       </div>
       <div class="section-body">
         <div class="input-group">
                     <div class="input-row">
-            <input type="text" class="text-input" id="cake-cutting-link" placeholder="Song link here" />
+            <input type="text" class="text-input" id="cake-cutting-link" placeholder="Song link here..." />
             <button class="btn" onclick="embedSpotify('cake-cutting')">upload</button>
           </div>
         </div>
@@ -1006,12 +1004,12 @@
           <div class="section-number">Song Link</div>
           <div class="section-title">BOUQUET TOSS</div>
         </div>
-        <button class="remove-btn" onclick="removeSection('bouquet-toss')" id="remove-bouquet-toss">Remove Section</button>
+        <button class="remove-btn" onclick="removeSection('bouquet-toss')" id="remove-bouquet-toss" title="Remove section">🗑</button>
       </div>
       <div class="section-body">
         <div class="input-group">
                     <div class="input-row">
-            <input type="text" class="text-input" id="bouquet-toss-link" placeholder="Song link here" />
+            <input type="text" class="text-input" id="bouquet-toss-link" placeholder="Song link here..." />
             <button class="btn" onclick="embedSpotify('bouquet-toss')">upload</button>
           </div>
         </div>
@@ -1033,21 +1031,19 @@
           <div class="section-number">Playlist Link</div>
           <div class="section-title">COCKTAIL HOUR</div>
         </div>
-        <button class="remove-btn" onclick="removeSection('cocktail')" id="remove-cocktail">Remove Section</button>
+        <button class="remove-btn" onclick="removeSection('cocktail')" id="remove-cocktail" title="Remove section">🗑</button>
       </div>
       <div class="section-body">
         <div class="input-group">
                     <div class="input-row">
-            <input type="text" class="text-input" id="cocktail-link" placeholder="Playlist link here" />
+            <input type="text" class="text-input" id="cocktail-link" placeholder="Playlist link here..." />
             <button class="btn" onclick="embedSpotify('cocktail')">upload</button>
           </div>
         </div>
-        <div class="input-group" style="margin-top:12px;">
-        </div>
+        <div class="embed-area" id="cocktail-embed"></div>
         <div class="input-group" style="margin-top:12px;">
           <textarea class="text-input" id="cocktail-notes" placeholder="Notes for Chi Duly..." style="height:80px; resize:vertical;"></textarea>
         </div>
-        <div class="embed-area" id="cocktail-embed"></div>
         <div class="saved-pill" id="cocktail-saved">✓ Saved</div>
         <button class="clear-btn" id="cocktail-clear" onclick="clearSelection('cocktail')">✕ Clear Selection</button>
       </div>
@@ -1065,21 +1061,19 @@
           <div class="section-number">Playlist Link</div>
           <div class="section-title">DINNER HOUR</div>
         </div>
-        <button class="remove-btn" onclick="removeSection('dinner')" id="remove-dinner">Remove Section</button>
+        <button class="remove-btn" onclick="removeSection('dinner')" id="remove-dinner" title="Remove section">🗑</button>
       </div>
       <div class="section-body">
         <div class="input-group">
                     <div class="input-row">
-            <input type="text" class="text-input" id="dinner-link" placeholder="Playlist link here" />
+            <input type="text" class="text-input" id="dinner-link" placeholder="Playlist link here..." />
             <button class="btn" onclick="embedSpotify('dinner')">upload</button>
           </div>
         </div>
-        <div class="input-group" style="margin-top:12px;">
-        </div>
+        <div class="embed-area" id="dinner-embed"></div>
         <div class="input-group" style="margin-top:12px;">
           <textarea class="text-input" id="dinner-notes" placeholder="Notes for Chi Duly..." style="height:80px; resize:vertical;"></textarea>
         </div>
-        <div class="embed-area" id="dinner-embed"></div>
         <div class="saved-pill" id="dinner-saved">✓ Saved</div>
         <button class="clear-btn" id="dinner-clear" onclick="clearSelection('dinner')">✕ Clear Selection</button>
       </div>
