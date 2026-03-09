@@ -1694,4 +1694,14 @@
 
     // ── ENTER KEY SUPPORT ──
     document.querySelectorAll('.text-input').forEach(input => {
-      inpu
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          const btn = this.closest('.input-row')?.querySelector('.btn');
+          if (btn) btn.click();
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
