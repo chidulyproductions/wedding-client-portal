@@ -1443,7 +1443,7 @@
           const isPlaylist = spotifyUrl && spotifyUrl.includes('/playlist/');
           let displayText;
           if (isPlaylist) {
-            displayText = 'Playlist: ' + formattedTitle;
+            displayText = formattedTitle + ' [PLAYLIST]';
           } else {
             displayText = formattedArtist ? formattedArtist + ' · ' + formattedTitle : formattedTitle;
           }
