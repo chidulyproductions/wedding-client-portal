@@ -558,6 +558,23 @@
       text-align: center;
     }
 
+    .program-make-selection {
+      font-family: 'Raleway', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-decoration: none;
+      opacity: 0.6;
+      border-bottom: 1px dashed var(--accent);
+      transition: opacity 0.2s;
+    }
+
+    .program-make-selection:hover {
+      opacity: 1;
+    }
+
     .program-song-link {
       color: inherit;
       text-decoration: none;
@@ -1286,6 +1303,23 @@
       'bouquet-toss':      { category: 'additional', label: 'Bouquet Toss' },
     };
 
+    // ── INIT MAKE SELECTION LINKS ──
+    function initMakeSelectionLinks() {
+      const items = document.querySelectorAll('.program-list li');
+      items.forEach(item => {
+        const moment = item.querySelector('.program-moment');
+        const song = item.querySelector('.program-song');
+        if (!moment || !song) return;
+        const label = moment.textContent.trim();
+        // Find matching section id
+        const match = Object.entries(sectionProgramMap).find(([, v]) => v.label === label);
+        if (match && song.textContent.trim() === '— —') {
+          const sectionId = match[0];
+          song.innerHTML = '<a href="#section-' + sectionId + '" class="program-make-selection">Make Selection</a>';
+        }
+      });
+    }
+
     // ── UPDATE PROGRAM ──
     function updateProgram(sectionId, title, artist, spotifyUrl) {
       const items = document.querySelectorAll('.program-list li');
@@ -1346,6 +1380,23 @@
         console.log('Could not fetch Spotify info:', err);
         return null;
       }
+    }
+
+    // ── INIT MAKE SELECTION LINKS ──
+    function initMakeSelectionLinks() {
+      const items = document.querySelectorAll('.program-list li');
+      items.forEach(item => {
+        const moment = item.querySelector('.program-moment');
+        const song = item.querySelector('.program-song');
+        if (!moment || !song) return;
+        const label = moment.textContent.trim();
+        // Find matching section id
+        const match = Object.entries(sectionProgramMap).find(([, v]) => v.label === label);
+        if (match && song.textContent.trim() === '— —') {
+          const sectionId = match[0];
+          song.innerHTML = '<a href="#section-' + sectionId + '" class="program-make-selection">Make Selection</a>';
+        }
+      });
     }
 
     // ── UPDATE PROGRAM ──  (debug version)
@@ -1517,7 +1568,10 @@
     }
 
     // Load on page start
-    window.addEventListener('DOMContentLoaded', loadSelections);
+    window.addEventListener('DOMContentLoaded', () => {
+      initMakeSelectionLinks();
+      loadSelections();
+    });
 
     // ── ENTER KEY SUPPORT ──
     document.querySelectorAll('.text-input').forEach(input => {
