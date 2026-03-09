@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Spotify Music Selections | Chi Duly Productions</title>
   <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;0,6..96,900;1,6..96,400;1,6..96,700;1,6..96,900&family=Raleway:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -634,6 +635,14 @@
 </head>
 <body>
 
+  <!-- LOCKED OVERLAY -->
+  <div id="locked-overlay" style="display:none; position:fixed; inset:0; background:rgba(245,240,234,0.97); z-index:9999; display:none; align-items:center; justify-content:center; flex-direction:column; text-align:center; padding:40px; font-family:'Raleway',sans-serif;">
+    <div style="font-family:'Bodoni Moda',serif; font-size:1rem; font-style:italic; color:#a07840; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:16px;">Chi Duly Productions</div>
+    <div style="font-family:'Bodoni Moda',serif; font-size:clamp(2rem,6vw,3.5rem); font-style:italic; color:#1a1218; line-height:1.1; margin-bottom:20px;">Your selections<br>are finalized.</div>
+    <div style="font-size:0.9rem; color:#7a7275; max-width:380px; line-height:1.7;">Your music program has been locked by Chi Duly Productions. If you need to make changes, please reach out directly.</div>
+    <div style="margin-top:32px; font-size:0.75rem; letter-spacing:0.2em; text-transform:uppercase; color:#b06878;">hello@chidulyproductions.com</div>
+  </div>
+
   <!-- HEADER -->
   <header>
     
@@ -1228,6 +1237,26 @@
   </footer>
 
   <script>
+    // ── SUPABASE AUTH + LOCK CHECK ──
+    const SUPABASE_URL = 'https://lfnlftxqdelcrmbceiob.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function checkLockStatus() {
+      try {
+        // Handle magic link token in URL hash
+        const { data: { session } } = await sb.auth.getSession();
+        if (session?.user?.email) {
+          const { data: client } = await sb.from('clients').select('locked').eq('email', session.user.email).single();
+          if (client?.locked) {
+            const overlay = document.getElementById('locked-overlay');
+            overlay.style.display = 'flex';
+            return;
+          }
+        }
+      } catch(e) { /* not logged in via magic link, continue normally */ }
+    }
+
     // ── URL PERSONALIZATION ──
     const params = new URLSearchParams(window.location.search);
     const name = params.get('name');
@@ -1573,6 +1602,7 @@
 
     // Load on page start
     window.addEventListener('DOMContentLoaded', () => {
+      checkLockStatus();
       initMakeSelectionLinks();
       loadSelections();
     });
