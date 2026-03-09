@@ -1443,7 +1443,7 @@
     // ── FETCH SPOTIFY INFO FROM NETLIFY FUNCTION ──
     async function fetchSpotifyInfo(url, sectionId) {
       try {
-        const response = await fetch('/.netlify/functions/spotify', {
+        const response = await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/spotify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ spotifyUrl: url })
@@ -1559,7 +1559,7 @@
     // ── SAVE SELECTION TO SUPABASE ──
     async function saveSelection(sectionId, spotifyUrl, songTitle, artist) {
       try {
-        await fetch('/.netlify/functions/save-selection', {
+        await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/save-selection', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1578,7 +1578,7 @@
     // ── SAVE NOTES TO SUPABASE ──
     async function saveNotes(sectionId, notes) {
       try {
-        await fetch('/.netlify/functions/save-selection', {
+        await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/save-selection', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1596,7 +1596,7 @@
     async function loadSelections() {
       try {
         const clientKey = getClientKey();
-        const response = await fetch(`/.netlify/functions/load-selections?clientKey=${encodeURIComponent(clientKey)}`);
+        const response = await fetch(`https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/load-selections?clientKey=${encodeURIComponent(clientKey)}`);
         const data = await response.json();
 
         if (!Array.isArray(data)) return;
