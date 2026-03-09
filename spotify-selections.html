@@ -369,6 +369,32 @@
     }
 
     /* ── SAVED PILL ── */
+    .clear-btn {
+      background: none;
+      border: none;
+      font-family: 'Raleway', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gray);
+      cursor: pointer;
+      padding: 4px 0;
+      margin-top: 6px;
+      opacity: 0.5;
+      transition: opacity 0.2s, color 0.2s;
+      display: none;
+    }
+
+    .clear-btn.visible {
+      display: inline-block;
+    }
+
+    .clear-btn:hover {
+      opacity: 1;
+      color: var(--blush);
+    }
+
     .saved-pill {
       display: none;
       font-size: 0.65rem;
@@ -787,6 +813,7 @@
         </div>
         <div class="embed-area" id="guest-seating-embed"></div>
         <div class="saved-pill" id="guest-seating-saved">✓ Saved</div>
+        <button class="clear-btn" id="guest-seating-clear" onclick="clearSelection('guest-seating')">✕ Clear Selection</button>
       </div>
     </div>
 
@@ -813,6 +840,7 @@
         </div>
         <div class="embed-area" id="recessional-party-embed"></div>
         <div class="saved-pill" id="recessional-party-saved">✓ Song Saved</div>
+        <button class="clear-btn" id="recessional-party-clear" onclick="clearSelection('recessional-party')">✕ Clear Selection</button>
       </div>
     </div>
 
@@ -839,6 +867,7 @@
         </div>
         <div class="embed-area" id="bride-walk-embed"></div>
         <div class="saved-pill" id="bride-walk-saved">✓ Song Saved</div>
+        <button class="clear-btn" id="bride-walk-clear" onclick="clearSelection('bride-walk')">✕ Clear Selection</button>
       </div>
     </div>
 
@@ -865,6 +894,7 @@
         </div>
         <div class="embed-area" id="the-kiss-embed"></div>
         <div class="saved-pill" id="the-kiss-saved">✓ Song Saved</div>
+        <button class="clear-btn" id="the-kiss-clear" onclick="clearSelection('the-kiss')">✕ Clear Selection</button>
       </div>
     </div>
 
@@ -891,6 +921,7 @@
         </div>
         <div class="embed-area" id="party-entrance-embed"></div>
         <div class="saved-pill" id="party-entrance-saved">✓ Song Saved</div>
+        <button class="clear-btn" id="party-entrance-clear" onclick="clearSelection('party-entrance')">✕ Clear Selection</button>
       </div>
     </div>
 
@@ -917,6 +948,7 @@
         </div>
         <div class="embed-area" id="grand-entrance-embed"></div>
         <div class="saved-pill" id="grand-entrance-saved">✓ Song Saved</div>
+        <button class="clear-btn" id="grand-entrance-clear" onclick="clearSelection('grand-entrance')">✕ Clear Selection</button>
       </div>
     </div>
 
@@ -944,6 +976,7 @@
         
         <div class="embed-area" id="first-dance-embed"></div>
         <div class="saved-pill" id="first-dance-saved">✓ Song Saved</div>
+        <button class="clear-btn" id="first-dance-clear" onclick="clearSelection('first-dance')">✕ Clear Selection</button>
       </div>
     </div>
 
@@ -971,6 +1004,7 @@
         
         <div class="embed-area" id="father-daughter-embed"></div>
         <div class="saved-pill" id="father-daughter-saved">✓ Song Saved</div>
+        <button class="clear-btn" id="father-daughter-clear" onclick="clearSelection('father-daughter')">✕ Clear Selection</button>
       </div>
     </div>
 
@@ -998,6 +1032,7 @@
         
         <div class="embed-area" id="mother-son-embed"></div>
         <div class="saved-pill" id="mother-son-saved">✓ Song Saved</div>
+        <button class="clear-btn" id="mother-son-clear" onclick="clearSelection('mother-son')">✕ Clear Selection</button>
       </div>
     </div>
 
@@ -1024,6 +1059,7 @@
         </div>
         <div class="embed-area" id="cake-cutting-embed"></div>
         <div class="saved-pill" id="cake-cutting-saved">✓ Song Saved</div>
+        <button class="clear-btn" id="cake-cutting-clear" onclick="clearSelection('cake-cutting')">✕ Clear Selection</button>
       </div>
     </div>
 
@@ -1050,6 +1086,7 @@
         </div>
         <div class="embed-area" id="bouquet-toss-embed"></div>
         <div class="saved-pill" id="bouquet-toss-saved">✓ Song Saved</div>
+        <button class="clear-btn" id="bouquet-toss-clear" onclick="clearSelection('bouquet-toss')">✕ Clear Selection</button>
       </div>
     </div>
 
@@ -1081,6 +1118,7 @@
         </div>
         <div class="embed-area" id="cocktail-embed"></div>
         <div class="saved-pill" id="cocktail-saved">✓ Saved</div>
+        <button class="clear-btn" id="cocktail-clear" onclick="clearSelection('cocktail')">✕ Clear Selection</button>
       </div>
     </div>
 
@@ -1112,6 +1150,7 @@
         </div>
         <div class="embed-area" id="dinner-embed"></div>
         <div class="saved-pill" id="dinner-saved">✓ Saved</div>
+        <button class="clear-btn" id="dinner-clear" onclick="clearSelection('dinner')">✕ Clear Selection</button>
       </div>
     </div>
 
@@ -1512,6 +1551,54 @@
       }
     }
 
+    // ── CLEAR SELECTION ──
+    async function clearSelection(sectionId) {
+      const linkInput = document.getElementById(sectionId + '-link');
+      const embedArea = document.getElementById(sectionId + '-embed');
+      const savedPill = document.getElementById(sectionId + '-saved');
+      const clearBtn = document.getElementById(sectionId + '-clear');
+
+      if (linkInput) linkInput.value = '';
+      if (embedArea) embedArea.innerHTML = '';
+      if (savedPill) savedPill.classList.remove('visible');
+      if (clearBtn) clearBtn.classList.remove('visible');
+
+      // Reset brochure entry to "Make Selection"
+      const map = sectionProgramMap[sectionId];
+      if (map) {
+        const items = document.querySelectorAll('.program-list li');
+        items.forEach(item => {
+          const moment = item.querySelector('.program-moment');
+          const song = item.querySelector('.program-song');
+          if (moment && moment.textContent.trim() === map.label) {
+            song.innerHTML = '<a href="#section-' + sectionId + '" class="program-make-selection">Make Selection</a>';
+            song.style.color = '';
+          }
+        });
+      }
+
+      // Delete from Supabase
+      try {
+        await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/save-selection', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s'
+          },
+          body: JSON.stringify({
+            clientKey: getClientKey(),
+            sectionId,
+            spotifyUrl: null,
+            songTitle: null,
+            artist: null
+          })
+        });
+      } catch (err) {
+        console.log('Clear error:', err);
+      }
+    }
+
     // ── LOAD ALL SELECTIONS ON PAGE LOAD ──
     async function loadSelections() {
       try {
@@ -1544,6 +1631,8 @@
               linkInput.value = row.spotify_url;
               embedSpotify(sid, true);
               // Use stored song info directly - no re-fetch needed
+              const clearEl = document.getElementById(sid + '-clear');
+              if (clearEl) clearEl.classList.add('visible');
               if (row.song_title) {
                 updateProgram(sid, row.song_title, row.artist || '', row.spotify_url || '');
               }
