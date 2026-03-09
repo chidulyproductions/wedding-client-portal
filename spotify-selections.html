@@ -114,56 +114,6 @@
     }
 
     /* ── HOW IT WORKS ── */
-    .how-it-works {
-      position: relative;
-      z-index: 1;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 5vw 40px;
-    }
-
-    .steps-inline {
-      display: flex;
-      gap: 0;
-      background: #ede8e2;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .step-inline {
-      flex: 1;
-      padding: 20px 24px;
-      border-right: 1px solid var(--border);
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-    }
-
-    .step-inline:last-child { border-right: none; }
-
-    .step-inline-num {
-      font-family: 'Bodoni Moda', serif;
-      font-size: 1.8rem;
-      color: var(--blush);
-      letter-spacing: -0.02em;
-      line-height: 1;
-      flex-shrink: 0;
-    }
-
-    .step-inline-text {
-      font-size: 0.8rem;
-      color: var(--gray);
-      line-height: 1.5;
-      padding-top: 2px;
-    }
-
-    .step-inline-text strong {
-      display: block;
-      color: var(--white);
-      font-weight: 500;
-      margin-bottom: 2px;
-    }
 
     /* ── DIVIDER ── */
     .divider {
@@ -370,20 +320,22 @@
 
     /* ── SAVED PILL ── */
     .clear-btn {
-      background: none;
-      border: none;
+      display: none;
       font-family: 'Raleway', sans-serif;
       font-size: 0.65rem;
       font-weight: 600;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: var(--gray);
+      color: var(--blush);
+      background: none;
+      border: 1px solid var(--blush);
+      padding: 3px 10px;
+      border-radius: 100px;
+      margin-top: 12px;
+      margin-left: 8px;
       cursor: pointer;
-      padding: 4px 0;
-      margin-top: 6px;
-      opacity: 0.5;
-      transition: opacity 0.2s, color 0.2s;
-      display: none;
+      opacity: 0.7;
+      transition: opacity 0.2s, background 0.2s, color 0.2s;
     }
 
     .clear-btn.visible {
@@ -392,7 +344,8 @@
 
     .clear-btn:hover {
       opacity: 1;
-      color: var(--blush);
+      background: var(--blush);
+      color: #faf6f1;
     }
 
     .saved-pill {
@@ -658,7 +611,6 @@
     .hero-tag  { animation: fadeUp 0.6s ease both; }
     h1         { animation: fadeUp 0.6s 0.1s ease both; }
     .hero-desc { animation: fadeUp 0.6s 0.2s ease both; }
-    .how-it-works { animation: fadeUp 0.6s 0.25s ease both; }
     .music-section:nth-child(1) { animation: fadeUp 0.5s 0.2s ease both; }
     .music-section:nth-child(2) { animation: fadeUp 0.5s 0.3s ease both; }
     .music-section:nth-child(3) { animation: fadeUp 0.5s 0.4s ease both; }
@@ -668,8 +620,6 @@
     /* ── RESPONSIVE ── */
     @media (max-width: 700px) {
       .steps-inline { flex-direction: column; }
-      .step-inline { border-right: none; border-bottom: 1px solid var(--border); }
-      .step-inline:last-child { border-bottom: none; }
       .section-header { flex-direction: column; align-items: flex-start; }
       .input-row { flex-direction: column; }
       .btn { width: 100%; justify-content: center; }
@@ -759,30 +709,6 @@
   </section>
 
   <!-- HOW IT WORKS -->
-  <div class="how-it-works">
-    <div class="steps-inline">
-      <div class="step-inline">
-        <div class="step-inline-num">01</div>
-        <div class="step-inline-text">
-          <strong>Paste & Embed</strong>
-          Already have a song or playlist link? Paste it in and click Upload — done
-        </div>
-      </div>
-      <div class="step-inline">
-        <div class="step-inline-num">02</div>
-        <div class="step-inline-text">
-          
-        </div>
-      </div>
-      <div class="step-inline">
-        <div class="step-inline-num">03</div>
-        <div class="step-inline-text">
-          <strong>Copy & Come Back</strong>
-          On the song, click ··· → Share → Copy Link → paste above
-        </div>
-      </div>
-    </div>
-
   </div>
 
 
