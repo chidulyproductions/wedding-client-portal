@@ -1273,11 +1273,14 @@
     // ── SUPABASE AUTH + LOCK CHECK ──
     const SUPABASE_URL = 'https://lfnlftxqdelcrmbceiob.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s';
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let sb = null;
+    try {
+      sb = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch(e) { console.log('Supabase init error:', e); }
 
     async function checkLockStatus() {
       try {
-        // Handle magic link token in URL hash
+        if (!sb) return;
         const { data: { session } } = await sb.auth.getSession();
         if (session?.user?.email) {
           const { data: client } = await sb.from('clients').select('locked').eq('email', session.user.email).single();
