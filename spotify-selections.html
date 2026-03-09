@@ -579,6 +579,18 @@
       text-align: center;
     }
 
+    .program-song-link {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s, opacity 0.2s;
+    }
+
+    .program-song-link:hover {
+      border-bottom-color: var(--blush);
+      opacity: 0.8;
+    }
+
     .program-footer {
       font-family: 'Raleway', sans-serif;
       font-size: 0.65rem;
@@ -1418,7 +1430,7 @@
     };
 
     // ── UPDATE PROGRAM ──
-    function updateProgram(sectionId, title, artist) {
+    function updateProgram(sectionId, title, artist, spotifyUrl) {
       const items = document.querySelectorAll('.program-list li');
       items.forEach(item => {
         const moment = item.querySelector('.program-moment');
@@ -1426,9 +1438,14 @@
         const map = sectionProgramMap[sectionId];
         if (map && moment && moment.textContent.trim() === map.label) {
           const toTitleCase = str => str.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
-          const formattedTitle = '"' + toTitleCase(title) + '"';
+          const formattedTitle = '\u201c' + toTitleCase(title) + '\u201d';
           const formattedArtist = artist ? toTitleCase(artist) : '';
-          song.textContent = formattedArtist ? formattedArtist + ' · ' + formattedTitle : formattedTitle;
+          const displayText = formattedArtist ? formattedArtist + ' · ' + formattedTitle : formattedTitle;
+          if (spotifyUrl) {
+            song.innerHTML = '<a href="' + spotifyUrl + '" target="_blank" rel="noopener" class="program-song-link">' + displayText + '</a>';
+          } else {
+            song.textContent = displayText;
+          }
           song.style.color = 'var(--blush)';
         }
       });
@@ -1457,7 +1474,7 @@
         console.log('Spotify API response:', JSON.stringify(data));
         console.log('Section ID:', sectionId);
         if (data.title) {
-          updateProgram(sectionId, data.title, data.artist || data.owner || '');
+          updateProgram(sectionId, data.title, data.artist || data.owner || '', url);
         } else {
           console.log('No title found in response');
         }
@@ -1643,7 +1660,7 @@
               embedSpotify(sid, true);
               // Use stored song info directly - no re-fetch needed
               if (row.song_title) {
-                updateProgram(sid, row.song_title, row.artist || '');
+                updateProgram(sid, row.song_title, row.artist || '', row.spotify_url || '');
               }
             }
           }
