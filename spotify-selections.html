@@ -221,14 +221,16 @@
       margin-bottom: 4px;
     }
 
-    .playlist-section .section-number { color: #faf6f1; background: #1a1218; padding: 2px 10px; display: inline-block; letter-spacing: 0.2em; }
+    .playlist-section .section-number { color: #faf6f1; background: var(--blush); border: none; padding: 2px 10px; display: inline-block; letter-spacing: 0.2em; }
+    .music-section:not(.playlist-section) .section-number { color: #faf6f1; background: #1a1218; padding: 2px 10px; display: inline-block; letter-spacing: 0.2em; }
 
     .section-title {
-      font-family: 'Bodoni Moda', serif;
-      font-size: 1.6rem;
-      letter-spacing: -0.01em;
+      font-family: 'Raleway', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 800;
       text-transform: uppercase;
-      font-weight: 700;
+      letter-spacing: 0.35em;
+      color: var(--white);
     }
 
     .section-desc {
@@ -683,7 +685,7 @@
       <div class="program-rule-thin"></div>
 
       <div class="program-section">
-        <div class="program-category">Introductions</div>
+        <div class="program-category">Reception</div>
         <ul class="program-list">
           <li><span class="program-moment">Wedding Party Entrance</span><span class="program-song">— —</span></li>
           <li><span class="program-moment">Grand Entrance</span><span class="program-song">— —</span></li>
@@ -736,7 +738,7 @@
         <div class="step-inline-num">01</div>
         <div class="step-inline-text">
           <strong>Paste & Embed</strong>
-          Already have a Spotify link? Paste it in and click Embed — done
+          Already have a song or playlist link? Paste it in and click Upload — done
         </div>
       </div>
       <div class="step-inline">
@@ -761,294 +763,19 @@
   <!-- SECTIONS -->
   <div class="sections">
 
-    <!-- RECESSIONAL: WEDDING PARTY -->
-    <div class="music-section" id="section-recessional-party" data-section="recessional-party">
-      <div class="section-header" style="position:relative;">
-        <div>
-          <div class="section-number">Single Song</div>
-          <div class="section-title">Wedding Party Walk</div>
-        </div>
-        <button class="remove-btn" onclick="removeSection('recessional-party')" id="remove-recessional-party">Remove Section</button>
-      </div>
-      <div class="section-body">
-        <div class="input-group">
-          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="recessional-party-link" placeholder="Paste Spotify link here" />
-            <button class="btn" onclick="embedSpotify('recessional-party')">upload</button>
-          </div>
-        </div>
-        <div class="embed-area" id="recessional-party-embed"></div>
-        <div class="saved-pill" id="recessional-party-saved">✓ Song Saved</div>
-      </div>
-    </div>
-
-    <div class="undo-bar" id="undo-recessional-party">
-      <span>Section removed</span>
-      <button class="undo-btn" onclick="undoRemove('recessional-party')">↩ Undo</button>
-    </div>
-
-    <!-- BRIDE WALK -->
-    <div class="music-section" id="section-bride-walk" data-section="bride-walk">
-      <div class="section-header" style="position:relative;">
-        <div>
-          <div class="section-number">Single Song</div>
-          <div class="section-title">Bride Walk</div>
-        </div>
-        <button class="remove-btn" onclick="removeSection('bride-walk')" id="remove-bride-walk">Remove Section</button>
-      </div>
-      <div class="section-body">
-        <div class="input-group">
-          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="bride-walk-link" placeholder="Paste Spotify link here" />
-            <button class="btn" onclick="embedSpotify('bride-walk')">upload</button>
-          </div>
-        </div>
-        <div class="embed-area" id="bride-walk-embed"></div>
-        <div class="saved-pill" id="bride-walk-saved">✓ Song Saved</div>
-      </div>
-    </div>
-
-    <div class="undo-bar" id="undo-bride-walk">
-      <span>Section removed</span>
-      <button class="undo-btn" onclick="undoRemove('bride-walk')">↩ Undo</button>
-    </div>
-
-    <!-- THE KISS -->
-    <div class="music-section" id="section-the-kiss" data-section="the-kiss">
-      <div class="section-header" style="position:relative;">
-        <div>
-          <div class="section-number">Single Song</div>
-          <div class="section-title">The Kiss</div>
-        </div>
-        <button class="remove-btn" onclick="removeSection('the-kiss')" id="remove-the-kiss">Remove Section</button>
-      </div>
-      <div class="section-body">
-        <div class="input-group">
-          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="the-kiss-link" placeholder="Paste Spotify link here" />
-            <button class="btn" onclick="embedSpotify('the-kiss')">upload</button>
-          </div>
-        </div>
-        <div class="embed-area" id="the-kiss-embed"></div>
-        <div class="saved-pill" id="the-kiss-saved">✓ Song Saved</div>
-      </div>
-    </div>
-
-    <div class="undo-bar" id="undo-the-kiss">
-      <span>Section removed</span>
-      <button class="undo-btn" onclick="undoRemove('the-kiss')">↩ Undo</button>
-    </div>
-
-    <!-- WEDDING PARTY ENTRANCE -->
-    <div class="music-section" id="section-party-entrance" data-section="party-entrance">
-      <div class="section-header" style="position:relative;">
-        <div>
-          <div class="section-number">Single Song</div>
-          <div class="section-title">Wedding Party Entrance (Reception)</div>
-        </div>
-        <button class="remove-btn" onclick="removeSection('party-entrance')" id="remove-party-entrance">Remove Section</button>
-      </div>
-      <div class="section-body">
-        <div class="input-group">
-          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="party-entrance-link" placeholder="Paste Spotify link here" />
-            <button class="btn" onclick="embedSpotify('party-entrance')">upload</button>
-          </div>
-        </div>
-        <div class="embed-area" id="party-entrance-embed"></div>
-        <div class="saved-pill" id="party-entrance-saved">✓ Song Saved</div>
-      </div>
-    </div>
-
-    <div class="undo-bar" id="undo-party-entrance">
-      <span>Section removed</span>
-      <button class="undo-btn" onclick="undoRemove('party-entrance')">↩ Undo</button>
-    </div>
-
-    <!-- GRAND ENTRANCE -->
-    <div class="music-section" id="section-grand-entrance" data-section="grand-entrance">
-      <div class="section-header" style="position:relative;">
-        <div>
-          <div class="section-number">Single Song</div>
-          <div class="section-title">Grand Entrance (Reception)</div>
-        </div>
-        <button class="remove-btn" onclick="removeSection('grand-entrance')" id="remove-grand-entrance">Remove Section</button>
-      </div>
-      <div class="section-body">
-        <div class="input-group">
-          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="grand-entrance-link" placeholder="Paste Spotify link here" />
-            <button class="btn" onclick="embedSpotify('grand-entrance')">upload</button>
-          </div>
-        </div>
-        <div class="embed-area" id="grand-entrance-embed"></div>
-        <div class="saved-pill" id="grand-entrance-saved">✓ Song Saved</div>
-      </div>
-    </div>
-
-    <div class="undo-bar" id="undo-grand-entrance">
-      <span>Section removed</span>
-      <button class="undo-btn" onclick="undoRemove('grand-entrance')">↩ Undo</button>
-    </div>
-
-    <!-- FIRST DANCE -->
-    <div class="music-section" id="section-first-dance" data-section="first-dance">
-      <div class="section-header" style="position:relative;">
-        <div>
-          <div class="section-number">Single Song</div>
-          <div class="section-title">First Dance</div>
-        </div>
-        <button class="remove-btn" onclick="removeSection('first-dance')" id="remove-first-dance">Remove Section</button>
-      </div>
-      <div class="section-body">
-        <div class="input-group">
-          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="first-dance-link" placeholder="Paste Spotify link here" />
-            <button class="btn" onclick="embedSpotify('first-dance')">upload</button>
-          </div>
-        </div>
-        
-        <div class="embed-area" id="first-dance-embed"></div>
-        <div class="saved-pill" id="first-dance-saved">✓ Song Saved</div>
-      </div>
-    </div>
-
-    <div class="undo-bar" id="undo-first-dance">
-      <span>Section removed</span>
-      <button class="undo-btn" onclick="undoRemove('first-dance')">↩ Undo</button>
-    </div>
-
-    <!-- FATHER / DAUGHTER -->
-    <div class="music-section" id="section-father-daughter" data-section="father-daughter">
-      <div class="section-header" style="position:relative;">
-        <div>
-          <div class="section-number">Single Song</div>
-          <div class="section-title">Father / Daughter</div>
-        </div>
-        <button class="remove-btn" onclick="removeSection('father-daughter')" id="remove-father-daughter">Remove Section</button>
-      </div>
-      <div class="section-body">
-        <div class="input-group">
-          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="father-daughter-link" placeholder="Paste Spotify link here" />
-            <button class="btn" onclick="embedSpotify('father-daughter')">upload</button>
-          </div>
-        </div>
-        
-        <div class="embed-area" id="father-daughter-embed"></div>
-        <div class="saved-pill" id="father-daughter-saved">✓ Song Saved</div>
-      </div>
-    </div>
-
-    <div class="undo-bar" id="undo-father-daughter">
-      <span>Section removed</span>
-      <button class="undo-btn" onclick="undoRemove('father-daughter')">↩ Undo</button>
-    </div>
-
-    <!-- MOTHER / SON -->
-    <div class="music-section" id="section-mother-son" data-section="mother-son">
-      <div class="section-header" style="position:relative;">
-        <div>
-          <div class="section-number">Single Song</div>
-          <div class="section-title">Mother / Son</div>
-        </div>
-        <button class="remove-btn" onclick="removeSection('mother-son')" id="remove-mother-son">Remove Section</button>
-      </div>
-      <div class="section-body">
-        <div class="input-group">
-          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="mother-son-link" placeholder="Paste Spotify link here" />
-            <button class="btn" onclick="embedSpotify('mother-son')">upload</button>
-          </div>
-        </div>
-        
-        <div class="embed-area" id="mother-son-embed"></div>
-        <div class="saved-pill" id="mother-son-saved">✓ Song Saved</div>
-      </div>
-    </div>
-
-    <div class="undo-bar" id="undo-mother-son">
-      <span>Section removed</span>
-      <button class="undo-btn" onclick="undoRemove('mother-son')">↩ Undo</button>
-    </div>
-
-    <!-- CAKE CUTTING -->
-    <div class="music-section" id="section-cake-cutting" data-section="cake-cutting">
-      <div class="section-header" style="position:relative;">
-        <div>
-          <div class="section-number">Single Song</div>
-          <div class="section-title">Cake Cutting</div>
-        </div>
-        <button class="remove-btn" onclick="removeSection('cake-cutting')" id="remove-cake-cutting">Remove Section</button>
-      </div>
-      <div class="section-body">
-        <div class="input-group">
-          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="cake-cutting-link" placeholder="Paste Spotify link here" />
-            <button class="btn" onclick="embedSpotify('cake-cutting')">upload</button>
-          </div>
-        </div>
-        <div class="embed-area" id="cake-cutting-embed"></div>
-        <div class="saved-pill" id="cake-cutting-saved">✓ Song Saved</div>
-      </div>
-    </div>
-
-    <div class="undo-bar" id="undo-cake-cutting">
-      <span>Section removed</span>
-      <button class="undo-btn" onclick="undoRemove('cake-cutting')">↩ Undo</button>
-    </div>
-
-    <!-- BOUQUET TOSS -->
-    <div class="music-section" id="section-bouquet-toss" data-section="bouquet-toss">
-      <div class="section-header" style="position:relative;">
-        <div>
-          <div class="section-number">Single Song</div>
-          <div class="section-title">Bouquet Toss</div>
-        </div>
-        <button class="remove-btn" onclick="removeSection('bouquet-toss')" id="remove-bouquet-toss">Remove Section</button>
-      </div>
-      <div class="section-body">
-        <div class="input-group">
-          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="bouquet-toss-link" placeholder="Paste Spotify link here" />
-            <button class="btn" onclick="embedSpotify('bouquet-toss')">upload</button>
-          </div>
-        </div>
-        <div class="embed-area" id="bouquet-toss-embed"></div>
-        <div class="saved-pill" id="bouquet-toss-saved">✓ Song Saved</div>
-      </div>
-    </div>
-
-    <div class="undo-bar" id="undo-bouquet-toss">
-      <span>Section removed</span>
-      <button class="undo-btn" onclick="undoRemove('bouquet-toss')">↩ Undo</button>
-    </div>
-
-
     <!-- GUEST SEATING -->
     <div class="music-section playlist-section" id="section-guest-seating" data-section="guest-seating">
       <div class="section-header" style="position:relative;">
         <div>
-          <div class="section-number">Playlist</div>
-          <div class="section-title">Guest Seating</div>
+          <div class="section-number">Playlist Link</div>
+          <div class="section-title">GUEST SEATING</div>
         </div>
         <button class="remove-btn" onclick="removeSection('guest-seating')" id="remove-guest-seating">Remove Section</button>
       </div>
       <div class="section-body">
         <div class="input-group">
-          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="guest-seating-link" placeholder="Paste Spotify link here" />
+                    <div class="input-row">
+            <input type="text" class="text-input" id="guest-seating-link" placeholder="Playlist link here" />
             <button class="btn" onclick="embedSpotify('guest-seating')">upload</button>
           </div>
         </div>
@@ -1067,20 +794,282 @@
       <button class="undo-btn" onclick="undoRemove('guest-seating')">↩ Undo</button>
     </div>
 
+    <!-- RECESSIONAL: WEDDING PARTY -->
+    <div class="music-section" id="section-recessional-party" data-section="recessional-party">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Song Link</div>
+          <div class="section-title">WEDDING PARTY WALK</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('recessional-party')" id="remove-recessional-party">Remove Section</button>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+                    <div class="input-row">
+            <input type="text" class="text-input" id="recessional-party-link" placeholder="Song link here" />
+            <button class="btn" onclick="embedSpotify('recessional-party')">upload</button>
+          </div>
+        </div>
+        <div class="embed-area" id="recessional-party-embed"></div>
+        <div class="saved-pill" id="recessional-party-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-recessional-party">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('recessional-party')">↩ Undo</button>
+    </div>
+
+    <!-- BRIDE WALK -->
+    <div class="music-section" id="section-bride-walk" data-section="bride-walk">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Song Link</div>
+          <div class="section-title">BRIDE WALK</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('bride-walk')" id="remove-bride-walk">Remove Section</button>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+                    <div class="input-row">
+            <input type="text" class="text-input" id="bride-walk-link" placeholder="Song link here" />
+            <button class="btn" onclick="embedSpotify('bride-walk')">upload</button>
+          </div>
+        </div>
+        <div class="embed-area" id="bride-walk-embed"></div>
+        <div class="saved-pill" id="bride-walk-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-bride-walk">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('bride-walk')">↩ Undo</button>
+    </div>
+
+    <!-- THE KISS -->
+    <div class="music-section" id="section-the-kiss" data-section="the-kiss">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Song Link</div>
+          <div class="section-title">THE KISS</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('the-kiss')" id="remove-the-kiss">Remove Section</button>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+                    <div class="input-row">
+            <input type="text" class="text-input" id="the-kiss-link" placeholder="Song link here" />
+            <button class="btn" onclick="embedSpotify('the-kiss')">upload</button>
+          </div>
+        </div>
+        <div class="embed-area" id="the-kiss-embed"></div>
+        <div class="saved-pill" id="the-kiss-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-the-kiss">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('the-kiss')">↩ Undo</button>
+    </div>
+
+    <!-- WEDDING PARTY ENTRANCE -->
+    <div class="music-section" id="section-party-entrance" data-section="party-entrance">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Song Link</div>
+          <div class="section-title">WEDDING PARTY ENTRANCE (RECEPTION)</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('party-entrance')" id="remove-party-entrance">Remove Section</button>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+                    <div class="input-row">
+            <input type="text" class="text-input" id="party-entrance-link" placeholder="Song link here" />
+            <button class="btn" onclick="embedSpotify('party-entrance')">upload</button>
+          </div>
+        </div>
+        <div class="embed-area" id="party-entrance-embed"></div>
+        <div class="saved-pill" id="party-entrance-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-party-entrance">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('party-entrance')">↩ Undo</button>
+    </div>
+
+    <!-- GRAND ENTRANCE -->
+    <div class="music-section" id="section-grand-entrance" data-section="grand-entrance">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Song Link</div>
+          <div class="section-title">GRAND ENTRANCE (RECEPTION)</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('grand-entrance')" id="remove-grand-entrance">Remove Section</button>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+                    <div class="input-row">
+            <input type="text" class="text-input" id="grand-entrance-link" placeholder="Song link here" />
+            <button class="btn" onclick="embedSpotify('grand-entrance')">upload</button>
+          </div>
+        </div>
+        <div class="embed-area" id="grand-entrance-embed"></div>
+        <div class="saved-pill" id="grand-entrance-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-grand-entrance">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('grand-entrance')">↩ Undo</button>
+    </div>
+
+    <!-- FIRST DANCE -->
+    <div class="music-section" id="section-first-dance" data-section="first-dance">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Song Link</div>
+          <div class="section-title">FIRST DANCE</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('first-dance')" id="remove-first-dance">Remove Section</button>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+                    <div class="input-row">
+            <input type="text" class="text-input" id="first-dance-link" placeholder="Song link here" />
+            <button class="btn" onclick="embedSpotify('first-dance')">upload</button>
+          </div>
+        </div>
+        
+        <div class="embed-area" id="first-dance-embed"></div>
+        <div class="saved-pill" id="first-dance-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-first-dance">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('first-dance')">↩ Undo</button>
+    </div>
+
+    <!-- FATHER / DAUGHTER -->
+    <div class="music-section" id="section-father-daughter" data-section="father-daughter">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Song Link</div>
+          <div class="section-title">FATHER / DAUGHTER</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('father-daughter')" id="remove-father-daughter">Remove Section</button>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+                    <div class="input-row">
+            <input type="text" class="text-input" id="father-daughter-link" placeholder="Song link here" />
+            <button class="btn" onclick="embedSpotify('father-daughter')">upload</button>
+          </div>
+        </div>
+        
+        <div class="embed-area" id="father-daughter-embed"></div>
+        <div class="saved-pill" id="father-daughter-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-father-daughter">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('father-daughter')">↩ Undo</button>
+    </div>
+
+    <!-- MOTHER / SON -->
+    <div class="music-section" id="section-mother-son" data-section="mother-son">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Song Link</div>
+          <div class="section-title">MOTHER / SON</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('mother-son')" id="remove-mother-son">Remove Section</button>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+                    <div class="input-row">
+            <input type="text" class="text-input" id="mother-son-link" placeholder="Song link here" />
+            <button class="btn" onclick="embedSpotify('mother-son')">upload</button>
+          </div>
+        </div>
+        
+        <div class="embed-area" id="mother-son-embed"></div>
+        <div class="saved-pill" id="mother-son-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-mother-son">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('mother-son')">↩ Undo</button>
+    </div>
+
+    <!-- CAKE CUTTING -->
+    <div class="music-section" id="section-cake-cutting" data-section="cake-cutting">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Song Link</div>
+          <div class="section-title">CAKE CUTTING</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('cake-cutting')" id="remove-cake-cutting">Remove Section</button>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+                    <div class="input-row">
+            <input type="text" class="text-input" id="cake-cutting-link" placeholder="Song link here" />
+            <button class="btn" onclick="embedSpotify('cake-cutting')">upload</button>
+          </div>
+        </div>
+        <div class="embed-area" id="cake-cutting-embed"></div>
+        <div class="saved-pill" id="cake-cutting-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-cake-cutting">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('cake-cutting')">↩ Undo</button>
+    </div>
+
+    <!-- BOUQUET TOSS -->
+    <div class="music-section" id="section-bouquet-toss" data-section="bouquet-toss">
+      <div class="section-header" style="position:relative;">
+        <div>
+          <div class="section-number">Song Link</div>
+          <div class="section-title">BOUQUET TOSS</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('bouquet-toss')" id="remove-bouquet-toss">Remove Section</button>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+                    <div class="input-row">
+            <input type="text" class="text-input" id="bouquet-toss-link" placeholder="Song link here" />
+            <button class="btn" onclick="embedSpotify('bouquet-toss')">upload</button>
+          </div>
+        </div>
+        <div class="embed-area" id="bouquet-toss-embed"></div>
+        <div class="saved-pill" id="bouquet-toss-saved">✓ Song Saved</div>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-bouquet-toss">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('bouquet-toss')">↩ Undo</button>
+    </div>
+
     <!-- COCKTAIL HOUR -->
     <div class="music-section playlist-section" id="section-cocktail" data-section="cocktail">
       <div class="section-header" style="position:relative;">
         <div>
-          <div class="section-number">Playlist</div>
-          <div class="section-title">Cocktail Hour</div>
+          <div class="section-number">Playlist Link</div>
+          <div class="section-title">COCKTAIL HOUR</div>
         </div>
         <button class="remove-btn" onclick="removeSection('cocktail')" id="remove-cocktail">Remove Section</button>
       </div>
       <div class="section-body">
         <div class="input-group">
-          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="cocktail-link" placeholder="Paste Spotify link here" />
+                    <div class="input-row">
+            <input type="text" class="text-input" id="cocktail-link" placeholder="Playlist link here" />
             <button class="btn" onclick="embedSpotify('cocktail')">upload</button>
           </div>
         </div>
@@ -1103,16 +1092,15 @@
     <div class="music-section playlist-section" id="section-dinner" data-section="dinner">
       <div class="section-header" style="position:relative;">
         <div>
-          <div class="section-number">Playlist</div>
-          <div class="section-title">Dinner Hour</div>
+          <div class="section-number">Playlist Link</div>
+          <div class="section-title">DINNER HOUR</div>
         </div>
         <button class="remove-btn" onclick="removeSection('dinner')" id="remove-dinner">Remove Section</button>
       </div>
       <div class="section-body">
         <div class="input-group">
-          <label class="input-label" style="color: #1a1218; font-weight: 500;">Spotify Link</label>
-          <div class="input-row">
-            <input type="text" class="text-input" id="dinner-link" placeholder="Paste Spotify link here" />
+                    <div class="input-row">
+            <input type="text" class="text-input" id="dinner-link" placeholder="Playlist link here" />
             <button class="btn" onclick="embedSpotify('dinner')">upload</button>
           </div>
         </div>
@@ -1149,7 +1137,7 @@
         <div class="section-header">
           <div>
             <div class="section-number">Guest Seating</div>
-            <div class="section-title">Welcome</div>
+            <div class="section-title">WELCOME</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1162,7 +1150,7 @@
         <div class="section-header">
           <div>
             <div class="section-number">Processional</div>
-            <div class="section-title">Bride Walk</div>
+            <div class="section-title">BRIDE WALK</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1175,7 +1163,7 @@
         <div class="section-header">
           <div>
             <div class="section-number">Recessional</div>
-            <div class="section-title">The Kiss</div>
+            <div class="section-title">THE KISS</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1188,7 +1176,7 @@
         <div class="section-header">
           <div>
             <div class="section-number">Reception</div>
-            <div class="section-title">Cocktails / Dinner</div>
+            <div class="section-title">COCKTAILS / DINNER</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1201,7 +1189,7 @@
         <div class="section-header">
           <div>
             <div class="section-number">Parent Dances</div>
-            <div class="section-title">Family Moments</div>
+            <div class="section-title">FAMILY MOMENTS</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1214,7 +1202,7 @@
         <div class="section-header">
           <div>
             <div class="section-number">First Dance</div>
-            <div class="section-title">For the First Time</div>
+            <div class="section-title">FOR THE FIRST TIME</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1227,7 +1215,7 @@
         <div class="section-header">
           <div>
             <div class="section-number">Cake Cutting</div>
-            <div class="section-title">Celebration</div>
+            <div class="section-title">CELEBRATION</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1240,7 +1228,7 @@
         <div class="section-header">
           <div>
             <div class="section-number">Bouquet Toss</div>
-            <div class="section-title">Flowers</div>
+            <div class="section-title">FLOWERS</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1258,7 +1246,7 @@
       <div class="section-header">
         <div>
           <div class="section-number">Additional Notes</div>
-          <div class="section-title">Anything Else?</div>
+          <div class="section-title">ANYTHING ELSE?</div>
         </div>
       </div>
       <div class="section-body">
