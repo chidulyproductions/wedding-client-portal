@@ -464,79 +464,81 @@
       z-index: 1;
       display: flex;
       justify-content: center;
-      padding: 80px 5vw 60px;
+      padding: 80px 5vw 80px;
     }
 
     .program {
       width: 100%;
-      max-width: 560px;
+      max-width: 620px;
       text-align: center;
       font-family: 'Bodoni Moda', serif;
     }
 
     .program-header {
-      margin-bottom: 40px;
+      margin-bottom: 48px;
     }
 
     .program-couple {
       font-family: 'Bodoni Moda', serif;
-      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-size: clamp(2rem, 4vw, 3rem);
       font-weight: 400;
       font-style: italic;
       color: var(--blush);
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
+      letter-spacing: 0.03em;
+      margin-bottom: 12px;
+      line-height: 1.1;
     }
 
     .program-title {
-      font-family: 'Bodoni Moda', serif;
-      font-size: clamp(1.8rem, 4vw, 2.8rem);
-      font-weight: 900;
+      font-family: 'Raleway', sans-serif;
+      font-size: clamp(0.65rem, 1.2vw, 0.8rem);
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: -0.01em;
-      color: var(--white);
-      line-height: 1;
-      margin-bottom: 10px;
+      letter-spacing: 0.35em;
+      color: var(--accent);
+      margin-bottom: 14px;
     }
 
     .program-date {
       font-family: 'Raleway', sans-serif;
       font-size: 0.75rem;
-      letter-spacing: 0.3em;
+      letter-spacing: 0.25em;
       text-transform: uppercase;
       color: var(--gray);
-      margin-bottom: 28px;
+      margin-bottom: 32px;
     }
 
     .program-rule {
       width: 100%;
       height: 1px;
       background: var(--white);
-      opacity: 0.3;
+      opacity: 0.2;
       margin: 0 auto;
     }
 
     .program-rule-thin {
-      width: 40px;
+      width: 100%;
       height: 1px;
-      background: var(--accent);
-      margin: 24px auto;
-      opacity: 0.6;
+      background: var(--border);
+      margin: 0 auto;
+      opacity: 0.8;
     }
 
     .program-section {
-      padding: 24px 0 0;
-      margin-bottom: 4px;
+      padding: 32px 0 28px;
     }
 
     .program-category {
-      font-family: 'Bodoni Moda', serif;
-      font-size: 0.8rem;
-      font-weight: 700;
+      font-family: 'Raleway', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.3em;
+      letter-spacing: 0.35em;
       color: var(--accent);
-      margin-bottom: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 1.5px solid var(--accent);
+      opacity: 0.9;
     }
 
     .program-list {
@@ -545,15 +547,14 @@
       margin: 0;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 20px;
     }
 
     .program-list li {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 3px;
-      font-size: 0.9rem;
+      gap: 5px;
     }
 
     .program-list li::after {
@@ -562,19 +563,19 @@
 
     .program-moment {
       font-family: 'Raleway', sans-serif;
-      font-weight: 400;
+      font-weight: 600;
+      font-size: 1rem;
       color: var(--white);
-      white-space: nowrap;
       text-align: center;
+      letter-spacing: 0.03em;
     }
 
     .program-song {
       font-family: 'Bodoni Moda', serif;
       font-style: italic;
       font-weight: 400;
-      color: var(--gray);
-      white-space: nowrap;
-      font-size: 0.85rem;
+      color: var(--blush);
+      font-size: 1rem;
       text-align: center;
     }
 
@@ -584,7 +585,7 @@
       letter-spacing: 0.3em;
       text-transform: uppercase;
       color: var(--gray);
-      margin-top: 28px;
+      margin-top: 36px;
       opacity: 0.6;
     }
 
