@@ -733,6 +733,7 @@
         <ul class="program-list">
           <li><span class="program-moment">Cake Cutting</span><span class="program-song">— —</span></li>
           <li><span class="program-moment">Bouquet Toss</span><span class="program-song">— —</span></li>
+          <li><span class="program-moment">Dance Floor Must Plays</span><span class="program-song">— —</span></li>
         </ul>
       </div>
 
@@ -1167,6 +1168,34 @@
       <button class="undo-btn" onclick="undoRemove('dinner')">↩ Undo</button>
     </div>
 
+    <!-- DANCE FLOOR MUST PLAYS -->
+    <div class="music-section playlist-section" id="section-dance-floor" data-section="dance-floor">
+      <div class="section-header" style="position:relative;">
+        <div class="section-header-left">
+          <div class="section-number" style="background:var(--accent); color:#fff;">Playlist Link</div>
+          <div class="section-title" style="font-family:'Bodoni Moda',serif; font-style:italic; color:#b06878;">Dance Floor Must Plays</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('dance-floor')" id="remove-dance-floor" title="Remove section">🗑</button>
+      </div>
+      <div class="section-body">
+        <div style="font-size:0.8rem; color:#7a7275; margin-bottom:10px; letter-spacing:0.05em; font-style:italic;">Songs you absolutely need to hear on the dance floor</div>
+        <div class="input-group">
+          <div class="input-row">
+            <input type="text" class="text-input" id="dance-floor-link" placeholder="Playlist link here..." />
+            <button class="btn" onclick="embedSpotify('dance-floor')">upload</button>
+          </div>
+        </div>
+        <div class="embed-area" id="dance-floor-embed"></div>
+        <textarea class="text-input" id="dance-floor-notes" placeholder="Notes for Chi Duly..." style="height:80px; resize:vertical;"></textarea>
+        <div class="saved-pill" id="dance-floor-saved">✓ Saved</div>
+        <button class="clear-btn" id="dance-floor-clear" onclick="clearSelection('dance-floor')">✕ Clear Selection</button>
+      </div>
+    </div>
+    <div class="undo-bar" id="undo-dance-floor">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('dance-floor')">↩ Undo</button>
+    </div>
+
     <!-- SAMPLE PLAYLISTS -->
   <div class="sections">
     <div style="padding: 0 0 10px;">
@@ -1368,6 +1397,7 @@
       'cake-cutting':      { category: 'additional', label: 'Cake Cutting' },
       'bouquet-toss':      { category: 'additional', label: 'Bouquet Toss' },
       'last-song':         { category: 'additional', label: 'Last Song of the Night' },
+      'dance-floor':       { category: 'additional', label: 'Dance Floor Must Plays' },
     };
 
     // ── INIT MAKE SELECTION LINKS ──
