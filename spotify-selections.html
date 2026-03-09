@@ -1445,7 +1445,11 @@
       try {
         const response = await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/spotify', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'apikey': 'sb_publishable_l6fZ0AxzR4Wz2PjVgCoI9A_Rg7LAszk',
+            'Authorization': 'Bearer sb_publishable_l6fZ0AxzR4Wz2PjVgCoI9A_Rg7LAszk'
+          },
           body: JSON.stringify({ spotifyUrl: url })
         });
         const data = await response.json();
@@ -1561,7 +1565,11 @@
       try {
         await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/save-selection', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'apikey': 'sb_publishable_l6fZ0AxzR4Wz2PjVgCoI9A_Rg7LAszk',
+            'Authorization': 'Bearer sb_publishable_l6fZ0AxzR4Wz2PjVgCoI9A_Rg7LAszk'
+          },
           body: JSON.stringify({
             clientKey: getClientKey(),
             sectionId,
@@ -1580,7 +1588,11 @@
       try {
         await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/save-selection', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'apikey': 'sb_publishable_l6fZ0AxzR4Wz2PjVgCoI9A_Rg7LAszk',
+            'Authorization': 'Bearer sb_publishable_l6fZ0AxzR4Wz2PjVgCoI9A_Rg7LAszk'
+          },
           body: JSON.stringify({
             clientKey: getClientKey(),
             sectionId: sectionId + '-notes',
@@ -1596,7 +1608,12 @@
     async function loadSelections() {
       try {
         const clientKey = getClientKey();
-        const response = await fetch(`https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/load-selections?clientKey=${encodeURIComponent(clientKey)}`);
+        const response = await fetch(`https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/load-selections?clientKey=${encodeURIComponent(clientKey)}`, {
+          headers: {
+            'apikey': 'sb_publishable_l6fZ0AxzR4Wz2PjVgCoI9A_Rg7LAszk',
+            'Authorization': 'Bearer sb_publishable_l6fZ0AxzR4Wz2PjVgCoI9A_Rg7LAszk'
+          }
+        });
         const data = await response.json();
 
         if (!Array.isArray(data)) return;
