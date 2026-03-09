@@ -154,12 +154,17 @@
     .music-section.playlist-section::before { background: var(--accent); }
 
     .section-header {
-      padding: 28px 36px 20px;
+      padding: 14px 20px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .section-header-left {
+      display: flex;
+      align-items: center;
       gap: 12px;
     }
 
@@ -168,7 +173,6 @@
       letter-spacing: 0.3em;
       text-transform: uppercase;
       color: var(--blush);
-      margin-bottom: 4px;
     }
 
     .playlist-section .section-number { color: #faf6f1; background: var(--blush); border: none; padding: 2px 10px; display: inline-block; letter-spacing: 0.2em; }
@@ -182,6 +186,7 @@
       font-variant: normal !important;
       letter-spacing: 0.2em;
       color: var(--white);
+      margin: 0;
     }
 
     .section-desc {
@@ -192,9 +197,9 @@
     }
 
     /* ── SEARCH BLOCK ── */
-    .section-body { padding: 28px 36px; }
+    .section-body { padding: 16px 20px; }
 
-    .input-group { margin-bottom: 20px; }
+    .input-group { margin-bottom: 10px; }
 
     .input-label {
       font-size: 0.7rem;
@@ -719,7 +724,7 @@
     <!-- GUEST SEATING -->
     <div class="music-section playlist-section" id="section-guest-seating" data-section="guest-seating">
       <div class="section-header" style="position:relative;">
-        <div>
+        <div class="section-header-left">
           <div class="section-number">Playlist Link</div>
           <div class="section-title">GUEST SEATING</div>
         </div>
@@ -751,7 +756,7 @@
     <!-- RECESSIONAL: WEDDING PARTY -->
     <div class="music-section" id="section-recessional-party" data-section="recessional-party">
       <div class="section-header" style="position:relative;">
-        <div>
+        <div class="section-header-left">
           <div class="section-number">Song Link</div>
           <div class="section-title">WEDDING PARTY WALK</div>
         </div>
@@ -778,7 +783,7 @@
     <!-- BRIDE WALK -->
     <div class="music-section" id="section-bride-walk" data-section="bride-walk">
       <div class="section-header" style="position:relative;">
-        <div>
+        <div class="section-header-left">
           <div class="section-number">Song Link</div>
           <div class="section-title">BRIDE WALK</div>
         </div>
@@ -805,7 +810,7 @@
     <!-- THE KISS -->
     <div class="music-section" id="section-the-kiss" data-section="the-kiss">
       <div class="section-header" style="position:relative;">
-        <div>
+        <div class="section-header-left">
           <div class="section-number">Song Link</div>
           <div class="section-title">THE KISS</div>
         </div>
@@ -832,7 +837,7 @@
     <!-- WEDDING PARTY ENTRANCE -->
     <div class="music-section" id="section-party-entrance" data-section="party-entrance">
       <div class="section-header" style="position:relative;">
-        <div>
+        <div class="section-header-left">
           <div class="section-number">Song Link</div>
           <div class="section-title">WEDDING PARTY ENTRANCE (RECEPTION)</div>
         </div>
@@ -859,7 +864,7 @@
     <!-- GRAND ENTRANCE -->
     <div class="music-section" id="section-grand-entrance" data-section="grand-entrance">
       <div class="section-header" style="position:relative;">
-        <div>
+        <div class="section-header-left">
           <div class="section-number">Song Link</div>
           <div class="section-title">GRAND ENTRANCE (RECEPTION)</div>
         </div>
@@ -886,7 +891,7 @@
     <!-- FIRST DANCE -->
     <div class="music-section" id="section-first-dance" data-section="first-dance">
       <div class="section-header" style="position:relative;">
-        <div>
+        <div class="section-header-left">
           <div class="section-number">Song Link</div>
           <div class="section-title">FIRST DANCE</div>
         </div>
@@ -914,7 +919,7 @@
     <!-- FATHER / DAUGHTER -->
     <div class="music-section" id="section-father-daughter" data-section="father-daughter">
       <div class="section-header" style="position:relative;">
-        <div>
+        <div class="section-header-left">
           <div class="section-number">Song Link</div>
           <div class="section-title">FATHER / DAUGHTER</div>
         </div>
@@ -942,7 +947,7 @@
     <!-- MOTHER / SON -->
     <div class="music-section" id="section-mother-son" data-section="mother-son">
       <div class="section-header" style="position:relative;">
-        <div>
+        <div class="section-header-left">
           <div class="section-number">Song Link</div>
           <div class="section-title">MOTHER / SON</div>
         </div>
@@ -970,7 +975,7 @@
     <!-- CAKE CUTTING -->
     <div class="music-section" id="section-cake-cutting" data-section="cake-cutting">
       <div class="section-header" style="position:relative;">
-        <div>
+        <div class="section-header-left">
           <div class="section-number">Song Link</div>
           <div class="section-title">CAKE CUTTING</div>
         </div>
@@ -997,7 +1002,7 @@
     <!-- BOUQUET TOSS -->
     <div class="music-section" id="section-bouquet-toss" data-section="bouquet-toss">
       <div class="section-header" style="position:relative;">
-        <div>
+        <div class="section-header-left">
           <div class="section-number">Song Link</div>
           <div class="section-title">BOUQUET TOSS</div>
         </div>
@@ -1024,7 +1029,7 @@
     <!-- COCKTAIL HOUR -->
     <div class="music-section playlist-section" id="section-cocktail" data-section="cocktail">
       <div class="section-header" style="position:relative;">
-        <div>
+        <div class="section-header-left">
           <div class="section-number">Playlist Link</div>
           <div class="section-title">COCKTAIL HOUR</div>
         </div>
@@ -1056,7 +1061,7 @@
     <!-- DINNER HOUR -->
     <div class="music-section playlist-section" id="section-dinner" data-section="dinner">
       <div class="section-header" style="position:relative;">
-        <div>
+        <div class="section-header-left">
           <div class="section-number">Playlist Link</div>
           <div class="section-title">DINNER HOUR</div>
         </div>
