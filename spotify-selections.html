@@ -756,18 +756,24 @@
   <div class="sections">
 
     <!-- GRAND ENTRANCE ANNOUNCEMENT -->
-    <div class="music-section" id="section-announcement" data-section="announcement">
-      <div class="section-header" style="position:relative;">
+    <div class="music-section" id="section-announcement" data-section="announcement" style="background:#1a1218; border-color:#2e2a35;">
+      <div class="section-header" style="position:relative; border-bottom-color:#2e2a35;">
         <div class="section-header-left">
-          <div class="section-number" style="background:#b06878;">Response</div>
-          <div class="section-title" style="font-family:'Bodoni Moda',serif; font-style:italic; color:#b06878;">Grand Entrance</div>
+          <div class="section-number" style="background:#b06878; color:#fff;">Response</div>
+          <div class="section-title" style="font-family:'Bodoni Moda',serif; font-style:italic; color:#e8c4cc;">Grand Entrance Announcement</div>
         </div>
       </div>
       <div class="section-body">
-        <div style="font-size:0.8rem; color:#7a7275; margin-bottom:10px; letter-spacing:0.05em;">How would you like to be announced? (e.g. "Mr &amp; Mrs, first names, etc.)</div>
-        <div class="input-row">
-          <input type="text" class="text-input" id="announcement-text" placeholder="Mr & Mrs Johnson..." style="flex:1;" />
-          <button class="btn" onclick="saveAnnouncement()">save</button>
+        <div style="font-size:0.8rem; color:#9a8fa0; margin-bottom:14px; letter-spacing:0.05em; font-style:italic;">How would you like to be announced? (e.g. "Mr &amp; Mrs, first names, etc.)</div>
+        <textarea
+          id="announcement-text"
+          placeholder="e.g. Mr & Mrs Johnson, or Sierra and Thad..."
+          style="width:100%; min-height:90px; resize:vertical; background:#2a2330; border:1px solid #3e3a45; border-radius:6px; padding:14px 16px; font-family:'Raleway',sans-serif; font-size:0.95rem; color:#f0ecf5; line-height:1.6; outline:none; transition:border-color 0.2s;"
+          oninput="this.style.borderColor='#b06878'"
+          onblur="this.style.borderColor='#3e3a45'"
+        ></textarea>
+        <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+          <button class="btn" onclick="saveAnnouncement()" style="background:#b06878; border-color:#b06878; color:#fff;">save</button>
         </div>
         <div class="saved-pill" id="announcement-saved">✓ Saved</div>
       </div>
@@ -783,6 +789,7 @@
         <button class="remove-btn" onclick="removeSection('guest-seating')" id="remove-guest-seating" title="Remove section">🗑</button>
       </div>
       <div class="section-body">
+        <div style="font-size:0.8rem; color:#7a7275; margin-bottom:10px; letter-spacing:0.05em; font-style:italic;">Soft music as your guests arrive for the ceremony</div>
         <div class="input-group">
                     <div class="input-row">
             <input type="text" class="text-input" id="guest-seating-link" placeholder="Playlist link here..." />
