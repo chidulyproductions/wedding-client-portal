@@ -586,6 +586,25 @@
       opacity: 0.6;
     }
 
+    .program-announcing {
+      font-family: 'Raleway', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      color: var(--gray);
+      margin-top: 10px;
+      margin-bottom: 4px;
+    }
+
+    .program-announcing-link {
+      color: var(--blush);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-style: dashed;
+      cursor: pointer;
+    }
+
+    .program-announcing-link:hover { opacity: 0.75; }
+
     /* ── FOOTER ── */
     footer {
       position: relative;
@@ -661,6 +680,9 @@
         <div class="program-couple" id="program-couple">Sierra &amp; Thad</div>
         <h2 class="program-title">Wedding Music Program</h2>
         <div class="program-date" id="program-date">June 6, 2026</div>
+        <div class="program-announcing" id="program-announcing" style="display:none;">
+          Announcing as <a href="#section-announcement" class="program-announcing-link" id="program-announcing-link">Mr &amp; Mrs —</a>
+        </div>
         <div class="program-rule"></div>
       </div>
 
@@ -728,6 +750,24 @@
 
   <!-- SECTIONS -->
   <div class="sections">
+
+    <!-- GRAND ENTRANCE ANNOUNCEMENT -->
+    <div class="music-section" id="section-announcement" data-section="announcement">
+      <div class="section-header" style="position:relative;">
+        <div class="section-header-left">
+          <div class="section-number" style="background:#b06878;">Announcement</div>
+          <div class="section-title" style="font-family:'Bodoni Moda',serif; font-style:italic; color:#b06878;">Grand Entrance</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div style="font-size:0.8rem; color:#7a7275; margin-bottom:10px; letter-spacing:0.05em;">How would you like to be announced? (e.g. "Mr &amp; Mrs Johnson" or "The Johnson Family")</div>
+        <div class="input-row">
+          <input type="text" class="text-input" id="announcement-text" placeholder="Mr & Mrs Johnson..." style="flex:1;" />
+          <button class="btn" onclick="saveAnnouncement()">save</button>
+        </div>
+        <div class="saved-pill" id="announcement-saved">✓ Saved</div>
+      </div>
+    </div>
 
     <!-- GUEST SEATING -->
     <div class="music-section playlist-section" id="section-guest-seating" data-section="guest-seating">
@@ -1459,6 +1499,37 @@
       return (name + '-' + date).toLowerCase().replace(/[^a-z0-9-]/g, '-');
     }
 
+    // ── ANNOUNCEMENT ──
+    async function saveAnnouncement() {
+      const text = document.getElementById('announcement-text').value.trim();
+      if (!text) return;
+      const clientKey = getClientKey();
+      await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/save-selection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s'
+        },
+        body: JSON.stringify({ clientKey, sectionId: 'announcement', spotifyUrl: '', songTitle: text, artist: '', notes: text })
+      });
+      updateAnnouncingAs(text);
+      const pill = document.getElementById('announcement-saved');
+      pill.classList.add('visible');
+      setTimeout(() => pill.classList.remove('visible'), 3000);
+    }
+
+    function updateAnnouncingAs(text) {
+      const el = document.getElementById('program-announcing');
+      const link = document.getElementById('program-announcing-link');
+      if (text) {
+        link.textContent = text;
+        el.style.display = 'block';
+      } else {
+        el.style.display = 'none';
+      }
+    }
+
     // ── SAVE SELECTION TO SUPABASE ──
     async function saveSelection(sectionId, spotifyUrl, songTitle, artist) {
       try {
@@ -1567,6 +1638,16 @@
 
         data.forEach(row => {
           const sid = row.section_id;
+
+          // Handle announcement
+          if (sid === 'announcement') {
+            const text = row.notes || row.song_title || '';
+            if (text) {
+              document.getElementById('announcement-text').value = text;
+              updateAnnouncingAs(text);
+            }
+            return;
+          }
 
           // Handle notes
           if (sid.endsWith('-notes')) {
