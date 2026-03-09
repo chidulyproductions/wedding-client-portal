@@ -640,7 +640,7 @@
     <div style="font-family:'Bodoni Moda',serif; font-size:1rem; font-style:italic; color:#a07840; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:16px;">Chi Duly Productions</div>
     <div style="font-family:'Bodoni Moda',serif; font-size:clamp(2rem,6vw,3.5rem); font-style:italic; color:#1a1218; line-height:1.1; margin-bottom:20px;">Your selections<br>are finalized.</div>
     <div style="font-size:0.9rem; color:#7a7275; max-width:380px; line-height:1.7;">Your music program has been locked by Chi Duly Productions. If you need to make changes, please reach out directly.</div>
-    <div style="margin-top:32px; font-size:0.75rem; letter-spacing:0.2em; text-transform:uppercase; color:#b06878;">hello@chidulyproductions.com</div>
+    <div style="margin-top:32px; font-size:0.75rem; letter-spacing:0.2em; text-transform:uppercase; color:#b06878;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="abc3cec7c7c4ebc8c3c2cfdec7d2dbd9c4cfdec8dfc2c4c5d885c8c4c6">[email&#160;protected]</a></div>
   </div>
 
   <!-- HEADER -->
@@ -718,9 +718,7 @@
   <section class="hero">
     <p class="hero-tag" id="hero-tag">Your Spotify Picks</p>
     <h1><span style="color: #1a1218;">The</span> <em id="client-name">Details.</em></h1>
-    <p class="hero-desc" id="hero-desc">
-      Copy your song and playlist links below. Need inspiration? Scroll down for Chi Duly's sample playlists.
-    </p>
+
   </section>
 
   <!-- HOW IT WORKS -->
@@ -1236,7 +1234,7 @@
     <div class="footer-note">© 2026 Chi Duly Productions · All rights reserved</div>
   </footer>
 
-  <script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     // ── SUPABASE AUTH + LOCK CHECK ──
     const SUPABASE_URL = 'https://lfnlftxqdelcrmbceiob.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s';
@@ -1265,8 +1263,7 @@
       const decoded = decodeURIComponent(name);
       document.getElementById('hero-tag').textContent = decoded + "'s Spotify Picks";
       document.getElementById('client-name').innerHTML = '<span style="color:#1a1218; font-style:normal;">Details for </span>' + decoded + '.';
-      document.getElementById('hero-desc').textContent =
-        "Hey " + decoded + "! Copy your song and playlist links below. Need inspiration? Scroll down for Chi Duly's sample playlists.";
+
       document.title = decoded + "'s Music Selections | Chi Duly Productions";
     }
 
@@ -1609,14 +1606,4 @@
 
     // ── ENTER KEY SUPPORT ──
     document.querySelectorAll('.text-input').forEach(input => {
-      input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-          const btn = this.closest('.input-row')?.querySelector('.btn');
-          if (btn) btn.click();
-        }
-      });
-    });
-  </script>
-
-</body>
-</html>
+      inpu
