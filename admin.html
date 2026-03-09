@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Chi Duly Productions</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;1,6..96,400&family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0c0f;
+      --card: #1a1720;
+      --border: #2e2a35;
+      --text: #f0ecf5;
+      --muted: #7a7385;
+      --accent: #a07840;
+      --blush: #b06878;
+      --green: #4caf7d;
+      --font-display: 'Bodoni Moda', serif;
+      --font-body: 'Raleway', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+    }
+
+    /* ── LOGIN SCREEN ── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .login-logo {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .login-title {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-style: italic;
+      color: var(--text);
+      margin-bottom: 40px;
+    }
+
+    .login-field {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 18px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      outline: none;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+
+    .login-field:focus { border-color: var(--accent); }
+    .login-field::placeholder { color: var(--muted); }
+
+    .login-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 14px;
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-top: 4px;
+    }
+
+    .login-btn:hover { opacity: 0.85; }
+
+    .login-error {
+      color: var(--blush);
+      font-size: 0.8rem;
+      margin-top: 10px;
+    }
+
+    /* ── ADMIN DASHBOARD ── */
+    #admin-screen { display: none; }
+
+    .topbar {
+      border-bottom: 1px solid var(--border);
+      padding: 18px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar-brand {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-style: italic;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logout-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .logout-btn:hover { border-color: var(--blush); color: var(--blush); }
+
+    .main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 48px 40px;
+    }
+
+    .section-heading {
+      font-family: var(--font-body);
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── NEW CLIENT FORM ── */
+    .new-client-form {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 32px;
+      margin-bottom: 48px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .form-input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus { border-color: var(--accent); }
+    .form-input::placeholder { color: var(--muted); }
+
+    .submit-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 11px 28px;
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .submit-btn:hover { opacity: 0.85; }
+    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .form-msg {
+      font-size: 0.8rem;
+      margin-top: 12px;
+      min-height: 20px;
+    }
+
+    .form-msg.success { color: var(--green); }
+    .form-msg.error { color: var(--blush); }
+
+    /* ── CLIENTS TABLE ── */
+    .clients-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .clients-table th {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: left;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .clients-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      vertical-align: middle;
+    }
+
+    .clients-table tr:last-child td { border-bottom: none; }
+    .clients-table tr:hover td { background: var(--card); }
+
+    .client-name {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--blush);
+    }
+
+    .client-date {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .link-cell a {
+      color: var(--accent);
+      font-size: 0.75rem;
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+
+    .link-cell a:hover { opacity: 1; text-decoration: underline; }
+
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-family: var(--font-body);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-left: 8px;
+    }
+
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+    .status-badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+
+    .status-active {
+      background: rgba(76, 175, 125, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(76, 175, 125, 0.3);
+    }
+
+    .status-locked {
+      background: rgba(176, 104, 120, 0.15);
+      color: var(--blush);
+      border: 1px solid rgba(176, 104, 120, 0.3);
+    }
+
+    .action-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 5px 12px;
+      font-family: var(--font-body);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-left: 6px;
+    }
+
+    .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .action-btn.lock:hover { border-color: var(--blush); color: var(--blush); }
+    .action-btn.resend:hover { border-color: var(--green); color: var(--green); }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .empty-state em {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+      opacity: 0.3;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen">
+    <div class="login-box">
+      <div class="login-logo">Chi Duly Productions</div>
+      <div class="login-title">Admin Portal</div>
+      <input type="email" class="login-field" id="login-email" placeholder="Your email address" />
+      <input type="password" class="login-field" id="login-password" placeholder="Password" />
+      <button class="login-btn" onclick="adminLogin()">Sign In</button>
+      <div class="login-error" id="login-error"></div>
+    </div>
+  </div>
+
+  <!-- ADMIN DASHBOARD -->
+  <div id="admin-screen">
+    <div class="topbar">
+      <div class="topbar-brand">Chi Duly Productions — Admin</div>
+      <div class="topbar-right">
+        <button class="logout-btn" onclick="adminLogout()">Sign Out</button>
+      </div>
+    </div>
+
+    <div class="main">
+
+      <!-- NEW CLIENT -->
+      <div class="section-heading">Add New Client</div>
+      <div class="new-client-form">
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label">Client Name(s)</label>
+            <input type="text" class="form-input" id="new-name" placeholder="Sierra & Thad" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Wedding Date</label>
+            <input type="date" class="form-input" id="new-date" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Client Email</label>
+            <input type="email" class="form-input" id="new-email" placeholder="bride@email.com" />
+          </div>
+        </div>
+        <button class="submit-btn" id="add-btn" onclick="addClient()">Send Magic Link & Create Client</button>
+        <div class="form-msg" id="form-msg"></div>
+      </div>
+
+      <!-- CLIENT LIST -->
+      <div class="section-heading">All Clients</div>
+      <div id="clients-container">
+        <div class="empty-state"><em>Loading...</em></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://lfnlftxqdelcrmbceiob.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s';
+    const BASE_URL = 'https://chidulyproductions.github.io/wedding-client-portal/spotify-selections.html';
+
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ── AUTH ──
+    async function adminLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errEl = document.getElementById('login-error');
+      errEl.textContent = '';
+
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        errEl.textContent = error.message;
+        return;
+      }
+      showDashboard();
+    }
+
+    async function adminLogout() {
+      await sb.auth.signOut();
+      document.getElementById('admin-screen').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'flex';
+    }
+
+    async function showDashboard() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-screen').style.display = 'block';
+      loadClients();
+    }
+
+    // ── CHECK SESSION ──
+    sb.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        showDashboard();
+      }
+    });
+
+    // ── ADD CLIENT ──
+    async function addClient() {
+      const name = document.getElementById('new-name').value.trim();
+      const date = document.getElementById('new-date').value;
+      const email = document.getElementById('new-email').value.trim();
+      const msgEl = document.getElementById('form-msg');
+      const btn = document.getElementById('add-btn');
+
+      if (!name || !date || !email) {
+        msgEl.textContent = 'Please fill in all fields.';
+        msgEl.className = 'form-msg error';
+        return;
+      }
+
+      btn.disabled = true;
+      msgEl.textContent = 'Creating client...';
+      msgEl.className = 'form-msg';
+
+      // Build the redirect URL for the magic link
+      const clientKey = (name + '-' + date).toLowerCase().replace(/[^a-z0-9-]/g, '-');
+      const redirectTo = `${BASE_URL}?name=${encodeURIComponent(name)}&date=${encodeURIComponent(date)}`;
+
+      // Invite the user via Supabase Auth (sends magic link)
+      const { data: inviteData, error: inviteError } = await sb.auth.admin?.inviteUserByEmail
+        ? await sb.auth.admin.inviteUserByEmail(email, { redirectTo })
+        : { data: null, error: { message: 'Admin invite not available from client' } };
+
+      // Fallback: use signInWithOtp to send magic link
+      if (inviteError) {
+        const { error: otpError } = await sb.auth.signInWithOtp({
+          email,
+          options: { emailRedirectTo: redirectTo, shouldCreateUser: true }
+        });
+
+        if (otpError) {
+          msgEl.textContent = 'Error: ' + otpError.message;
+          msgEl.className = 'form-msg error';
+          btn.disabled = false;
+          return;
+        }
+      }
+
+      // Save client record
+      const { error: dbError } = await sb.from('clients').insert({
+        name, wedding_date: date, email, locked: false
+      });
+
+      if (dbError && !dbError.message.includes('duplicate')) {
+        msgEl.textContent = 'Magic link sent but DB error: ' + dbError.message;
+        msgEl.className = 'form-msg error';
+      } else {
+        msgEl.textContent = `✓ Magic link sent to ${email}!`;
+        msgEl.className = 'form-msg success';
+        document.getElementById('new-name').value = '';
+        document.getElementById('new-date').value = '';
+        document.getElementById('new-email').value = '';
+        loadClients();
+      }
+
+      btn.disabled = false;
+    }
+
+    // ── LOAD CLIENTS ──
+    async function loadClients() {
+      const container = document.getElementById('clients-container');
+      const { data, error } = await sb.from('clients').select('*').order('wedding_date');
+
+      if (error || !data?.length) {
+        container.innerHTML = '<div class="empty-state"><em>No clients yet.</em>Add your first client above.</div>';
+        return;
+      }
+
+      const rows = data.map(c => {
+        const url = `${BASE_URL}?name=${encodeURIComponent(c.name)}&date=${encodeURIComponent(c.wedding_date)}`;
+        const dateFormatted = new Date(c.wedding_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        return `
+          <tr>
+            <td><div class="client-name">${c.name}</div></td>
+            <td><div class="client-date">${dateFormatted}</div></td>
+            <td>${c.email}</td>
+            <td>
+              <span class="status-badge ${c.locked ? 'status-locked' : 'status-active'}">
+                ${c.locked ? 'Locked' : 'Active'}
+              </span>
+            </td>
+            <td class="link-cell">
+              <a href="${url}" target="_blank">View Page ↗</a>
+              <button class="copy-btn" onclick="copyLink('${url}', this)">Copy Link</button>
+            </td>
+            <td>
+              <button class="action-btn resend" onclick="resendLink('${c.email}', '${c.name}', '${c.wedding_date}')">Resend Link</button>
+              <button class="action-btn lock" onclick="toggleLock('${c.id}', ${c.locked})">${c.locked ? 'Unlock' : 'Lock'}</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <table class="clients-table">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Wedding Date</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Portal Link</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    // ── COPY LINK ──
+    function copyLink(url, btn) {
+      navigator.clipboard.writeText(url);
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy Link'; btn.classList.remove('copied'); }, 2000);
+    }
+
+    // ── RESEND MAGIC LINK ──
+    async function resendLink(email, name, date) {
+      const redirectTo = `${BASE_URL}?name=${encodeURIComponent(name)}&date=${encodeURIComponent(date)}`;
+      const { error } = await sb.auth.signInWithOtp({
+        email, options: { emailRedirectTo: redirectTo, shouldCreateUser: false }
+      });
+      alert(error ? 'Error: ' + error.message : `Magic link resent to ${email}!`);
+    }
+
+    // ── TOGGLE LOCK ──
+    async function toggleLock(id, currentLocked) {
+      await sb.from('clients').update({ locked: !currentLocked }).eq('id', id);
+      loadClients();
+    }
+  </script>
+</body>
+</html>
