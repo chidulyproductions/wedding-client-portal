@@ -724,6 +724,7 @@
         <ul class="program-list">
           <li><span class="program-moment">Cake Cutting</span><span class="program-song">— —</span></li>
           <li><span class="program-moment">Bouquet Toss</span><span class="program-song">— —</span></li>
+          <li><span class="program-moment">Last Song of the Night</span><span class="program-song">— —</span></li>
         </ul>
       </div>
 
@@ -1127,6 +1128,30 @@
       <button class="undo-btn" onclick="undoRemove('dinner')">↩ Undo</button>
     </div>
 
+    <!-- LAST SONG OF THE NIGHT -->
+    <div class="music-section" id="section-last-song" data-section="last-song">
+      <div class="section-header" style="position:relative;">
+        <div class="section-header-left">
+          <div class="section-number">Song Link</div>
+          <div class="section-title" style="font-family:'Bodoni Moda',serif; font-style:italic; color:#b06878;">Last Song of the Night</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('last-song')" id="remove-last-song" title="Remove section">🗑</button>
+      </div>
+      <div class="section-body">
+        <div class="input-row">
+          <input type="text" class="text-input" id="last-song-link" placeholder="Song link here..." />
+          <button class="btn" onclick="embedSpotify('last-song')">upload</button>
+        </div>
+        <div class="embed-area" id="last-song-embed"></div>
+        <div class="saved-pill" id="last-song-saved">✓ Song Saved</div>
+        <button class="clear-btn" id="last-song-clear" onclick="clearSelection('last-song')">✕ Clear Selection</button>
+      </div>
+    </div>
+    <div class="undo-bar" id="undo-last-song">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('last-song')">↩ Undo</button>
+    </div>
+
     <!-- SAMPLE PLAYLISTS -->
   <div class="sections">
     <div style="padding: 0 0 10px;">
@@ -1327,6 +1352,7 @@
       'guest-seating':     { category: 'ceremony', label: 'Guest Seating' },
       'cake-cutting':      { category: 'additional', label: 'Cake Cutting' },
       'bouquet-toss':      { category: 'additional', label: 'Bouquet Toss' },
+      'last-song':         { category: 'additional', label: 'Last Song of the Night' },
     };
 
     // ── INIT MAKE SELECTION LINKS ──
