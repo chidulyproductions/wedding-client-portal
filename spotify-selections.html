@@ -693,6 +693,7 @@
           <li><span class="program-moment">Wedding Party Walk</span><span class="program-song">— —</span></li>
           <li><span class="program-moment">Bride Walk</span><span class="program-song">— —</span></li>
           <li><span class="program-moment">The Kiss</span><span class="program-song">— —</span></li>
+          <li><span class="program-moment">Concessional</span><span class="program-song">— —</span></li>
         </ul>
       </div>
 
@@ -890,6 +891,30 @@
     <div class="undo-bar" id="undo-the-kiss">
       <span>Section removed</span>
       <button class="undo-btn" onclick="undoRemove('the-kiss')">↩ Undo</button>
+    </div>
+
+    <!-- CONCESSIONAL -->
+    <div class="music-section" id="section-concessional" data-section="concessional">
+      <div class="section-header" style="position:relative;">
+        <div class="section-header-left">
+          <div class="section-number">Song Link</div>
+          <div class="section-title" style="font-family:'Bodoni Moda',serif; font-style:italic; color:#b06878;">Concessional</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('concessional')" id="remove-concessional" title="Remove section">🗑</button>
+      </div>
+      <div class="section-body">
+        <div class="input-row">
+          <input type="text" class="text-input" id="concessional-link" placeholder="Song link here..." />
+          <button class="btn" onclick="embedSpotify('concessional')">upload</button>
+        </div>
+        <div class="embed-area" id="concessional-embed"></div>
+        <div class="saved-pill" id="concessional-saved">✓ Song Saved</div>
+        <button class="clear-btn" id="concessional-clear" onclick="clearSelection('concessional')">✕ Clear Selection</button>
+      </div>
+    </div>
+    <div class="undo-bar" id="undo-concessional">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('concessional')">↩ Undo</button>
     </div>
 
     <!-- WEDDING PARTY ENTRANCE -->
@@ -1390,6 +1415,7 @@
       'mother-son':        { category: 'special', label: 'Mother / Son' },
       'bride-walk':        { category: 'ceremony', label: 'Bride Walk' },
       'the-kiss':          { category: 'ceremony', label: 'The Kiss' },
+      'concessional':      { category: 'ceremony', label: 'Concessional' },
       'recessional-party': { category: 'ceremony', label: 'Wedding Party Walk' },
       'party-entrance':    { category: 'introductions', label: 'Wedding Party Entrance' },
       'grand-entrance':    { category: 'introductions', label: 'Grand Entrance' },
