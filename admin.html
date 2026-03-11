@@ -341,6 +341,76 @@
     .action-btn:hover { border-color: var(--accent); color: var(--accent); }
     .action-btn.lock:hover { border-color: var(--blush); color: var(--blush); }
     .action-btn.resend:hover { border-color: var(--green); color: var(--green); }
+    .action-btn.delete { border-color: #3a2a2a; color: #6a4a4a; }
+    .action-btn.delete:hover { border-color: #c0392b; color: #c0392b; }
+
+    .delete-confirm {
+      display: none;
+      margin-top: 10px;
+      padding: 14px 16px;
+      background: #1a0f0f;
+      border: 1px solid #5a2a2a;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      color: #d4a0a0;
+      line-height: 1.6;
+    }
+
+    .delete-confirm.visible { display: block; }
+
+    .delete-confirm-msg {
+      margin-bottom: 12px;
+      font-family: 'Raleway', sans-serif;
+      letter-spacing: 0.05em;
+    }
+
+    .delete-confirm-msg strong {
+      color: #e88;
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.8rem;
+    }
+
+    .delete-confirm-actions {
+      display: flex;
+      gap: 40px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .delete-cancel-btn {
+      background: none;
+      border: 1px solid #3a2a2a;
+      color: #9a7a7a;
+      border-radius: 4px;
+      padding: 6px 16px;
+      font-family: 'Raleway', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .delete-cancel-btn:hover { border-color: #9a7a7a; color: #ccc; }
+
+    .delete-confirm-btn {
+      background: #7a1a1a;
+      border: 1px solid #c0392b;
+      color: #ffaaaa;
+      border-radius: 4px;
+      padding: 6px 20px;
+      font-family: 'Raleway', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-left: auto;
+    }
+
+    .delete-confirm-btn:hover { background: #c0392b; color: #fff; }
 
     .empty-state {
       text-align: center;
@@ -548,6 +618,17 @@
             <td>
               <button class="action-btn resend" onclick="resendLink('${c.email}', '${c.name}', '${c.wedding_date}')">Resend Link</button>
               <button class="action-btn lock" onclick="toggleLock('${c.id}', ${c.locked})">${c.locked ? 'Unlock' : 'Lock'}</button>
+              <button class="action-btn delete" onclick="showDeleteConfirm('${c.id}')">Delete</button>
+              <div class="delete-confirm" id="delete-confirm-${c.id}">
+                <div class="delete-confirm-msg">
+                  <strong>⚠ This cannot be undone.</strong>
+                  Permanently delete <em>${c.name}</em> and all their data?
+                </div>
+                <div class="delete-confirm-actions">
+                  <button class="delete-cancel-btn" onclick="hideDeleteConfirm('${c.id}')">Cancel</button>
+                  <button class="delete-confirm-btn" onclick="confirmDelete('${c.id}')">Yes, Delete Permanently</button>
+                </div>
+              </div>
             </td>
           </tr>
         `;
@@ -585,6 +666,26 @@
         email, options: { emailRedirectTo: redirectTo, shouldCreateUser: false }
       });
       alert(error ? 'Error: ' + error.message : `Magic link resent to ${email}!`);
+    }
+
+    // ── DELETE CLIENT ──
+    function showDeleteConfirm(id) {
+      // Hide any other open confirms first
+      document.querySelectorAll('.delete-confirm.visible').forEach(el => el.classList.remove('visible'));
+      document.getElementById('delete-confirm-' + id).classList.add('visible');
+    }
+
+    function hideDeleteConfirm(id) {
+      document.getElementById('delete-confirm-' + id).classList.remove('visible');
+    }
+
+    async function confirmDelete(id) {
+      const { error } = await sb.from('clients').delete().eq('id', id);
+      if (error) {
+        alert('Error deleting client: ' + error.message);
+      } else {
+        loadClients();
+      }
     }
 
     // ── TOGGLE LOCK ──
