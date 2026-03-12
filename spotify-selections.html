@@ -695,11 +695,11 @@
       <div class="program-section">
         <div class="program-category">Ceremony</div>
         <ul class="program-list">
-          <li><span class="program-moment">Guest Seating</span><span class="program-song">— —</span></li>
-          <li><span class="program-moment">Wedding Party Walk</span><span class="program-song">— —</span></li>
-          <li><span class="program-moment">Bride Walk</span><span class="program-song">— —</span></li>
-          <li><span class="program-moment">The Kiss</span><span class="program-song">— —</span></li>
-          <li><span class="program-moment">Concessional</span><span class="program-song">— —</span></li>
+          <li id="brochure-guest-seating"><span class="program-moment">Guest Seating</span><span class="program-song">— —</span></li>
+          <li id="brochure-recessional-party"><span class="program-moment">Wedding Party Walk</span><span class="program-song">— —</span></li>
+          <li id="brochure-bride-walk"><span class="program-moment">Bride Walk</span><span class="program-song">— —</span></li>
+          <li id="brochure-the-kiss"><span class="program-moment">The Kiss</span><span class="program-song">— —</span></li>
+          <li id="brochure-concessional"><span class="program-moment">Concessional</span><span class="program-song">— —</span></li>
         </ul>
       </div>
 
@@ -708,8 +708,8 @@
       <div class="program-section">
         <div class="program-category">Reception</div>
         <ul class="program-list">
-          <li><span class="program-moment">Wedding Party Entrance</span><span class="program-song">— —</span></li>
-          <li><span class="program-moment">Grand Entrance</span><span class="program-song">— —</span></li>
+          <li id="brochure-party-entrance"><span class="program-moment">Wedding Party Entrance</span><span class="program-song">— —</span></li>
+          <li id="brochure-grand-entrance"><span class="program-moment">Grand Entrance</span><span class="program-song">— —</span></li>
         </ul>
       </div>
 
@@ -718,9 +718,9 @@
       <div class="program-section">
         <div class="program-category">Special Dances</div>
         <ul class="program-list">
-          <li><span class="program-moment">First Dance</span><span class="program-song">— —</span></li>
-          <li><span class="program-moment">Father / Daughter</span><span class="program-song">— —</span></li>
-          <li><span class="program-moment">Mother / Son</span><span class="program-song">— —</span></li>
+          <li id="brochure-first-dance"><span class="program-moment">First Dance</span><span class="program-song">— —</span></li>
+          <li id="brochure-father-daughter"><span class="program-moment">Father / Daughter</span><span class="program-song">— —</span></li>
+          <li id="brochure-mother-son"><span class="program-moment">Mother / Son</span><span class="program-song">— —</span></li>
         </ul>
       </div>
 
@@ -729,7 +729,7 @@
       <div class="program-section">
         <div class="program-category">Last Song</div>
         <ul class="program-list">
-          <li><span class="program-moment">Last Song of the Night</span><span class="program-song">— —</span></li>
+          <li id="brochure-last-song"><span class="program-moment">Last Song of the Night</span><span class="program-song">— —</span></li>
         </ul>
       </div>
 
@@ -738,9 +738,9 @@
       <div class="program-section">
         <div class="program-category">Additional</div>
         <ul class="program-list">
-          <li><span class="program-moment">Cake Cutting</span><span class="program-song">— —</span></li>
-          <li><span class="program-moment">Bouquet Toss</span><span class="program-song">— —</span></li>
-          <li><span class="program-moment">Dance Floor Must Plays</span><span class="program-song">— —</span></li>
+          <li id="brochure-cake-cutting"><span class="program-moment">Cake Cutting</span><span class="program-song">— —</span></li>
+          <li id="brochure-bouquet-toss"><span class="program-moment">Bouquet Toss</span><span class="program-song">— —</span></li>
+          <li id="brochure-must-plays"><span class="program-moment">Dance Floor Must Plays</span><span class="program-song">— —</span></li>
         </ul>
       </div>
 
@@ -1593,11 +1593,39 @@
     function removeSection(sectionId) {
       document.getElementById('section-' + sectionId).classList.add('removed');
       document.getElementById('undo-' + sectionId).classList.add('visible');
+      // Hide brochure entry
+      const brochureItem = document.getElementById('brochure-' + sectionId);
+      if (brochureItem) brochureItem.style.display = 'none';
+      // Delete from Supabase
+      deleteSelection(sectionId);
     }
 
     function undoRemove(sectionId) {
       document.getElementById('section-' + sectionId).classList.remove('removed');
       document.getElementById('undo-' + sectionId).classList.remove('visible');
+      // Restore brochure entry
+      const brochureItem = document.getElementById('brochure-' + sectionId);
+      if (brochureItem) brochureItem.style.display = '';
+      // Re-save whatever is in the input
+      const linkInput = document.getElementById(sectionId + '-link');
+      if (linkInput && linkInput.value.trim()) {
+        embedSpotify(sectionId, true);
+      }
+    }
+
+    async function deleteSelection(sectionId) {
+      const clientKey = getClientKey();
+      try {
+        await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/save-selection', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s'
+          },
+          body: JSON.stringify({ clientKey, sectionId, spotifyUrl: '', songTitle: '', artist: '', notes: '', deleted: true })
+        });
+      } catch(e) { console.log('Delete error:', e); }
     }
 
     // ── CLIENT KEY ──
@@ -1745,6 +1773,9 @@
 
         if (!Array.isArray(data)) return;
 
+        const sectionsWithData = new Set();
+        const deletedSections = new Set();
+
         data.forEach(row => {
           const sid = row.section_id;
 
@@ -1766,13 +1797,19 @@
             return;
           }
 
+          // Detect deleted marker (spotify_url is null/empty but row exists = was deleted)
+          if (!row.spotify_url) {
+            deletedSections.add(sid);
+            return;
+          }
+
           // Handle spotify links
           if (row.spotify_url) {
             const linkInput = document.getElementById(sid + '-link');
             if (linkInput) {
               linkInput.value = row.spotify_url;
+              sectionsWithData.add(sid);
               embedSpotify(sid, true);
-              // Use stored song info directly - no re-fetch needed
               const clearEl = document.getElementById(sid + '-clear');
               if (clearEl) clearEl.classList.add('visible');
               if (row.song_title) {
@@ -1780,6 +1817,16 @@
               }
             }
           }
+        });
+
+        // Hide sections that were explicitly deleted (have a null-url marker row)
+        deletedSections.forEach(sid => {
+          const sectionEl = document.getElementById('section-' + sid);
+          const brochureEl = document.getElementById('brochure-' + sid);
+          const undoEl = document.getElementById('undo-' + sid);
+          if (sectionEl) sectionEl.classList.add('removed');
+          if (brochureEl) brochureEl.style.display = 'none';
+          if (undoEl) undoEl.classList.add('visible');
         });
 
       } catch (err) {
