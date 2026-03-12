@@ -743,6 +743,14 @@
         </ul>
       </div>
 
+      <div id="brochure-custom-section" style="display:none;">
+        <div class="program-rule-thin"></div>
+        <div class="program-section">
+          <div class="program-category">Special Moments</div>
+          <ul class="program-list" id="brochure-custom-list"></ul>
+        </div>
+      </div>
+
       <div class="program-rule"></div>
       <div class="program-footer">Chi Duly Productions</div>
     </div>
@@ -1201,6 +1209,26 @@
     <div class="undo-bar" id="undo-dance-floor">
       <span>Section removed</span>
       <button class="undo-btn" onclick="undoRemove('dance-floor')">↩ Undo</button>
+    </div>
+
+    <!-- CUSTOM MOMENTS -->
+    <div id="custom-moments-container"></div>
+
+    <div style="margin: 8px 0 32px;">
+      <div id="custom-moment-creator" style="display:none; background:#1a1218; border:1px solid #2e2a35; border-radius:12px; padding:20px 24px; margin-bottom:16px;">
+        <p style="font-size:0.72rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--accent); margin-bottom:10px;">New Custom Moment</p>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <input type="text" id="custom-moment-name" placeholder="Moment name (e.g. Concessional)" class="text-input" style="flex:1; min-width:200px;" maxlength="50" />
+          <button class="btn" onclick="createCustomMoment()" style="white-space:nowrap;">+ Add</button>
+          <button onclick="document.getElementById('custom-moment-creator').style.display='none'" style="background:none;border:none;color:#888;cursor:pointer;font-size:0.85rem;">Cancel</button>
+        </div>
+      </div>
+      <button onclick="document.getElementById('custom-moment-creator').style.display='block'; document.getElementById('custom-moment-name').focus();"
+        style="background:none; border:1px dashed #3a3540; color:#888; border-radius:10px; padding:12px 20px; width:100%; cursor:pointer; font-family:'Raleway',sans-serif; font-size:0.82rem; letter-spacing:0.15em; text-transform:uppercase; transition:all 0.2s;"
+        onmouseover="this.style.borderColor='#b06878';this.style.color='#b06878';"
+        onmouseout="this.style.borderColor='#3a3540';this.style.color='#888';">
+        + Add Custom Moment
+      </button>
     </div>
 
     <!-- SAMPLE PLAYLISTS -->
@@ -1772,8 +1800,19 @@
             return;
           }
 
+          // Handle custom moment definitions
+          if (sid.startsWith('custom-def-')) {
+            const customId = sid.replace('custom-def-', '');
+            const label = row.notes;
+            if (label && row.song_title === '__custom_def__') {
+              createCustomMoment(customId, label);
+            }
+            return;
+          }
+
           // Detect deleted marker (spotify_url is null/empty but row exists = was deleted)
-          if (!row.spotify_url) {
+          // Exclude custom-def rows (they intentionally have no spotify_url)
+          if (!row.spotify_url && row.song_title !== '__custom_def__') {
             deletedSections.add(sid);
             return;
           }
@@ -1809,7 +1848,110 @@
       }
     }
 
-    // Load on page start
+    // ── CUSTOM MOMENTS ──
+
+    let customMomentCount = 0;
+
+    function createCustomMoment(savedId, savedLabel) {
+      const nameInput = document.getElementById('custom-moment-name');
+      const label = savedLabel || (nameInput ? nameInput.value.trim() : '');
+      if (!label) return;
+
+      const id = savedId || ('custom-' + Date.now());
+
+      // Hide creator UI
+      const creator = document.getElementById('custom-moment-creator');
+      if (creator) creator.style.display = 'none';
+      if (nameInput) nameInput.value = '';
+
+      // Build the form section HTML
+      const container = document.getElementById('custom-moments-container');
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = `
+        <div class="music-section" id="section-${id}" data-section="${id}">
+          <div class="section-header" style="position:relative;">
+            <div class="section-header-left">
+              <div class="section-number">Song Link</div>
+              <div class="section-title" style="font-family:'Bodoni Moda',serif;font-style:italic;color:#b06878;">${label}</div>
+            </div>
+            <button class="remove-btn" onclick="removeSection('${id}')" id="remove-${id}" title="Remove section">🗑</button>
+          </div>
+          <div class="section-body">
+            <div class="input-row">
+              <input type="text" class="text-input" id="${id}-link" placeholder="Song link here..." />
+              <button class="btn" onclick="embedSpotify('${id}')">upload</button>
+            </div>
+            <div class="embed-area" id="${id}-embed"></div>
+            <div class="saved-pill" id="${id}-saved">✓ Song Saved</div>
+            <button class="clear-btn" id="${id}-clear" onclick="clearSelection('${id}')">✕ Clear Selection</button>
+          </div>
+        </div>
+        <div class="undo-bar" id="undo-${id}">
+          <span>Section removed</span>
+          <button class="undo-btn" onclick="undoRemove('${id}')">↩ Undo</button>
+        </div>`;
+      container.appendChild(wrapper);
+
+      // Register in sectionProgramMap
+      sectionProgramMap[id] = { category: 'custom', label: label };
+
+      // Add brochure entry
+      addCustomBrochureItem(id, label);
+
+      // Save the custom moment definition to Supabase
+      if (!savedId) {
+        saveCustomMomentDef(id, label);
+      }
+
+      // Enter key support for new input
+      const newInput = document.getElementById(id + '-link');
+      if (newInput) {
+        newInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            const btn = this.closest('.input-row')?.querySelector('.btn');
+            if (btn) btn.click();
+          }
+        });
+      }
+    }
+
+    function addCustomBrochureItem(id, label) {
+      const list = document.getElementById('brochure-custom-list');
+      const section = document.getElementById('brochure-custom-section');
+      if (!list || !section) return;
+      // Don't add duplicate
+      if (document.getElementById('brochure-' + id)) return;
+      const li = document.createElement('li');
+      li.id = 'brochure-' + id;
+      li.innerHTML = '<span class="program-moment">' + label + '</span><span class="program-song">— —</span>';
+      list.appendChild(li);
+      section.style.display = '';
+    }
+
+    async function saveCustomMomentDef(id, label) {
+      const clientKey = getClientKey();
+      try {
+        await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/save-selection', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s'
+          },
+          body: JSON.stringify({
+            clientKey,
+            sectionId: 'custom-def-' + id,
+            spotifyUrl: null,
+            songTitle: null,
+            artist: null,
+            notes: label,   // store the label in notes
+            customDef: true
+          })
+        });
+      } catch(e) { console.log('Save custom def error:', e); }
+    }
+
+    // ── LOAD ON PAGE START ──
     window.addEventListener('DOMContentLoaded', () => {
       applyPersonalization();
       checkLockStatus();
