@@ -1637,6 +1637,8 @@
     // ── CLIENT KEY ──
     function getClientKey() {
       const params = new URLSearchParams(window.location.search);
+      const explicitKey = params.get('client_key');
+      if (explicitKey) return explicitKey;
       const name = params.get('name') || 'default';
       const date = params.get('date') || 'nodate';
       return (name + '-' + date).toLowerCase().replace(/[^a-z0-9-]/g, '-');
