@@ -680,6 +680,14 @@
     }
 
     async function confirmDelete(id) {
+      const { data: client, error: fetchErr } = await sb.from('clients').select('name, wedding_date').eq('id', id).single();
+      if (fetchErr) { alert('Error fetching client: ' + fetchErr.message); return; }
+
+      const clientKey = (client.name + '-' + client.wedding_date).toLowerCase().replace(/[^a-z0-9-]/g, '-');
+
+      const { error: selErr } = await sb.from('wedding_selections').delete().eq('client_key', clientKey);
+      if (selErr) { alert('Error deleting selections: ' + selErr.message); return; }
+
       const { error } = await sb.from('clients').delete().eq('id', id);
       if (error) {
         alert('Error deleting client: ' + error.message);
