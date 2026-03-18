@@ -1493,22 +1493,22 @@
     // ── FETCH SPOTIFY INFO FROM NETLIFY FUNCTION ──
     async function fetchSpotifyInfo(url, sectionId) {
       try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
         const response = await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/spotify', {
           method: 'POST',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s',
             'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s'
           },
-          body: JSON.stringify({ spotifyUrl: url })
+          body: JSON.stringify({ spotifyUrl: url }),
+          signal: controller.signal
         });
+        clearTimeout(timeout);
         const data = await response.json();
-        console.log('Spotify API response:', JSON.stringify(data));
-        console.log('Section ID:', sectionId);
         if (data.title) {
           updateProgram(sectionId, data.title, data.artist || data.owner || '', url);
-        } else {
-          console.log('No title found in response');
         }
         return data;
       } catch (err) {
@@ -1580,16 +1580,21 @@
 
       document.getElementById(sectionId + '-saved').classList.add('visible');
 
-      // Fetch song info and update program
-      const info = await fetchSpotifyInfo(url, sectionId);
-
-      // Save to Supabase (only when user clicks, not on load)
+      // Save immediately so the URL is never lost — don't wait for Spotify lookup
       if (!silent) {
-        // If Spotify API failed, extract a fallback title from the URL
-        const fallbackTitle = info?.title || extracted.id;
-        const fallbackArtist = info?.artist || info?.owner || null;
-        await saveSelection(sectionId, url, fallbackTitle, fallbackArtist);
+        await saveSelection(sectionId, url, extracted.id, null);
       }
+
+      // Fetch song info in background (non-blocking) — updates brochure and re-saves with proper title
+      fetchSpotifyInfo(url, sectionId).then(info => {
+        if (!info?.title) {
+          const isPlaylist = extracted.type === 'playlist';
+          updateProgram(sectionId, isPlaylist ? 'Playlist Selected' : 'Song Selected', '', url);
+        }
+        if (!silent && info?.title) {
+          saveSelection(sectionId, url, info.title, info.artist || info.owner || null);
+        }
+      });
     }
 
     // ── SAVE VIBE ──
