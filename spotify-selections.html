@@ -1493,24 +1493,14 @@
     // ── FETCH SPOTIFY INFO FROM NETLIFY FUNCTION ──
     async function fetchSpotifyInfo(url, sectionId) {
       try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000);
-        const response = await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/spotify', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s'
-          },
-          body: JSON.stringify({ spotifyUrl: url }),
-          signal: controller.signal
-        });
-        clearTimeout(timeout);
+        const response = await fetch(
+          'https://open.spotify.com/oembed?url=' + encodeURIComponent(url)
+        );
         const data = await response.json();
         if (data.title) {
-          updateProgram(sectionId, data.title, data.artist || data.owner || '', url);
+          updateProgram(sectionId, data.title, '', url);
         }
-        return data;
+        return { title: data.title || null, artist: '' };
       } catch (err) {
         console.log('Could not fetch Spotify info:', err);
         return null;
