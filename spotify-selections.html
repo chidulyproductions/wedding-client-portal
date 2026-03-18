@@ -1388,16 +1388,16 @@
     async function checkLockStatus() {
       try {
         if (!sb) return;
-        const { data: { session } } = await sb.auth.getSession();
-        if (session?.user?.email) {
-          const { data: client } = await sb.from('clients').select('locked').eq('email', session.user.email).single();
-          if (client?.locked) {
-            const overlay = document.getElementById('locked-overlay');
-            overlay.style.display = 'flex';
-            return;
-          }
+        const params = new URLSearchParams(window.location.search);
+        const name = params.get('name');
+        const date = params.get('date');
+        if (!name || !date) return;
+        const { data: clients } = await sb.from('clients').select('locked').ilike('name', name).eq('wedding_date', date);
+        if (clients?.length && clients[0].locked) {
+          const overlay = document.getElementById('locked-overlay');
+          overlay.style.display = 'flex';
         }
-      } catch(e) { /* not logged in via magic link, continue normally */ }
+      } catch(e) { /* continue normally */ }
     }
 
     // ── URL PERSONALIZATION ──
