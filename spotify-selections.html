@@ -1534,11 +1534,7 @@
           } else {
             displayText = formattedArtist ? formattedArtist + ' · ' + formattedTitle : formattedTitle;
           }
-          if (spotifyUrl) {
-            song.innerHTML = '<a href="' + spotifyUrl + '" target="_blank" rel="noopener" class="program-song-link">' + displayText + '</a>';
-          } else {
-            song.textContent = displayText;
-          }
+          song.innerHTML = '<a href="#section-' + sectionId + '" class="program-song-link">' + displayText + '</a>';
           song.style.color = 'var(--blush)';
         }
       });
