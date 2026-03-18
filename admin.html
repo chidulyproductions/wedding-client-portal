@@ -471,7 +471,7 @@
             <input type="email" class="form-input" id="new-email" placeholder="bride@email.com" />
           </div>
         </div>
-        <button class="submit-btn" id="add-btn" onclick="addClient()">Send Magic Link & Create Client</button>
+        <button class="submit-btn" id="add-btn" onclick="addClient()">Create Client</button>
         <div class="form-msg" id="form-msg"></div>
       </div>
 
@@ -544,40 +544,16 @@
       msgEl.textContent = 'Creating client...';
       msgEl.className = 'form-msg';
 
-      // Build the redirect URL for the magic link
-      const clientKey = (name + '-' + date).toLowerCase().replace(/[^a-z0-9-]/g, '-');
-      const redirectTo = `${BASE_URL}?name=${encodeURIComponent(name)}&date=${encodeURIComponent(date)}`;
-
-      // Invite the user via Supabase Auth (sends magic link)
-      const { data: inviteData, error: inviteError } = await sb.auth.admin?.inviteUserByEmail
-        ? await sb.auth.admin.inviteUserByEmail(email, { redirectTo })
-        : { data: null, error: { message: 'Admin invite not available from client' } };
-
-      // Fallback: use signInWithOtp to send magic link
-      if (inviteError) {
-        const { error: otpError } = await sb.auth.signInWithOtp({
-          email,
-          options: { emailRedirectTo: redirectTo, shouldCreateUser: true }
-        });
-
-        if (otpError) {
-          msgEl.textContent = 'Error: ' + otpError.message;
-          msgEl.className = 'form-msg error';
-          btn.disabled = false;
-          return;
-        }
-      }
-
-      // Save client record
+      // Save client record only — magic link is sent separately
       const { error: dbError } = await sb.from('clients').insert({
         name, wedding_date: date, email, locked: false
       });
 
       if (dbError && !dbError.message.includes('duplicate')) {
-        msgEl.textContent = 'Magic link sent but DB error: ' + dbError.message;
+        msgEl.textContent = 'Error: ' + dbError.message;
         msgEl.className = 'form-msg error';
       } else {
-        msgEl.textContent = `✓ Magic link sent to ${email}!`;
+        msgEl.textContent = `✓ Client created. Use "Send Link" when ready to invite them.`;
         msgEl.className = 'form-msg success';
         document.getElementById('new-name').value = '';
         document.getElementById('new-date').value = '';
@@ -616,7 +592,7 @@
               <button class="copy-btn" onclick="copyLink('${url}', this)">Copy Link</button>
             </td>
             <td>
-              <button class="action-btn resend" onclick="resendLink('${c.email}', '${c.name}', '${c.wedding_date}')">Resend Link</button>
+              <button class="action-btn resend" onclick="resendLink('${c.email}', '${c.name}', '${c.wedding_date}')">Send Link</button>
               <button class="action-btn lock" onclick="toggleLock('${c.id}', ${c.locked})">${c.locked ? 'Unlock' : 'Lock'}</button>
               <button class="action-btn delete" onclick="showDeleteConfirm('${c.id}')">Delete</button>
               <div class="delete-confirm" id="delete-confirm-${c.id}">
