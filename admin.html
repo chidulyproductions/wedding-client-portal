@@ -427,9 +427,167 @@
       color: var(--text);
       opacity: 0.3;
     }
+
+    /* ── SEND LINK MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.visible { display: flex; }
+    .modal-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 32px;
+      width: 100%;
+      max-width: 460px;
+    }
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      margin-bottom: 4px;
+    }
+    .modal-subtitle {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-bottom: 24px;
+    }
+    .modal-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .modal-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      outline: none;
+      margin-bottom: 18px;
+      transition: border-color 0.2s;
+    }
+    .modal-input:focus { border-color: var(--accent); }
+    .modal-input[readonly] { opacity: 0.5; cursor: default; }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 4px;
+    }
+    .modal-cancel {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 8px 20px;
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .modal-cancel:hover { border-color: var(--muted); color: var(--text); }
+    .modal-send {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      border-radius: 4px;
+      padding: 8px 22px;
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .modal-send:hover { opacity: 0.85; }
+    .modal-msg { font-size: 0.8rem; margin-top: 14px; min-height: 18px; }
+    .modal-msg.success { color: var(--green); }
+    .modal-msg.error { color: var(--blush); }
+
+    /* ── INLINE EMAIL EDIT ── */
+    .edit-email-form {
+      display: none;
+      margin-top: 8px;
+      gap: 6px;
+      align-items: center;
+    }
+    .edit-email-form.visible { display: flex; }
+    .edit-email-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 6px 10px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      outline: none;
+      transition: border-color 0.2s;
+      min-width: 0;
+    }
+    .edit-email-input:focus { border-color: var(--accent); }
+    .edit-email-save {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-family: var(--font-body);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+    .edit-email-save:hover { opacity: 0.85; }
+    .edit-email-cancel {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.2s;
+    }
+    .edit-email-cancel:hover { color: var(--text); }
   </style>
 </head>
 <body>
+
+  <!-- SEND LINK MODAL -->
+  <div class="modal-overlay" id="send-modal" onclick="if(event.target===this)closeSendModal()">
+    <div class="modal-box">
+      <div class="modal-title">Send Magic Link</div>
+      <div class="modal-subtitle" id="send-modal-subtitle"></div>
+      <div class="modal-label">Primary Email</div>
+      <input class="modal-input" id="send-primary-email" type="email" readonly />
+      <div class="modal-label">Additional Recipients <span style="color:var(--muted);font-size:0.7rem;text-transform:none;letter-spacing:0">(optional — comma-separated)</span></div>
+      <input class="modal-input" id="send-extra-emails" type="text" placeholder="groom@email.com, planner@email.com" />
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeSendModal()">Cancel</button>
+        <button class="modal-send" id="send-modal-btn" onclick="sendLinkFromModal()">Send Link</button>
+      </div>
+      <div class="modal-msg" id="send-modal-msg"></div>
+    </div>
+  </div>
 
   <!-- LOGIN SCREEN -->
   <div id="login-screen">
@@ -581,7 +739,14 @@
           <tr>
             <td><div class="client-name">${c.name}</div></td>
             <td><div class="client-date">${dateFormatted}</div></td>
-            <td>${c.email}</td>
+            <td>
+              <div>${c.email}</div>
+              <div class="edit-email-form" id="edit-email-${c.id}">
+                <input class="edit-email-input" type="email" id="edit-email-input-${c.id}" value="${c.email}" />
+                <button class="edit-email-save" onclick="saveEditEmail('${c.id}')">Save</button>
+                <button class="edit-email-cancel" onclick="hideEditEmail('${c.id}')">✕</button>
+              </div>
+            </td>
             <td>
               <span class="status-badge ${c.locked ? 'status-locked' : 'status-active'}">
                 ${c.locked ? 'Locked' : 'Active'}
@@ -592,7 +757,8 @@
               <button class="copy-btn" onclick="copyLink('${url}', this)">Copy Link</button>
             </td>
             <td>
-              <button class="action-btn resend" onclick="resendLink('${c.email}', '${c.name}', '${c.wedding_date}')">Send Link</button>
+              <button class="action-btn resend" onclick="openSendModal('${c.email}', '${c.name}', '${c.wedding_date}')">Send Link</button>
+              <button class="action-btn" onclick="showEditEmail('${c.id}')">Edit Email</button>
               <button class="action-btn lock" onclick="toggleLock('${c.id}', ${c.locked})">${c.locked ? 'Unlock' : 'Lock'}</button>
               <button class="action-btn delete" onclick="showDeleteConfirm('${c.id}')">Delete</button>
               <div class="delete-confirm" id="delete-confirm-${c.id}">
@@ -635,13 +801,80 @@
       setTimeout(() => { btn.textContent = 'Copy Link'; btn.classList.remove('copied'); }, 2000);
     }
 
-    // ── RESEND MAGIC LINK ──
-    async function resendLink(email, name, date) {
+    // ── SEND LINK MODAL ──
+    let _sendModalData = {};
+
+    function openSendModal(email, name, date) {
+      _sendModalData = { email, name, date };
+      document.getElementById('send-primary-email').value = email;
+      document.getElementById('send-modal-subtitle').textContent = name;
+      document.getElementById('send-extra-emails').value = '';
+      document.getElementById('send-modal-msg').textContent = '';
+      document.getElementById('send-modal-msg').className = 'modal-msg';
+      document.getElementById('send-modal-btn').disabled = false;
+      document.getElementById('send-modal').classList.add('visible');
+    }
+
+    function closeSendModal() {
+      document.getElementById('send-modal').classList.remove('visible');
+    }
+
+    async function sendLinkFromModal() {
+      const { email, name, date } = _sendModalData;
+      const extraRaw = document.getElementById('send-extra-emails').value.trim();
+      const extras = extraRaw ? extraRaw.split(',').map(e => e.trim()).filter(Boolean) : [];
+      const allEmails = [email, ...extras];
       const redirectTo = `${BASE_URL}?name=${encodeURIComponent(name)}&date=${encodeURIComponent(date)}`;
-      const { error } = await sb.auth.signInWithOtp({
-        email, options: { emailRedirectTo: redirectTo, shouldCreateUser: false }
-      });
-      alert(error ? 'Error: ' + error.message : `Magic link resent to ${email}!`);
+      const msgEl = document.getElementById('send-modal-msg');
+      const btn = document.getElementById('send-modal-btn');
+
+      btn.disabled = true;
+      msgEl.textContent = 'Sending...';
+      msgEl.className = 'modal-msg';
+
+      const errors = [];
+      for (const addr of allEmails) {
+        const { error } = await sb.auth.signInWithOtp({
+          email: addr,
+          options: { emailRedirectTo: redirectTo, shouldCreateUser: true }
+        });
+        if (error) errors.push(addr + ': ' + error.message);
+      }
+
+      if (errors.length) {
+        msgEl.textContent = 'Error: ' + errors.join('; ');
+        msgEl.className = 'modal-msg error';
+        btn.disabled = false;
+      } else {
+        msgEl.textContent = `✓ Link sent to ${allEmails.join(', ')}`;
+        msgEl.className = 'modal-msg success';
+        setTimeout(closeSendModal, 2500);
+      }
+    }
+
+    // ── EDIT EMAIL ──
+    function showEditEmail(id) {
+      document.querySelectorAll('.edit-email-form.visible').forEach(el => el.classList.remove('visible'));
+      document.getElementById('edit-email-' + id).classList.add('visible');
+      document.getElementById('edit-email-input-' + id).focus();
+    }
+
+    function hideEditEmail(id) {
+      document.getElementById('edit-email-' + id).classList.remove('visible');
+    }
+
+    async function saveEditEmail(id) {
+      const input = document.getElementById('edit-email-input-' + id);
+      const newEmail = input.value.trim();
+      if (!newEmail || !newEmail.includes('@')) {
+        input.style.borderColor = 'var(--blush)';
+        setTimeout(() => { input.style.borderColor = ''; }, 2000);
+        return;
+      }
+      const { error } = await sb.from('clients').update({ email: newEmail }).eq('id', id);
+      if (error) { alert('Error updating email: ' + error.message); return; }
+      hideEditEmail(id);
+      loadClients();
     }
 
     // ── DELETE CLIENT ──
