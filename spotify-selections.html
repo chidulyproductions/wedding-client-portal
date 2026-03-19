@@ -777,6 +777,7 @@
           <li id="brochure-cake-cutting"><span class="program-moment">Cake Cutting</span><span class="program-song">— —</span></li>
           <li id="brochure-bouquet-toss"><span class="program-moment">Bouquet Toss</span><span class="program-song">— —</span></li>
           <li id="brochure-must-plays"><span class="program-moment">Dance Floor Must Plays</span><span class="program-song">— —</span></li>
+          <li id="brochure-last-dance-private"><span class="program-moment">Last Dance (Private)</span><span class="program-song">— —</span></li>
         </ul>
       </div>
 
@@ -1213,6 +1214,33 @@
       <button class="undo-btn" onclick="undoRemove('bouquet-toss')">↩ Undo</button>
     </div>
 
+    <!-- LAST DANCE (PRIVATE) -->
+    <div class="music-section" id="section-last-dance-private" data-section="last-dance-private">
+      <div class="section-header" style="position:relative;">
+        <div class="section-header-left">
+          <div class="section-number">Song Link</div>
+          <div class="section-title">LAST DANCE (PRIVATE)</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('last-dance-private')" id="remove-last-dance-private" title="Remove section">🗑</button>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+          <div class="input-row">
+            <input type="text" class="text-input" id="last-dance-private-link" placeholder="Paste song link here (Spotify, YouTube, SoundCloud...)" />
+            <button class="btn" onclick="embedSpotify('last-dance-private')">upload</button>
+          </div>
+        </div>
+        <div class="embed-area" id="last-dance-private-embed"></div>
+        <div class="saved-pill" id="last-dance-private-saved">✓ Song Saved</div>
+        <button class="clear-btn" id="last-dance-private-clear" onclick="clearSelection('last-dance-private')">✕ Clear Selection</button>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-last-dance-private">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('last-dance-private')">↩ Undo</button>
+    </div>
+
     <!-- COCKTAIL HOUR -->
     <div class="music-section playlist-section" id="section-cocktail" data-section="cocktail">
       <div class="section-header" style="position:relative;">
@@ -1525,6 +1553,7 @@
       'bouquet-toss':      { category: 'additional', label: 'Bouquet Toss' },
       'last-song':         { category: 'additional', label: 'Last Song of the Night' },
       'dance-floor':       { category: 'additional', label: 'Dance Floor Must Plays' },
+      'last-dance-private': { category: 'additional', label: 'Last Dance (Private)' },
     };
 
     // ── INIT MAKE SELECTION LINKS ──
