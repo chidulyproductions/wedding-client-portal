@@ -1824,17 +1824,18 @@
     }
 
     async function deleteSelection(sectionId) {
-      const clientKey = getClientKey();
+      // Save a null tombstone so the section stays hidden on refresh
       try {
-        await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/save-selection', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s'
-          },
-          body: JSON.stringify({ clientKey, sectionId, spotifyUrl: '', songTitle: '', artist: '', notes: '', deleted: true })
-        });
+        if (!sb) return;
+        const { error } = await sb.from('wedding_selections').upsert({
+          client_key: getClientKey(),
+          section_id: sectionId,
+          spotify_url: null,
+          song_title: null,
+          artist: null,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'client_key,section_id' });
+        if (error) console.log('Delete error:', error);
       } catch(e) { console.log('Delete error:', e); }
     }
 
@@ -1852,16 +1853,20 @@
     async function saveAnnouncement() {
       const text = document.getElementById('announcement-text').value.trim();
       if (!text) return;
-      const clientKey = getClientKey();
-      await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/save-selection', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s'
-        },
-        body: JSON.stringify({ clientKey, sectionId: 'announcement', spotifyUrl: '', songTitle: text, artist: '', notes: text })
-      });
+      try {
+        if (sb) {
+          const { error } = await sb.from('wedding_selections').upsert({
+            client_key: getClientKey(),
+            section_id: 'announcement',
+            spotify_url: null,
+            song_title: text,
+            artist: null,
+            notes: text,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'client_key,section_id' });
+          if (error) console.log('Announcement save error:', error);
+        }
+      } catch(e) { console.log('Announcement save error:', e); }
       updateAnnouncingAs(text);
       const pill = document.getElementById('announcement-saved');
       pill.classList.add('visible');
@@ -1882,21 +1887,16 @@
     // ── SAVE SELECTION TO SUPABASE ──
     async function saveSelection(sectionId, spotifyUrl, songTitle, artist) {
       try {
-        await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/save-selection', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s'
-          },
-          body: JSON.stringify({
-            clientKey: getClientKey(),
-            sectionId,
-            spotifyUrl: spotifyUrl || null,
-            songTitle: songTitle || null,
-            artist: artist || null
-          })
-        });
+        if (!sb) return;
+        const { error } = await sb.from('wedding_selections').upsert({
+          client_key: getClientKey(),
+          section_id: sectionId,
+          spotify_url: spotifyUrl || null,
+          song_title: songTitle || null,
+          artist: artist || null,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'client_key,section_id' });
+        if (error) console.log('Save error:', error);
       } catch (err) {
         console.log('Save error:', err);
       }
@@ -1905,19 +1905,14 @@
     // ── SAVE NOTES TO SUPABASE ──
     async function saveNotes(sectionId, notes) {
       try {
-        await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/save-selection', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s'
-          },
-          body: JSON.stringify({
-            clientKey: getClientKey(),
-            sectionId: sectionId + '-notes',
-            notes
-          })
-        });
+        if (!sb) return;
+        const { error } = await sb.from('wedding_selections').upsert({
+          client_key: getClientKey(),
+          section_id: sectionId + '-notes',
+          notes: notes,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'client_key,section_id' });
+        if (error) console.log('Save notes error:', error);
       } catch (err) {
         console.log('Save notes error:', err);
       }
@@ -1955,23 +1950,14 @@
         });
       }
 
-      // Delete from Supabase
+      // Delete the row entirely so section loads fresh on next visit
       try {
-        await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/save-selection', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s'
-          },
-          body: JSON.stringify({
-            clientKey: getClientKey(),
-            sectionId,
-            spotifyUrl: null,
-            songTitle: null,
-            artist: null
-          })
-        });
+        if (!sb) return;
+        const { error } = await sb.from('wedding_selections')
+          .delete()
+          .eq('client_key', getClientKey())
+          .eq('section_id', sectionId);
+        if (error) console.log('Clear error:', error);
       } catch (err) {
         console.log('Clear error:', err);
       }
@@ -1980,14 +1966,12 @@
     // ── LOAD ALL SELECTIONS ON PAGE LOAD ──
     async function loadSelections() {
       try {
+        if (!sb) return;
         const clientKey = getClientKey();
-        const response = await fetch(`https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/load-selections?clientKey=${encodeURIComponent(clientKey)}`, {
-          headers: {
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbmxmdHhxZGVsY3JtYmNlaW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Mzg5NDIsImV4cCI6MjA4ODUxNDk0Mn0._-XQuBtlKW0B87QDR6kF1wYU_0FQLjRnTPMJ7xIp59s'
-          }
-        });
-        const data = await response.json();
+        const { data, error } = await sb.from('wedding_selections')
+          .select('*')
+          .eq('client_key', clientKey);
+        if (error) { console.log('Load error:', error); return; }
 
         if (!Array.isArray(data)) return;
 
