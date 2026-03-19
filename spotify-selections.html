@@ -734,6 +734,7 @@
           <li id="brochure-recessional-party"><span class="program-moment">Wedding Party Walk</span><span class="program-song">— —</span></li>
           <li id="brochure-bride-walk"><span class="program-moment">Bride Walk</span><span class="program-song">— —</span></li>
           <li id="brochure-the-kiss"><span class="program-moment">The Kiss</span><span class="program-song">— —</span></li>
+          <li id="brochure-ceremony-exit"><span class="program-moment">Ceremony Exit</span><span class="program-song">— —</span></li>
         </ul>
       </div>
 
@@ -942,6 +943,32 @@
       <button class="undo-btn" onclick="undoRemove('the-kiss')">↩ Undo</button>
     </div>
 
+    <!-- CEREMONY EXIT -->
+    <div class="music-section" id="section-ceremony-exit" data-section="ceremony-exit">
+      <div class="section-header" style="position:relative;">
+        <div class="section-header-left">
+          <div class="section-number">Song Link</div>
+          <div class="section-title">CEREMONY EXIT</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('ceremony-exit')" id="remove-ceremony-exit" title="Remove section">🗑</button>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+          <div class="input-row">
+            <input type="text" class="text-input" id="ceremony-exit-link" placeholder="Paste song link here (Spotify, YouTube, SoundCloud...)" />
+            <button class="btn" onclick="embedSpotify('ceremony-exit')">upload</button>
+          </div>
+        </div>
+        <div class="embed-area" id="ceremony-exit-embed"></div>
+        <div class="saved-pill" id="ceremony-exit-saved">✓ Song Saved</div>
+        <button class="clear-btn" id="ceremony-exit-clear" onclick="clearSelection('ceremony-exit')">✕ Clear Selection</button>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-ceremony-exit">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('ceremony-exit')">↩ Undo</button>
+    </div>
 
     <!-- WEDDING PARTY ENTRANCE -->
     <div class="music-section" id="section-party-entrance" data-section="party-entrance">
@@ -1489,6 +1516,7 @@
       'anniversary-dance': { category: 'special', label: 'Anniversary Dance' },
       'bride-walk':        { category: 'ceremony', label: 'Bride Walk' },
       'the-kiss':          { category: 'ceremony', label: 'The Kiss' },
+      'ceremony-exit':     { category: 'ceremony', label: 'Ceremony Exit' },
       'recessional-party': { category: 'ceremony', label: 'Wedding Party Walk' },
       'party-entrance':    { category: 'introductions', label: 'Wedding Party Entrance' },
       'grand-entrance':    { category: 'introductions', label: 'Grand Entrance' },
