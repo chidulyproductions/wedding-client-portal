@@ -49,7 +49,7 @@ exports.handler = async function(event) {
   try {
     const res = await httpsRequest(
       'POST',
-      `${supabaseUrl}/rest/v1/wedding_selections`,
+      `${supabaseUrl}/rest/v1/wedding_selections?on_conflict=client_key,section_id`,
       {
         'Content-Type': 'application/json',
         'apikey': supabaseKey,

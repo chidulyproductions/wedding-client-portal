@@ -1991,10 +1991,20 @@
 
         if (!Array.isArray(data)) return;
 
+        // Deduplicate: if multiple rows exist for the same section (old bug), keep only the latest
+        const latestBySection = {};
+        data.forEach(row => {
+          const existing = latestBySection[row.section_id];
+          if (!existing || new Date(row.updated_at) > new Date(existing.updated_at)) {
+            latestBySection[row.section_id] = row;
+          }
+        });
+        const deduped = Object.values(latestBySection);
+
         const sectionsWithData = new Set();
         const deletedSections = new Set();
 
-        data.forEach(row => {
+        deduped.forEach(row => {
           const sid = row.section_id;
 
           // Handle announcement
