@@ -1581,15 +1581,12 @@
         const song = item.querySelector('.program-song');
         const map = sectionProgramMap[sectionId];
         if (map && moment && moment.textContent.trim() === map.label) {
-          const toTitleCase = str => str.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
-          const formattedTitle = '\u201c' + toTitleCase(title) + '\u201d';
-          const formattedArtist = artist ? toTitleCase(artist) : '';
           const isPlaylist = spotifyUrl && spotifyUrl.includes('/playlist/');
           let displayText;
           if (isPlaylist) {
-            displayText = formattedTitle + ' [PLAYLIST]';
+            displayText = artist ? artist + ' - ' + title : title;
           } else {
-            displayText = formattedArtist ? formattedArtist + ' · ' + formattedTitle : formattedTitle;
+            displayText = artist ? artist + ' - ' + title : title;
           }
           song.innerHTML = '<a href="#section-' + sectionId + '" class="program-song-link">' + displayText + '</a>';
           song.style.color = 'var(--blush)';
@@ -1634,8 +1631,9 @@
         }
         const response = await fetch(oembedUrl);
         const data = await response.json();
-        if (data.title) updateProgram(sectionId, data.title, '', url);
-        return { title: data.title || null, artist: '', html: data.html || null };
+        const artist = data.author_name || '';
+        if (data.title) updateProgram(sectionId, data.title, artist, url);
+        return { title: data.title || null, artist, html: data.html || null };
       } catch (err) {
         console.log('Could not fetch song info:', err);
         return null;
