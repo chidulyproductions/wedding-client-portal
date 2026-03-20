@@ -707,7 +707,7 @@
         name, wedding_date: date, email, locked: false
       });
 
-      if (dbError && !dbError.message.includes('duplicate')) {
+      if (dbError) {
         msgEl.textContent = 'Error: ' + dbError.message;
         msgEl.className = 'form-msg error';
       } else {
