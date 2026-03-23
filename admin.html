@@ -889,19 +889,33 @@
     }
 
     async function confirmDelete(id) {
-      const { data: client, error: fetchErr } = await sb.from('clients').select('name, wedding_date').eq('id', id).single();
-      if (fetchErr) { alert('Error fetching client: ' + fetchErr.message); return; }
+      const btn = document.querySelector(`#delete-confirm-${id} .delete-confirm-btn`);
+      if (btn) { btn.disabled = true; btn.textContent = 'Deleting...'; }
 
-      const clientKey = (client.name + '-' + client.wedding_date).toLowerCase().replace(/[^a-z0-9-]/g, '-');
+      try {
+        const { data: client, error: fetchErr } = await sb.from('clients').select('name, wedding_date').eq('id', id).single();
+        if (fetchErr) { alert('Error fetching client: ' + fetchErr.message); return; }
 
-      const { error: selErr } = await sb.from('wedding_selections').delete().eq('client_key', clientKey);
-      if (selErr) { alert('Error deleting selections: ' + selErr.message); return; }
+        const clientKey = (client.name + '-' + client.wedding_date).toLowerCase().replace(/[^a-z0-9-]/g, '-');
 
-      const { error } = await sb.from('clients').delete().eq('id', id);
-      if (error) {
-        alert('Error deleting client: ' + error.message);
-      } else {
+        const { error: selErr } = await sb.from('wedding_selections').delete().eq('client_key', clientKey);
+        if (selErr) { alert('Error deleting selections: ' + selErr.message); return; }
+
+        const { error } = await sb.from('clients').delete().eq('id', id);
+        if (error) { alert('Error deleting client: ' + error.message); return; }
+
+        // Verify deletion actually happened (RLS may silently block it)
+        const { data: check } = await sb.from('clients').select('id').eq('id', id).single();
+        if (check) {
+          alert('Delete was blocked. Check your Supabase RLS policies — the authenticated role may not have DELETE permission on the clients table.');
+          return;
+        }
+
         loadClients();
+      } catch (err) {
+        alert('Delete failed: ' + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Yes, Delete Permanently'; }
       }
     }
 
