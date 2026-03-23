@@ -901,13 +901,20 @@
         const { error: selErr } = await sb.from('wedding_selections').delete().eq('client_key', clientKey);
         if (selErr) { alert('Error deleting selections: ' + selErr.message); return; }
 
+        // Verify selections were removed
+        const { data: selCheck } = await sb.from('wedding_selections').select('id').eq('client_key', clientKey).limit(1);
+        if (selCheck && selCheck.length > 0) {
+          alert('Failed to delete music selections — they may still exist. Check Supabase RLS DELETE policy on wedding_selections.');
+          return;
+        }
+
         const { error } = await sb.from('clients').delete().eq('id', id);
         if (error) { alert('Error deleting client: ' + error.message); return; }
 
-        // Verify deletion actually happened (RLS may silently block it)
+        // Verify client was removed
         const { data: check } = await sb.from('clients').select('id').eq('id', id).single();
         if (check) {
-          alert('Delete was blocked. Check your Supabase RLS policies — the authenticated role may not have DELETE permission on the clients table.');
+          alert('Failed to delete client record. Check Supabase RLS DELETE policy on clients.');
           return;
         }
 
