@@ -518,7 +518,58 @@
     .modal-msg.success { color: var(--green); }
     .modal-msg.error { color: var(--blush); }
 
-    /* ── INLINE EMAIL EDIT ── */
+    /* ── INLINE EDIT FORMS ── */
+    .edit-inline-form {
+      display: none;
+      margin-top: 8px;
+      gap: 6px;
+      align-items: center;
+    }
+    .edit-inline-form.visible { display: flex; }
+    .edit-inline-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 6px 10px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      outline: none;
+      transition: border-color 0.2s;
+      min-width: 0;
+    }
+    .edit-inline-input:focus { border-color: var(--accent); }
+    .edit-inline-save {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-family: var(--font-body);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+    .edit-inline-save:hover { opacity: 0.85; }
+    .edit-inline-cancel {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.2s;
+    }
+    .edit-inline-cancel:hover { color: var(--text); }
+
+    /* ── INLINE EMAIL EDIT (legacy classes) ── */
     .edit-email-form {
       display: none;
       margin-top: 8px;
@@ -737,8 +788,22 @@
         const dateFormatted = new Date(c.wedding_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         return `
           <tr>
-            <td><div class="client-name">${c.name}</div></td>
-            <td><div class="client-date">${dateFormatted}</div></td>
+            <td>
+              <div class="client-name">${c.name}</div>
+              <div class="edit-inline-form" id="edit-name-${c.id}">
+                <input class="edit-inline-input" type="text" id="edit-name-input-${c.id}" value="${c.name}" />
+                <button class="edit-inline-save" onclick="saveEditName('${c.id}')">Save</button>
+                <button class="edit-inline-cancel" onclick="hideEdit('edit-name-${c.id}')">✕</button>
+              </div>
+            </td>
+            <td>
+              <div class="client-date">${dateFormatted}</div>
+              <div class="edit-inline-form" id="edit-date-${c.id}">
+                <input class="edit-inline-input" type="date" id="edit-date-input-${c.id}" value="${c.wedding_date}" />
+                <button class="edit-inline-save" onclick="saveEditDate('${c.id}')">Save</button>
+                <button class="edit-inline-cancel" onclick="hideEdit('edit-date-${c.id}')">✕</button>
+              </div>
+            </td>
             <td>
               <div>${c.email}</div>
               <div class="edit-email-form" id="edit-email-${c.id}">
@@ -758,6 +823,8 @@
             </td>
             <td>
               <button class="action-btn resend" onclick="openSendModal('${c.email}', '${c.name}', '${c.wedding_date}')">Send Link</button>
+              <button class="action-btn" onclick="showEdit('edit-name-${c.id}', 'edit-name-input-${c.id}')">Edit Name</button>
+              <button class="action-btn" onclick="showEdit('edit-date-${c.id}', 'edit-date-input-${c.id}')">Edit Date</button>
               <button class="action-btn" onclick="showEditEmail('${c.id}')">Edit Email</button>
               <button class="action-btn lock" onclick="toggleLock('${c.id}', ${c.locked})">${c.locked ? 'Unlock' : 'Lock'}</button>
               <button class="action-btn delete" onclick="showDeleteConfirm('${c.id}')">Delete</button>
@@ -850,6 +917,77 @@
         msgEl.className = 'modal-msg success';
         setTimeout(closeSendModal, 2500);
       }
+    }
+
+    // ── GENERIC INLINE EDIT ──
+    function showEdit(formId, inputId) {
+      document.querySelectorAll('.edit-inline-form.visible').forEach(el => el.classList.remove('visible'));
+      document.getElementById(formId).classList.add('visible');
+      document.getElementById(inputId).focus();
+    }
+
+    function hideEdit(formId) {
+      document.getElementById(formId).classList.remove('visible');
+    }
+
+    function deriveClientKey(name, date) {
+      return (name + '-' + date).toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    }
+
+    // ── EDIT NAME ──
+    async function saveEditName(id) {
+      const input = document.getElementById('edit-name-input-' + id);
+      const newName = input.value.trim();
+      if (!newName) {
+        input.style.borderColor = 'var(--blush)';
+        setTimeout(() => { input.style.borderColor = ''; }, 2000);
+        return;
+      }
+
+      // Get current client data to compute old client key
+      const { data: client, error: fetchErr } = await sb.from('clients').select('name, wedding_date').eq('id', id).single();
+      if (fetchErr) { alert('Error: ' + fetchErr.message); return; }
+
+      const oldKey = deriveClientKey(client.name, client.wedding_date);
+      const newKey = deriveClientKey(newName, client.wedding_date);
+
+      // Migrate selections if key changed
+      if (oldKey !== newKey) {
+        const { error: migErr } = await sb.from('wedding_selections').update({ client_key: newKey }).eq('client_key', oldKey);
+        if (migErr) { alert('Error migrating selections: ' + migErr.message); return; }
+      }
+
+      const { error } = await sb.from('clients').update({ name: newName }).eq('id', id);
+      if (error) { alert('Error updating name: ' + error.message); return; }
+      hideEdit('edit-name-' + id);
+      loadClients();
+    }
+
+    // ── EDIT DATE ──
+    async function saveEditDate(id) {
+      const input = document.getElementById('edit-date-input-' + id);
+      const newDate = input.value;
+      if (!newDate) {
+        input.style.borderColor = 'var(--blush)';
+        setTimeout(() => { input.style.borderColor = ''; }, 2000);
+        return;
+      }
+
+      const { data: client, error: fetchErr } = await sb.from('clients').select('name, wedding_date').eq('id', id).single();
+      if (fetchErr) { alert('Error: ' + fetchErr.message); return; }
+
+      const oldKey = deriveClientKey(client.name, client.wedding_date);
+      const newKey = deriveClientKey(client.name, newDate);
+
+      if (oldKey !== newKey) {
+        const { error: migErr } = await sb.from('wedding_selections').update({ client_key: newKey }).eq('client_key', oldKey);
+        if (migErr) { alert('Error migrating selections: ' + migErr.message); return; }
+      }
+
+      const { error } = await sb.from('clients').update({ wedding_date: newDate }).eq('id', id);
+      if (error) { alert('Error updating date: ' + error.message); return; }
+      hideEdit('edit-date-' + id);
+      loadClients();
     }
 
     // ── EDIT EMAIL ──
