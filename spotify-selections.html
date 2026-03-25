@@ -1908,14 +1908,14 @@
         }, { onConflict: 'client_key,section_id' });
         if (error) {
           console.log('Save error:', error);
-          if (savedPill) { savedPill.textContent = '⚠ Save failed'; savedPill.classList.add('visible'); }
+          if (savedPill) { savedPill.textContent = '⚠ ' + (error.message || error.code || 'Save failed'); savedPill.classList.add('visible'); }
           return false;
         }
         if (savedPill) { savedPill.textContent = '✓ Saved'; savedPill.classList.add('visible'); }
         return true;
       } catch (err) {
         console.log('Save error:', err);
-        if (savedPill) { savedPill.textContent = '⚠ Save failed'; savedPill.classList.add('visible'); }
+        if (savedPill) { savedPill.textContent = '⚠ ' + (err.message || 'Save failed'); savedPill.classList.add('visible'); }
         return false;
       }
     }
