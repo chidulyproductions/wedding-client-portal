@@ -1726,11 +1726,12 @@
         embedArea.innerHTML = '';
         const manualArea = getOrCreateManualArea(sectionId);
         manualArea.classList.add('visible');
-        savedPill.classList.add('visible');
         if (!silent) {
           await saveSelection(sectionId, url, null, null);
           const titleInput = document.getElementById(sectionId + '-manual-input');
           if (titleInput) titleInput.focus();
+        } else {
+          savedPill.classList.add('visible');
         }
         const clearEl = document.getElementById(sectionId + '-clear');
         if (clearEl) clearEl.classList.add('visible');
@@ -1776,12 +1777,12 @@
       const existingManual = document.getElementById(sectionId + '-manual');
       if (existingManual) existingManual.classList.remove('visible');
 
-      savedPill.classList.add('visible');
       const clearEl = document.getElementById(sectionId + '-clear');
       if (clearEl) clearEl.classList.add('visible');
 
-      // Save URL immediately
+      // Save URL immediately — savedPill now managed by saveSelection
       if (!silent) await saveSelection(sectionId, url, null, null);
+      if (silent) savedPill.classList.add('visible');
 
       // Fetch song info in background — get title + (for SoundCloud) embed HTML
       fetchSongInfo(url, sectionId).then(info => {
@@ -1890,8 +1891,13 @@
 
     // ── SAVE SELECTION TO SUPABASE ──
     async function saveSelection(sectionId, spotifyUrl, songTitle, artist) {
+      const savedPill = document.getElementById(sectionId + '-saved');
       try {
-        if (!sb) return;
+        if (!sb) {
+          console.log('Save skipped: Supabase client not initialized');
+          if (savedPill) { savedPill.textContent = '⚠ Connection error'; savedPill.classList.add('visible'); }
+          return false;
+        }
         const { error } = await sb.from('wedding_selections').upsert({
           client_key: getClientKey(),
           section_id: sectionId,
@@ -1900,9 +1906,17 @@
           artist: artist || null,
           updated_at: new Date().toISOString()
         }, { onConflict: 'client_key,section_id' });
-        if (error) console.log('Save error:', error);
+        if (error) {
+          console.log('Save error:', error);
+          if (savedPill) { savedPill.textContent = '⚠ Save failed'; savedPill.classList.add('visible'); }
+          return false;
+        }
+        if (savedPill) { savedPill.textContent = '✓ Saved'; savedPill.classList.add('visible'); }
+        return true;
       } catch (err) {
         console.log('Save error:', err);
+        if (savedPill) { savedPill.textContent = '⚠ Save failed'; savedPill.classList.add('visible'); }
+        return false;
       }
     }
 
