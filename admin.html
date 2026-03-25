@@ -868,7 +868,7 @@
                   <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.15em; color:#a07840; margin-bottom:4px;">Your Reply${replyTime ? ' (' + new Date(replyTime).toLocaleDateString() + ')' : ''}</div>
                   <textarea id="reply-${ck}" style="width:100%; min-height:80px; resize:vertical; background:#2a2330; border:1px solid #3e3a45; border-radius:6px; padding:10px; font-family:'Raleway',sans-serif; font-size:0.9rem; color:#f0ecf5;">${adminReply}</textarea>
                   <div style="display:flex; justify-content:flex-end; margin-top:8px;">
-                    <button class="action-btn" onclick="sendReply('${ck}')" style="background:#a07840; color:#fff; border:none;">Send Reply</button>
+                    <button class="action-btn" onclick="sendReply('${ck}', '${c.email}', '${c.name.replace(/'/g, "\\'")}')" style="background:#a07840; color:#fff; border:none;">Send Reply</button>
                   </div>
                 </div>
               </div>
@@ -974,7 +974,7 @@
       if (row) row.style.display = row.style.display === 'none' ? '' : 'none';
     }
 
-    async function sendReply(clientKey) {
+    async function sendReply(clientKey, clientEmail, clientName) {
       const textarea = document.getElementById('reply-' + clientKey);
       if (!textarea) return;
       const text = textarea.value.trim();
@@ -982,7 +982,7 @@
 
       const btn = event.target;
       btn.disabled = true;
-      btn.textContent = 'Sending...';
+      btn.textContent = 'Saving...';
 
       const { error } = await sb.from('wedding_selections').upsert({
         client_key: clientKey,
@@ -997,8 +997,32 @@
         return;
       }
 
-      btn.textContent = '✓ Reply Sent';
-      setTimeout(() => { btn.textContent = 'Send Reply'; btn.disabled = false; }, 2000);
+      // Send email notification
+      btn.textContent = 'Sending email...';
+      try {
+        const emailRes = await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/send-reply-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+          },
+          body: JSON.stringify({ clientEmail, clientName, replyText: text })
+        });
+        const result = await emailRes.json();
+        if (!emailRes.ok) {
+          btn.textContent = '✓ Saved (email failed: ' + (result.error || 'unknown') + ')';
+          setTimeout(() => { btn.textContent = 'Send Reply'; btn.disabled = false; }, 4000);
+          return;
+        }
+      } catch (e) {
+        btn.textContent = '✓ Saved (email failed)';
+        setTimeout(() => { btn.textContent = 'Send Reply'; btn.disabled = false; }, 3000);
+        return;
+      }
+
+      btn.textContent = '✓ Reply Sent + Emailed';
+      setTimeout(() => { btn.textContent = 'Send Reply'; btn.disabled = false; }, 2500);
     }
 
     // ── EDIT NAME ──
