@@ -1482,7 +1482,14 @@
         </div>
       </div>
       <div class="section-body">
-        <textarea class="text-input" id="additional-notes" placeholder="" style="width:100%; min-height: 160px; resize: vertical; line-height: 1.6;"></textarea>
+        <textarea class="text-input" id="additional-notes" placeholder="Questions, changes, or anything you'd like to discuss..." style="width:100%; min-height: 160px; resize: vertical; line-height: 1.6;"></textarea>
+        <div class="saved-pill" id="additional-saved">✓ Saved</div>
+      </div>
+      <!-- Admin Reply -->
+      <div id="admin-reply-display" style="display:none; margin-top:16px; padding:20px; background:#1a1720; border:1px solid #3e3a45; border-radius:8px;">
+        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.15em; color:var(--accent); margin-bottom:8px;">Reply from Chi Duly</div>
+        <div id="admin-reply-text" style="color:#f0ecf5; line-height:1.6; white-space:pre-wrap;"></div>
+        <div id="admin-reply-time" style="font-size:0.75rem; color:var(--muted); margin-top:8px;"></div>
       </div>
     </div>
   </div>
@@ -2022,6 +2029,19 @@
             return;
           }
 
+          // Handle admin reply
+          if (sid === 'admin-reply') {
+            const replyDisplay = document.getElementById('admin-reply-display');
+            const replyText = document.getElementById('admin-reply-text');
+            const replyTime = document.getElementById('admin-reply-time');
+            if (replyDisplay && replyText && row.notes) {
+              replyText.textContent = row.notes;
+              replyTime.textContent = row.updated_at ? new Date(row.updated_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+              replyDisplay.style.display = '';
+            }
+            return;
+          }
+
           // Handle notes
           if (sid.endsWith('-notes')) {
             const baseSid = sid.replace('-notes', '');
@@ -2198,6 +2218,21 @@
       initMakeSelectionLinks();
       loadSelections();
     });
+
+    // ── ADDITIONAL NOTES AUTO-SAVE ──
+    (function() {
+      const notesEl = document.getElementById('additional-notes');
+      if (!notesEl) return;
+      let timer = null;
+      notesEl.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(async () => {
+          await saveNotes('additional', notesEl.value);
+          const pill = document.getElementById('additional-saved');
+          if (pill) { pill.classList.add('visible'); setTimeout(() => pill.classList.remove('visible'), 2000); }
+        }, 1500);
+      });
+    })();
 
     // ── ENTER KEY SUPPORT ──
     document.querySelectorAll('.text-input').forEach(input => {

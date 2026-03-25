@@ -783,9 +783,25 @@
         return;
       }
 
+      // Fetch all client notes and admin replies
+      const clientKeys = data.map(c => deriveClientKey(c.name, c.wedding_date));
+      const { data: notesData } = await sb.from('wedding_selections')
+        .select('client_key, section_id, notes, updated_at')
+        .in('client_key', clientKeys)
+        .in('section_id', ['additional-notes', 'admin-reply']);
+      const notesMap = {};
+      (notesData || []).forEach(r => {
+        if (!notesMap[r.client_key]) notesMap[r.client_key] = {};
+        notesMap[r.client_key][r.section_id] = r;
+      });
+
       const rows = data.map(c => {
         const url = `${BASE_URL}?name=${encodeURIComponent(c.name)}&date=${encodeURIComponent(c.wedding_date)}`;
         const dateFormatted = new Date(c.wedding_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        const ck = deriveClientKey(c.name, c.wedding_date);
+        const clientNote = notesMap[ck]?.['additional-notes']?.notes || '';
+        const adminReply = notesMap[ck]?.['admin-reply']?.notes || '';
+        const replyTime = notesMap[ck]?.['admin-reply']?.updated_at || '';
         return `
           <tr>
             <td>
@@ -827,6 +843,7 @@
               <button class="action-btn" onclick="showEdit('edit-date-${c.id}', 'edit-date-input-${c.id}')">Edit Date</button>
               <button class="action-btn" onclick="showEditEmail('${c.id}')">Edit Email</button>
               <button class="action-btn lock" onclick="toggleLock('${c.id}', ${c.locked})">${c.locked ? 'Unlock' : 'Lock'}</button>
+              <button class="action-btn" onclick="toggleNotesRow('${c.id}')" style="${clientNote ? 'color:#b06878;font-weight:600;' : ''}">Notes${clientNote ? ' ●' : ''}</button>
               <button class="action-btn delete" onclick="showDeleteConfirm('${c.id}')">Delete</button>
               <div class="delete-confirm" id="delete-confirm-${c.id}">
                 <div class="delete-confirm-msg">
@@ -836,6 +853,23 @@
                 <div class="delete-confirm-actions">
                   <button class="delete-cancel-btn" onclick="hideDeleteConfirm('${c.id}')">Cancel</button>
                   <button class="delete-confirm-btn" onclick="confirmDelete('${c.id}')">Yes, Delete Permanently</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr id="notes-row-${c.id}" style="display:none;">
+            <td colspan="6" style="padding:16px 24px; background:#141118; border-top:none;">
+              <div style="display:grid; gap:12px;">
+                <div>
+                  <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.15em; color:#7a7385; margin-bottom:4px;">Client Notes</div>
+                  <div style="color:#f0ecf5; white-space:pre-wrap; padding:10px; background:#1a1720; border-radius:6px; min-height:40px;">${clientNote || '<em style="color:#7a7385;">No notes yet</em>'}</div>
+                </div>
+                <div>
+                  <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.15em; color:#a07840; margin-bottom:4px;">Your Reply${replyTime ? ' (' + new Date(replyTime).toLocaleDateString() + ')' : ''}</div>
+                  <textarea id="reply-${ck}" style="width:100%; min-height:80px; resize:vertical; background:#2a2330; border:1px solid #3e3a45; border-radius:6px; padding:10px; font-family:'Raleway',sans-serif; font-size:0.9rem; color:#f0ecf5;">${adminReply}</textarea>
+                  <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                    <button class="action-btn" onclick="sendReply('${ck}')" style="background:#a07840; color:#fff; border:none;">Send Reply</button>
+                  </div>
                 </div>
               </div>
             </td>
@@ -932,6 +966,39 @@
 
     function deriveClientKey(name, date) {
       return (name + '-' + date).toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    }
+
+    // ── NOTES + REPLY ──
+    function toggleNotesRow(id) {
+      const row = document.getElementById('notes-row-' + id);
+      if (row) row.style.display = row.style.display === 'none' ? '' : 'none';
+    }
+
+    async function sendReply(clientKey) {
+      const textarea = document.getElementById('reply-' + clientKey);
+      if (!textarea) return;
+      const text = textarea.value.trim();
+      if (!text) return;
+
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+
+      const { error } = await sb.from('wedding_selections').upsert({
+        client_key: clientKey,
+        section_id: 'admin-reply',
+        notes: text,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'client_key,section_id' });
+
+      if (error) {
+        btn.textContent = 'Error: ' + error.message;
+        btn.disabled = false;
+        return;
+      }
+
+      btn.textContent = '✓ Reply Sent';
+      setTimeout(() => { btn.textContent = 'Send Reply'; btn.disabled = false; }, 2000);
     }
 
     // ── EDIT NAME ──
