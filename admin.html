@@ -323,6 +323,20 @@
       border: 1px solid rgba(176, 104, 120, 0.3);
     }
 
+    .status-archived {
+      background: rgba(160, 120, 64, 0.15);
+      color: #d0a870;
+      border: 1px solid rgba(160, 120, 64, 0.35);
+    }
+
+    .archived-meta {
+      margin-top: 6px;
+      color: #9b8f80;
+      font-size: 0.66rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
     .action-btn {
       background: none;
       border: 1px solid var(--border);
@@ -343,6 +357,10 @@
     .action-btn.resend:hover { border-color: var(--green); color: var(--green); }
     .action-btn.delete { border-color: #3a2a2a; color: #6a4a4a; }
     .action-btn.delete:hover { border-color: #c0392b; color: #c0392b; }
+    .action-btn.restore { border-color: #2f5c44; color: #6eb88d; }
+    .action-btn.restore:hover { border-color: #42b983; color: #42b983; }
+    .action-btn.purge { border-color: #6a2525; color: #d78585; }
+    .action-btn.purge:hover { border-color: #d94848; color: #ffb3b3; }
 
     .delete-confirm {
       display: none;
@@ -411,6 +429,25 @@
     }
 
     .delete-confirm-btn:hover { background: #c0392b; color: #fff; }
+
+    .delete-confirm-input {
+      width: 100%;
+      margin: 0 0 10px;
+      padding: 8px 10px;
+      background: #2a1a1a;
+      border: 1px solid #5a2a2a;
+      border-radius: 4px;
+      color: #ffe0e0;
+      font-family: 'Raleway', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .delete-confirm-input:focus {
+      outline: none;
+      border-color: #c0392b;
+    }
 
     .empty-state {
       text-align: center;
@@ -685,7 +722,11 @@
       </div>
 
       <!-- CLIENT LIST -->
-      <div class="section-heading">All Clients</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <div class="section-heading" style="margin:0;">All Clients</div>
+        <button class="action-btn" id="toggle-archived-btn" onclick="toggleArchivedView()">Show Archived</button>
+      </div>
+      <div class="form-msg" id="action-msg"></div>
       <div id="clients-container">
         <div class="empty-state"><em>Loading...</em></div>
       </div>
@@ -700,6 +741,7 @@
 
     const { createClient } = supabase;
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let showArchivedClients = false;
 
     // ── AUTH ──
     async function adminLogin() {
@@ -776,6 +818,8 @@
     // ── LOAD CLIENTS ──
     async function loadClients() {
       const container = document.getElementById('clients-container');
+      const toggleBtn = document.getElementById('toggle-archived-btn');
+      if (toggleBtn) toggleBtn.textContent = showArchivedClients ? 'Hide Archived' : 'Show Archived';
       const { data, error } = await sb.from('clients').select('*').order('wedding_date');
 
       if (error || !data?.length) {
@@ -783,8 +827,15 @@
         return;
       }
 
+      const visibleClients = showArchivedClients ? data : data.filter(c => !c.deleted_at);
+
+      if (!visibleClients.length) {
+        container.innerHTML = '<div class="empty-state"><em>No active clients.</em>Toggle "Show Archived" to review archived records.</div>';
+        return;
+      }
+
       // Fetch all client notes and admin replies
-      const clientKeys = data.map(c => deriveClientKey(c.name, c.wedding_date));
+      const clientKeys = visibleClients.map(c => deriveClientKey(c.name, c.wedding_date));
       const { data: notesData } = await sb.from('wedding_selections')
         .select('client_key, section_id, notes, updated_at')
         .in('client_key', clientKeys)
@@ -795,7 +846,7 @@
         notesMap[r.client_key][r.section_id] = r;
       });
 
-      const rows = data.map(c => {
+      const rows = visibleClients.map(c => {
         const url = `${BASE_URL}?name=${encodeURIComponent(c.name)}&date=${encodeURIComponent(c.wedding_date)}`;
         const dateFormatted = new Date(c.wedding_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         const ck = deriveClientKey(c.name, c.wedding_date);
@@ -829,30 +880,37 @@
               </div>
             </td>
             <td>
-              <span class="status-badge ${c.locked ? 'status-locked' : 'status-active'}">
-                ${c.locked ? 'Locked' : 'Active'}
+              <span class="status-badge ${c.deleted_at ? 'status-archived' : (c.locked ? 'status-locked' : 'status-active')}">
+                ${c.deleted_at ? 'Archived' : (c.locked ? 'Locked' : 'Active')}
               </span>
+              ${c.deleted_at ? `<div class="archived-meta">Archived ${new Date(c.deleted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>` : ''}
             </td>
             <td class="link-cell">
               <a href="${url}" target="_blank">View Page ↗</a>
               <button class="copy-btn" onclick="copyLink('${url}', this)">Copy Link</button>
             </td>
             <td>
-              <button class="action-btn resend" onclick="openSendModal('${c.email}', '${c.name}', '${c.wedding_date}')">Send Link</button>
-              <button class="action-btn" onclick="showEdit('edit-name-${c.id}', 'edit-name-input-${c.id}')">Edit Name</button>
-              <button class="action-btn" onclick="showEdit('edit-date-${c.id}', 'edit-date-input-${c.id}')">Edit Date</button>
-              <button class="action-btn" onclick="showEditEmail('${c.id}')">Edit Email</button>
-              <button class="action-btn lock" onclick="toggleLock('${c.id}', ${c.locked})">${c.locked ? 'Unlock' : 'Lock'}</button>
-              <button class="action-btn" onclick="toggleNotesRow('${c.id}')" style="${clientNote ? 'color:#b06878;font-weight:600;' : ''}">Notes${clientNote ? ' ●' : ''}</button>
-              <button class="action-btn delete" onclick="showDeleteConfirm('${c.id}')">Delete</button>
+              ${c.deleted_at ? `
+                <button class="action-btn restore" onclick="restoreClient('${c.id}')">Restore</button>
+                <button class="action-btn purge" onclick="showDeleteConfirm('${c.id}')">Purge</button>
+              ` : `
+                <button class="action-btn resend" onclick="openSendModal('${c.email}', '${c.name}', '${c.wedding_date}')">Send Link</button>
+                <button class="action-btn" onclick="showEdit('edit-name-${c.id}', 'edit-name-input-${c.id}')">Edit Name</button>
+                <button class="action-btn" onclick="showEdit('edit-date-${c.id}', 'edit-date-input-${c.id}')">Edit Date</button>
+                <button class="action-btn" onclick="showEditEmail('${c.id}')">Edit Email</button>
+                <button class="action-btn lock" onclick="toggleLock('${c.id}', ${c.locked})">${c.locked ? 'Unlock' : 'Lock'}</button>
+                <button class="action-btn" onclick="toggleNotesRow('${c.id}')" style="${clientNote ? 'color:#b06878;font-weight:600;' : ''}">Notes${clientNote ? ' ●' : ''}</button>
+                <button class="action-btn delete" onclick="archiveClient('${c.id}')">Archive</button>
+              `}
               <div class="delete-confirm" id="delete-confirm-${c.id}">
                 <div class="delete-confirm-msg">
-                  <strong>⚠ This cannot be undone.</strong>
-                  Permanently delete <em>${c.name}</em> and all their data?
+                  <strong>⚠ Purge cannot be undone.</strong>
+                  Permanently remove archived client <em>${c.name}</em> and all related data?
                 </div>
+                <input class="delete-confirm-input" id="delete-confirm-input-${c.id}" placeholder="Type DELETE to purge" />
                 <div class="delete-confirm-actions">
                   <button class="delete-cancel-btn" onclick="hideDeleteConfirm('${c.id}')">Cancel</button>
-                  <button class="delete-confirm-btn" onclick="confirmDelete('${c.id}')">Yes, Delete Permanently</button>
+                  <button class="delete-confirm-btn" onclick="confirmDelete('${c.id}')">Yes, Purge Permanently</button>
                 </div>
               </div>
             </td>
@@ -1106,58 +1164,112 @@
       loadClients();
     }
 
-    // ── DELETE CLIENT ──
+    // ── CLIENT LIFECYCLE (ARCHIVE / RESTORE / PURGE) ──
+    function showActionMsg(text, type = '') {
+      const el = document.getElementById('action-msg');
+      if (!el) return;
+      el.textContent = text || '';
+      el.className = type ? ('form-msg ' + type) : 'form-msg';
+    }
+
+    function toggleArchivedView() {
+      showArchivedClients = !showArchivedClients;
+      loadClients();
+    }
+
+    async function callAdminDeleteFunction(payload) {
+      const { data: sessionData } = await sb.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) throw new Error('Admin session expired. Please log in again.');
+
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-delete-client`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Request failed.');
+      return result;
+    }
+
+    async function archiveClient(id) {
+      showActionMsg('Archiving client...', '');
+      try {
+        await callAdminDeleteFunction({ action: 'archive', clientId: id });
+        showActionMsg('Client archived. Toggle "Show Archived" to restore or purge.', 'success');
+        await loadClients();
+      } catch (err) {
+        showActionMsg('Archive failed: ' + err.message, 'error');
+      }
+    }
+
+    async function restoreClient(id) {
+      showActionMsg('Restoring client...', '');
+      try {
+        await callAdminDeleteFunction({ action: 'restore', clientId: id });
+        showActionMsg('Client restored successfully.', 'success');
+        await loadClients();
+      } catch (err) {
+        showActionMsg('Restore failed: ' + err.message, 'error');
+      }
+    }
+
     function showDeleteConfirm(id) {
-      // Hide any other open confirms first
       document.querySelectorAll('.delete-confirm.visible').forEach(el => el.classList.remove('visible'));
       document.getElementById('delete-confirm-' + id).classList.add('visible');
+      const input = document.getElementById('delete-confirm-input-' + id);
+      if (input) {
+        input.value = '';
+        input.style.borderColor = '';
+        input.focus();
+      }
     }
 
     function hideDeleteConfirm(id) {
       document.getElementById('delete-confirm-' + id).classList.remove('visible');
+      const input = document.getElementById('delete-confirm-input-' + id);
+      if (input) {
+        input.value = '';
+        input.style.borderColor = '';
+      }
     }
 
     async function confirmDelete(id) {
       const btn = document.querySelector(`#delete-confirm-${id} .delete-confirm-btn`);
-      if (btn) { btn.disabled = true; btn.textContent = 'Deleting...'; }
+      const input = document.getElementById('delete-confirm-input-' + id);
+      const typed = (input?.value || '').trim().toUpperCase();
+
+      if (typed !== 'DELETE') {
+        showActionMsg('Type DELETE to confirm permanent purge.', 'error');
+        if (input) {
+          input.style.borderColor = '#c0392b';
+          input.focus();
+        }
+        return;
+      }
+
+      if (btn) { btn.disabled = true; btn.textContent = 'Purging...'; }
+      showActionMsg('Purging archived client securely...', '');
 
       try {
-        const { data: client, error: fetchErr } = await sb.from('clients').select('name, wedding_date').eq('id', id).single();
-        if (fetchErr) { alert('Error fetching client: ' + fetchErr.message); return; }
-
-        const clientKey = (client.name + '-' + client.wedding_date).toLowerCase().replace(/[^a-z0-9-]/g, '-');
-
-        const { error: selErr } = await sb.from('wedding_selections').delete().eq('client_key', clientKey);
-        if (selErr) { alert('Error deleting selections: ' + selErr.message); return; }
-
-        // Verify selections were removed
-        const { data: selCheck } = await sb.from('wedding_selections').select('id').eq('client_key', clientKey).limit(1);
-        if (selCheck && selCheck.length > 0) {
-          alert('Failed to delete music selections — they may still exist. Check Supabase RLS DELETE policy on wedding_selections.');
-          return;
-        }
-
-        const { error } = await sb.from('clients').delete().eq('id', id);
-        if (error) { alert('Error deleting client: ' + error.message); return; }
-
-        // Verify client was removed
-        const { data: check } = await sb.from('clients').select('id').eq('id', id).single();
-        if (check) {
-          alert('Failed to delete client record. Check Supabase RLS DELETE policy on clients.');
-          return;
-        }
-
-        loadClients();
+        await callAdminDeleteFunction({ action: 'purge', clientId: id, confirmText: typed });
+        hideDeleteConfirm(id);
+        showActionMsg('Client purged and logged successfully.', 'success');
+        await loadClients();
       } catch (err) {
-        alert('Delete failed: ' + err.message);
+        showActionMsg('Purge failed: ' + err.message, 'error');
       } finally {
-        if (btn) { btn.disabled = false; btn.textContent = 'Yes, Delete Permanently'; }
+        if (btn) { btn.disabled = false; btn.textContent = 'Yes, Purge Permanently'; }
       }
     }
 
     // ── TOGGLE LOCK ──
     async function toggleLock(id, currentLocked) {
-      await sb.from('clients').update({ locked: !currentLocked }).eq('id', id);
+      await sb.from('clients').update({ locked: !currentLocked }).eq('id', id).is('deleted_at', null);
       loadClients();
     }
   </script>
