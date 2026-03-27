@@ -38,7 +38,9 @@ begin
       )
     );
   exception when others then
-    -- Log but never let trigger failures break a client save.
+    -- Note: pg_net is async — this exception only fires on SQL-level errors
+    -- (e.g. pg_net extension missing, jsonb type mismatch), NOT on HTTP failures.
+    -- Failed HTTP calls to the Edge Function fail silently, which is acceptable.
     raise warning 'notify_dj_on_selection_change: pg_net call failed: %', sqlerrm;
   end;
 
