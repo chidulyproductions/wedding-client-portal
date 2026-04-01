@@ -17,6 +17,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
+      color-scheme: light; /* prevent browser auto-dark-mode on form controls */
       /* Canvas */
       --canvas: #F8F1E9;
       --brochure-bg: #FFFDF7;
@@ -473,7 +474,8 @@
       font-family: var(--font-body);
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: var(--champagne);
+      color: var(--blush);          /* rose gold — legible on both glass and dark sections */
+      border: 1px solid var(--border-rose);
       padding: 3px 10px;
       border-radius: 100px;
       margin-top: 12px;
