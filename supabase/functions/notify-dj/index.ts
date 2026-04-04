@@ -178,7 +178,7 @@ Deno.serve(async (req) => {
           <p style="font-size: 14px; line-height: 1.6; margin: 4px 0;"><strong>Before:</strong> ${beforeLine}</p>
           <p style="font-size: 14px; line-height: 1.6; margin: 4px 0;"><strong>After:</strong> ${afterLine}</p>
         </blockquote>
-        <p style="font-size: 15px; line-height: 1.7;"><a href="https://chidulydesigns.us/admin.html" style="color: #a07840;">View their portal →</a></p>
+        <p style="font-size: 15px; line-height: 1.7;"><a href="https://chidulyproductions.github.io/wedding-client-portal/admin.html" style="color: #a07840;">View their portal →</a></p>
         <hr style="border: none; border-top: 1px solid #e0dce5; margin: 20px 0;" />
         <p style="color: #7a7385; font-size: 12px;">&copy; 2026 Chi Duly Productions</p>
       </div>
@@ -192,7 +192,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Chi Duly Productions <notifications@send.chiduly.com>",
+        from: "Chi Duly Productions <notifications@chiduly.com>",
         to: ["chris@chiduly.com"],
         subject: `${clientName} updated their music — ${momentLabel}`,
         html: emailHtml,
