@@ -695,6 +695,7 @@
       <div class="topbar-brand">Chi Duly Productions — Admin</div>
       <div class="topbar-right">
         <button class="logout-btn" onclick="adminLogout()">Sign Out</button>
+        <button id="spotify-btn" class="action-btn" onclick="connectSpotify()" style="margin-left:12px;">Connect Spotify</button>
       </div>
     </div>
 
@@ -768,6 +769,7 @@
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('admin-screen').style.display = 'block';
       loadClients();
+      updateSpotifyBtn();
     }
 
     // ── CHECK SESSION ──
@@ -900,6 +902,7 @@
                 <button class="action-btn" onclick="showEditEmail('${c.id}')">Edit Email</button>
                 <button class="action-btn lock" onclick="toggleLock('${c.id}', ${c.locked})">${c.locked ? 'Unlock' : 'Lock'}</button>
                 <button class="action-btn" onclick="toggleNotesRow('${c.id}')" style="${clientNote ? 'color:#b06878;font-weight:600;' : ''}">Notes${clientNote ? ' ●' : ''}</button>
+                <button class="action-btn" onclick="exportToSpotify('${ck}', '${c.name.replace(/'/g, "\\'")}', this)">Export ♫</button>
                 <button class="action-btn delete" onclick="archiveClient('${c.id}')">Archive</button>
               `}
               <div class="delete-confirm" id="delete-confirm-${c.id}">
@@ -1271,6 +1274,96 @@
     async function toggleLock(id, currentLocked) {
       await sb.from('clients').update({ locked: !currentLocked }).eq('id', id).is('deleted_at', null);
       loadClients();
+    }
+
+    // ── SPOTIFY ──
+    function connectSpotify() {
+      window.location.href = 'https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/spotify-auth';
+    }
+
+    function updateSpotifyBtn() {
+      const btn = document.getElementById('spotify-btn');
+      if (!btn) return;
+      const connected = localStorage.getItem('spotify_connected') === 'true';
+      if (connected) {
+        btn.textContent = 'Spotify Connected ✓';
+        btn.style.color = 'var(--green)';
+        btn.style.borderColor = 'var(--green)';
+        btn.style.cursor = 'default';
+        btn.onclick = null;
+      }
+    }
+
+    // Check URL params on load for OAuth callback result
+    (function checkSpotifyCallback() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('spotify_connected') === 'true') {
+        localStorage.setItem('spotify_connected', 'true');
+        const url = new URL(window.location);
+        url.searchParams.delete('spotify_connected');
+        window.history.replaceState({}, '', url);
+      }
+      if (params.get('spotify_error')) {
+        console.error('Spotify OAuth error:', params.get('spotify_error'));
+        const url = new URL(window.location);
+        url.searchParams.delete('spotify_error');
+        window.history.replaceState({}, '', url);
+      }
+    })();
+
+    async function exportToSpotify(clientKey, clientName, btn) {
+      const connected = localStorage.getItem('spotify_connected') === 'true';
+      if (!connected) {
+        alert('Connect Spotify first using the button in the header.');
+        return;
+      }
+
+      const originalText = btn.textContent;
+      btn.textContent = 'Exporting...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/spotify-export', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ client_key: clientKey, client_name: clientName }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          if (data.missing && data.missing.length > 0) {
+            alert(`Export blocked — missing songs for:\n\n${data.missing.join('\n')}\n\nFill in or remove these sections first.`);
+          } else {
+            alert(`Export failed: ${data.error}`);
+          }
+          return;
+        }
+
+        let msg = `Exported ${data.exported} playlist${data.exported !== 1 ? 's' : ''} to Spotify.`;
+        if (data.manual && data.manual.length > 0) {
+          msg += `\n\nHandle manually (non-Spotify links — check playlist descriptions):\n${data.manual.join('\n')}`;
+        }
+        alert(msg);
+
+        btn.textContent = 'Exported ✓';
+        btn.style.color = 'var(--green)';
+        btn.style.borderColor = 'var(--green)';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.color = '';
+          btn.style.borderColor = '';
+          btn.disabled = false;
+        }, 3000);
+
+      } catch (err) {
+        alert(`Export error: ${err.message}`);
+      } finally {
+        if (btn.disabled) {
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }
+      }
     }
   </script>
 </body>
