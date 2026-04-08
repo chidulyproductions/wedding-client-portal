@@ -81,8 +81,9 @@ async function spotifyFetch(path: string, accessToken: string, options: RequestI
     const err = await res.text();
     throw new Error(`Spotify API error ${res.status}: ${err}`);
   }
-  if (res.status === 204) return null;
-  return res.json();
+  // Some Spotify endpoints (e.g. PUT /playlists/{id}) return 200 with an empty body
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 async function getSpotifyUserId(accessToken: string): Promise<string> {

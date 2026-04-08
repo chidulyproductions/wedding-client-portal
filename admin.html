@@ -848,23 +848,12 @@
         notesMap[r.client_key][r.section_id] = r;
       });
 
-      // Fetch Spotify playlist records for all clients
-      const { data: playlistsData } = await sb.from('spotify_playlists')
-        .select('client_key, playlist_name, playlist_url')
-        .in('client_key', clientKeys)
-        .order('playlist_name');
-      const playlistsMap = {};
-      (playlistsData || []).forEach(r => {
-        if (!playlistsMap[r.client_key]) playlistsMap[r.client_key] = [];
-        playlistsMap[r.client_key].push(r);
-      });
 
       const rows = visibleClients.map(c => {
         const url = `${BASE_URL}?name=${encodeURIComponent(c.name)}&date=${encodeURIComponent(c.wedding_date)}`;
         const dateFormatted = new Date(c.wedding_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         const ck = deriveClientKey(c.name, c.wedding_date);
         const clientNote = notesMap[ck]?.['additional-notes']?.notes || '';
-        const clientPlaylists = playlistsMap[ck] || [];
         const adminReply = notesMap[ck]?.['admin-reply']?.notes || '';
         const replyTime = notesMap[ck]?.['admin-reply']?.updated_at || '';
         return `
@@ -915,7 +904,6 @@
                 <button class="action-btn lock" onclick="toggleLock('${c.id}', ${c.locked})">${c.locked ? 'Unlock' : 'Lock'}</button>
                 <button class="action-btn" onclick="toggleNotesRow('${c.id}')" style="${clientNote ? 'color:#b06878;font-weight:600;' : ''}">Notes${clientNote ? ' ●' : ''}</button>
                 <button class="action-btn" onclick="exportToSpotify('${ck}', '${c.name.replace(/'/g, "\\'")}', this)">Export ♫</button>
-                <button class="action-btn" onclick="togglePlaylistsRow('${c.id}')" style="${clientPlaylists.length ? 'color:#1db954;border-color:#1db954;' : ''}">Playlists${clientPlaylists.length ? ' ♫' : ''}</button>
                 <button class="action-btn delete" onclick="archiveClient('${c.id}')">Archive</button>
               `}
               <div class="delete-confirm" id="delete-confirm-${c.id}">
@@ -929,20 +917,6 @@
                   <button class="delete-confirm-btn" onclick="confirmDelete('${c.id}')">Yes, Purge Permanently</button>
                 </div>
               </div>
-            </td>
-          </tr>
-          <tr id="playlists-row-${c.id}" style="display:none;">
-            <td colspan="6" style="padding:16px 24px; background:#0f0d14; border-top:none;">
-              <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.15em; color:#1db954; margin-bottom:10px;">Spotify Playlists</div>
-              ${clientPlaylists.length ? `
-                <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                  ${clientPlaylists.map(p => `
-                    <a href="${p.playlist_url}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:#1a1720; border:1px solid #1db954; border-radius:20px; padding:5px 14px; color:#1db954; font-family:'Raleway',sans-serif; font-size:0.75rem; text-decoration:none; white-space:nowrap; transition:background 0.15s;" onmouseover="this.style.background='#1db95422'" onmouseout="this.style.background='#1a1720'">
-                      ♫ ${p.playlist_name.replace(/.* — /, '')}
-                    </a>
-                  `).join('')}
-                </div>
-              ` : `<em style="color:#7a7385; font-size:0.85rem;">No playlists exported yet. Click Export ♫ to generate.</em>`}
             </td>
           </tr>
           <tr id="notes-row-${c.id}" style="display:none;">
@@ -1062,10 +1036,6 @@
       if (row) row.style.display = row.style.display === 'none' ? '' : 'none';
     }
 
-    function togglePlaylistsRow(id) {
-      const row = document.getElementById('playlists-row-' + id);
-      if (row) row.style.display = row.style.display === 'none' ? '' : 'none';
-    }
 
     async function sendReply(clientKey, clientEmail, clientName) {
       const textarea = document.getElementById('reply-' + clientKey);
