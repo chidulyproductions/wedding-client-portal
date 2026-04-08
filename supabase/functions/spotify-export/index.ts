@@ -194,6 +194,7 @@ Deno.serve(async (req) => {
 
     const userId = await getSpotifyUserId(accessToken);
     const manualSections: string[] = [];
+    const exportedPlaylists: { section_id: string; playlist_id: string; playlist_name: string; playlist_url: string }[] = [];
 
     for (const row of exportable) {
       const momentLabel = getSectionLabel(row.section_id);
@@ -205,6 +206,7 @@ Deno.serve(async (req) => {
       if (isSpotify) {
         const trackId = extractSpotifyTrackId(row.spotify_url);
         if (!trackId) {
+          // Malformed Spotify URL — treat as manual
           manualSections.push(momentLabel);
           const desc = row.spotify_url;
           if (playlistId) {
@@ -213,18 +215,18 @@ Deno.serve(async (req) => {
           } else {
             playlistId = await createPlaylist(playlistName, desc, userId, accessToken);
           }
-          continue;
-        }
-
-        const trackUri = `spotify:track:${trackId}`;
-        if (playlistId) {
-          await replacePlaylistTracks(playlistId, [trackUri], accessToken);
-          await updatePlaylistDescription(playlistId, "", accessToken);
         } else {
-          playlistId = await createPlaylist(playlistName, "", userId, accessToken);
-          await replacePlaylistTracks(playlistId, [trackUri], accessToken);
+          const trackUri = `spotify:track:${trackId}`;
+          if (playlistId) {
+            await replacePlaylistTracks(playlistId, [trackUri], accessToken);
+            await updatePlaylistDescription(playlistId, "", accessToken);
+          } else {
+            playlistId = await createPlaylist(playlistName, "", userId, accessToken);
+            await replacePlaylistTracks(playlistId, [trackUri], accessToken);
+          }
         }
       } else {
+        // Non-Spotify URL: empty playlist, source URL in description
         manualSections.push(momentLabel);
         const desc = row.spotify_url;
         if (playlistId) {
@@ -234,12 +236,38 @@ Deno.serve(async (req) => {
           playlistId = await createPlaylist(playlistName, desc, userId, accessToken);
         }
       }
+
+      // Record the playlist so the admin dashboard can show direct Spotify links
+      if (playlistId) {
+        exportedPlaylists.push({
+          section_id: row.section_id,
+          playlist_id: playlistId,
+          playlist_name: playlistName,
+          playlist_url: `https://open.spotify.com/playlist/${playlistId}`,
+        });
+      }
+    }
+
+    // Persist playlist IDs back to Supabase for the admin dashboard viewer
+    if (exportedPlaylists.length > 0) {
+      await supabase.from("spotify_playlists").upsert(
+        exportedPlaylists.map((p) => ({
+          client_key,
+          section_id: p.section_id,
+          playlist_id: p.playlist_id,
+          playlist_name: p.playlist_name,
+          playlist_url: p.playlist_url,
+          updated_at: new Date().toISOString(),
+        })),
+        { onConflict: "client_key,section_id" }
+      );
     }
 
     return new Response(JSON.stringify({
       success: true,
       exported: exportable.length,
       manual: manualSections,
+      playlists: exportedPlaylists,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
