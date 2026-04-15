@@ -35,6 +35,7 @@ const SECTION_LABELS: Record<string, string> = {
   "bouquet-toss":       "Bouquet Toss",
   "last-song":          "Last Song of the Night",
   "last-dance":         "Last Dance (Private)",
+  "last-dance-private": "Last Dance (Private)",
 };
 
 // Chronological order matching the wedding program / brochure.
@@ -55,6 +56,7 @@ const SECTION_ORDER: Record<string, number> = {
   "bouquet-toss":       13,
   "last-song":          14,
   "last-dance":         15,
+  "last-dance-private": 15,
 };
 
 function getSectionLabel(sectionId: string): string {
