@@ -207,49 +207,56 @@ Deno.serve(async (req) => {
 
     if (selErr) throw new Error(`Failed to load selections: ${selErr.message}`);
 
-    const exportable = (selections ?? []).filter((row) => {
-      if (EXCLUDED_SECTIONS.has(row.section_id)) return false;
-      if (row.section_id.endsWith("-notes")) return false;
-      if (row.song_title === "__custom_def__") return false;
-      if (!row.spotify_url && !row.song_title) return false;
-      return true;
-    });
-
-    const blanks = exportable.filter((row) => !row.spotify_url);
-    if (blanks.length > 0) {
-      const missingLabels = blanks.map((r) => getSectionLabel(r.section_id));
-      return new Response(JSON.stringify({
-        error: "Export blocked: missing songs",
-        missing: missingLabels,
-      }), {
-        status: 422,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Build lookup of client's actual selections, excluding non-exportable rows
+    const selectionsMap: Record<string, { spotify_url: string | null; song_title: string | null }> = {};
+    for (const row of selections ?? []) {
+      if (EXCLUDED_SECTIONS.has(row.section_id)) continue;
+      if (row.section_id.endsWith("-notes")) continue;
+      if (row.song_title === "__custom_def__") continue;
+      if (!row.spotify_url && !row.song_title) continue; // tombstone — section was removed
+      selectionsMap[row.section_id] = row;
     }
+
+    // All known sections in chronological order, plus any custom sections the client defined
+    const knownSectionIds = Object.keys(SECTION_ORDER).sort(
+      (a, b) => SECTION_ORDER[a] - SECTION_ORDER[b]
+    );
+    const customSectionIds = Object.keys(selectionsMap).filter(
+      (id) => id.startsWith("custom-def-")
+    );
+    const allSectionIds = [...knownSectionIds, ...customSectionIds];
 
     const userId = await getSpotifyUserId(accessToken);
     const manualSections: string[] = [];
     const exportedPlaylists: { section_id: string; playlist_id: string; playlist_name: string; playlist_url: string }[] = [];
 
-    for (const row of exportable) {
-      const momentLabel = getSectionLabel(row.section_id);
-      const prefix = getSectionPrefix(row.section_id);
+    for (const sectionId of allSectionIds) {
+      const row = selectionsMap[sectionId]; // may be undefined — section not filled in
+      const momentLabel = getSectionLabel(sectionId);
+      const prefix = getSectionPrefix(sectionId);
       const playlistName = `${client_name} — ${prefix}${momentLabel}`;
-      const isSpotify = isSpotifyTrackUrl(row.spotify_url);
+      const spotifyUrl = row?.spotify_url ?? null;
 
       let playlistId = await findPlaylistByName(playlistName, userId, accessToken);
 
-      if (isSpotify) {
-        const trackId = extractSpotifyTrackId(row.spotify_url);
+      if (!spotifyUrl) {
+        // No song selected — create/keep an empty placeholder playlist
+        if (playlistId) {
+          await replacePlaylistTracks(playlistId, [], accessToken);
+          await updatePlaylistDescription(playlistId, "", accessToken);
+        } else {
+          playlistId = await createPlaylist(playlistName, "", userId, accessToken);
+        }
+      } else if (isSpotifyTrackUrl(spotifyUrl)) {
+        const trackId = extractSpotifyTrackId(spotifyUrl);
         if (!trackId) {
           // Malformed Spotify URL — treat as manual
           manualSections.push(momentLabel);
-          const desc = row.spotify_url;
           if (playlistId) {
             await replacePlaylistTracks(playlistId, [], accessToken);
-            await updatePlaylistDescription(playlistId, desc, accessToken);
+            await updatePlaylistDescription(playlistId, spotifyUrl, accessToken);
           } else {
-            playlistId = await createPlaylist(playlistName, desc, userId, accessToken);
+            playlistId = await createPlaylist(playlistName, spotifyUrl, userId, accessToken);
           }
         } else {
           const trackUri = `spotify:track:${trackId}`;
@@ -262,21 +269,19 @@ Deno.serve(async (req) => {
           }
         }
       } else {
-        // Non-Spotify URL: empty playlist, source URL in description
+        // Non-Spotify URL (YouTube, SoundCloud, etc.) — empty playlist, URL in description
         manualSections.push(momentLabel);
-        const desc = row.spotify_url;
         if (playlistId) {
           await replacePlaylistTracks(playlistId, [], accessToken);
-          await updatePlaylistDescription(playlistId, desc, accessToken);
+          await updatePlaylistDescription(playlistId, spotifyUrl, accessToken);
         } else {
-          playlistId = await createPlaylist(playlistName, desc, userId, accessToken);
+          playlistId = await createPlaylist(playlistName, spotifyUrl, userId, accessToken);
         }
       }
 
-      // Record the playlist so the admin dashboard can show direct Spotify links
       if (playlistId) {
         exportedPlaylists.push({
-          section_id: row.section_id,
+          section_id: sectionId,
           playlist_id: playlistId,
           playlist_name: playlistName,
           playlist_url: `https://open.spotify.com/playlist/${playlistId}`,
@@ -284,7 +289,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Persist playlist IDs back to Supabase for the admin dashboard viewer
+    // Persist playlist IDs back to Supabase
     if (exportedPlaylists.length > 0) {
       await supabase.from("spotify_playlists").upsert(
         exportedPlaylists.map((p) => ({
@@ -301,7 +306,7 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true,
-      exported: exportable.length,
+      exported: allSectionIds.length,
       manual: manualSections,
       playlists: exportedPlaylists,
     }), {
