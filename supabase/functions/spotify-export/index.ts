@@ -12,30 +12,62 @@ const corsHeaders = {
 };
 
 const EXCLUDED_SECTIONS = new Set([
-  "guest-seating", "cocktail-hour", "dinner-hour", "dance-floor",
+  // Text/playlist embed sections — not single-track exports
+  "guest-seating", "cocktail", "cocktail-hour",
+  "dinner", "dinner-hour", "dance-floor",
   "announcement", "additional-notes", "admin-reply",
 ]);
 
+// Human-readable labels for each section
 const SECTION_LABELS: Record<string, string> = {
   "wedding-party-walk": "Wedding Party Walk",
   "bride-walk":         "Bride Walk",
   "the-kiss":           "The Kiss",
   "ceremony-exit":      "Ceremony Exit",
+  "recessional-party":  "Recessional",
   "party-entrance":     "Wedding Party Entrance",
   "grand-entrance":     "Grand Entrance",
   "first-dance":        "First Dance",
   "father-daughter":    "Father/Daughter Dance",
   "mother-son":         "Mother/Son Dance",
   "anniversary-dance":  "Anniversary Dance",
-  "last-song":          "Last Song of the Night",
   "cake-cutting":       "Cake Cutting",
   "bouquet-toss":       "Bouquet Toss",
+  "last-song":          "Last Song of the Night",
   "last-dance":         "Last Dance (Private)",
+};
+
+// Chronological order matching the wedding program / brochure.
+// Used to prefix playlist names so Spotify's A-Z sort = ceremony order.
+const SECTION_ORDER: Record<string, number> = {
+  "wedding-party-walk": 1,
+  "bride-walk":         2,
+  "the-kiss":           3,
+  "ceremony-exit":      4,
+  "recessional-party":  5,
+  "party-entrance":     6,
+  "grand-entrance":     7,
+  "first-dance":        8,
+  "father-daughter":    9,
+  "mother-son":         10,
+  "anniversary-dance":  11,
+  "cake-cutting":       12,
+  "bouquet-toss":       13,
+  "last-song":          14,
+  "last-dance":         15,
 };
 
 function getSectionLabel(sectionId: string): string {
   if (sectionId.startsWith("custom-def-")) return "Custom Moment";
   return SECTION_LABELS[sectionId] ?? sectionId;
+}
+
+// Returns a zero-padded prefix so playlist names sort chronologically in Spotify
+function getSectionPrefix(sectionId: string): string {
+  const order = SECTION_ORDER[sectionId];
+  if (order !== undefined) return String(order).padStart(2, "0") + " ";
+  if (sectionId.startsWith("custom-def-")) return "99 ";
+  return "";
 }
 
 function isSpotifyTrackUrl(url: string): boolean {
@@ -199,7 +231,8 @@ Deno.serve(async (req) => {
 
     for (const row of exportable) {
       const momentLabel = getSectionLabel(row.section_id);
-      const playlistName = `${client_name} — ${momentLabel}`;
+      const prefix = getSectionPrefix(row.section_id);
+      const playlistName = `${client_name} — ${prefix}${momentLabel}`;
       const isSpotify = isSpotifyTrackUrl(row.spotify_url);
 
       let playlistId = await findPlaylistByName(playlistName, userId, accessToken);
