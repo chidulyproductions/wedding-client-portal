@@ -10,27 +10,32 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Hardcoded section ID → label map
+// Hardcoded section ID → label map. Keys MUST match brochure `section_id`s
+// in spotify-selections.html.
 const SECTION_LABELS: Record<string, string> = {
-  "guest-seating":      "Guest Seating",
-  "wedding-party-walk": "Wedding Party Walk",
-  "bride-walk":         "Bride Walk",
-  "the-kiss":           "The Kiss",
-  "ceremony-exit":      "Ceremony Exit",
-  "party-entrance":     "Wedding Party Entrance",
-  "grand-entrance":     "Grand Entrance",
-  "announcement":       "Grand Entrance Announcement",
-  "first-dance":        "First Dance",
-  "father-daughter":    "Father/Daughter Dance",
-  "mother-son":         "Mother/Son Dance",
-  "anniversary-dance":  "Anniversary Dance",
-  "last-song":          "Last Song of the Night",
-  "cake-cutting":       "Cake Cutting",
-  "bouquet-toss":       "Bouquet Toss",
-  "dance-floor":        "Dance Floor Must Plays",
-  "last-dance":         "Last Dance (Private)",
-  "additional-notes":   "Additional Notes",
-  "admin-reply":        "Admin Reply",
+  "guest-seating":            "Guest Seating",
+  "wedding-party-walk":       "Wedding Party Walk",
+  "bride-walk":               "Bride Walk",
+  "the-kiss":                 "The Kiss",
+  "ceremony-exit":            "Ceremony Exit",
+  "cocktail-hour":            "Cocktail Hour",
+  "dinner-hour":              "Dinner Hour",
+  "wedding-party-entrance":   "Wedding Party Entrance",
+  "grand-entrance":           "Grand Entrance",
+  "announcement":             "Grand Entrance Announcement",
+  "first-dance":              "First Dance",
+  "father-daughter":          "Father/Daughter Dance",
+  "mother-son":               "Mother/Son Dance",
+  "anniversary-dance":        "Anniversary Dance",
+  "last-song-of-the-night":   "Last Song of the Night",
+  "cake-cutting":             "Cake Cutting",
+  "bouquet-toss":             "Bouquet Toss",
+  "dance-floor":              "Dance Floor (legacy)",
+  "dance-floor-must-plays":   "Dance Floor Must Plays",
+  "last-dance":               "Last Dance (Private)",
+  "last-dance-private":       "Last Dance (Private)",
+  "additional-notes":         "Additional Notes",
+  "admin-reply":              "Admin Reply",
 };
 
 function getSectionLabel(sectionId: string): string {

@@ -13,50 +13,49 @@ const corsHeaders = {
 
 const EXCLUDED_SECTIONS = new Set([
   // Text/playlist embed sections — not single-track exports
-  "guest-seating", "cocktail", "cocktail-hour",
-  "dinner", "dinner-hour", "dance-floor",
+  "guest-seating", "cocktail-hour",
+  "dinner-hour", "dance-floor", "dance-floor-must-plays",
   "announcement", "additional-notes", "admin-reply",
 ]);
 
-// Human-readable labels for each section
+// Human-readable labels for each section. Keys MUST match the brochure
+// `id="brochure-<section_id>"` values in spotify-selections.html.
 const SECTION_LABELS: Record<string, string> = {
-  "wedding-party-walk": "Wedding Party Walk",
-  "bride-walk":         "Bride Walk",
-  "the-kiss":           "The Kiss",
-  "ceremony-exit":      "Ceremony Exit",
-  "recessional-party":  "Recessional",
-  "party-entrance":     "Wedding Party Entrance",
-  "grand-entrance":     "Grand Entrance",
-  "first-dance":        "First Dance",
-  "father-daughter":    "Father/Daughter Dance",
-  "mother-son":         "Mother/Son Dance",
-  "anniversary-dance":  "Anniversary Dance",
-  "cake-cutting":       "Cake Cutting",
-  "bouquet-toss":       "Bouquet Toss",
-  "last-song":          "Last Song of the Night",
-  "last-dance":         "Last Dance (Private)",
-  "last-dance-private": "Last Dance (Private)",
+  "wedding-party-walk":       "Wedding Party Walk",
+  "bride-walk":               "Bride Walk",
+  "the-kiss":                 "The Kiss",
+  "ceremony-exit":            "Ceremony Exit",
+  "wedding-party-entrance":   "Wedding Party Entrance",
+  "grand-entrance":           "Grand Entrance",
+  "first-dance":              "First Dance",
+  "father-daughter":          "Father/Daughter Dance",
+  "mother-son":               "Mother/Son Dance",
+  "anniversary-dance":        "Anniversary Dance",
+  "cake-cutting":             "Cake Cutting",
+  "bouquet-toss":             "Bouquet Toss",
+  "last-song-of-the-night":   "Last Song of the Night",
+  "last-dance":               "Last Dance (Private)",
+  "last-dance-private":       "Last Dance (Private)",
 };
 
 // Chronological order matching the wedding program / brochure.
 // Used to prefix playlist names so Spotify's A-Z sort = ceremony order.
 const SECTION_ORDER: Record<string, number> = {
-  "wedding-party-walk": 1,
-  "bride-walk":         2,
-  "the-kiss":           3,
-  "ceremony-exit":      4,
-  "recessional-party":  5,
-  "party-entrance":     6,
-  "grand-entrance":     7,
-  "first-dance":        8,
-  "father-daughter":    9,
-  "mother-son":         10,
-  "anniversary-dance":  11,
-  "cake-cutting":       12,
-  "bouquet-toss":       13,
-  "last-song":          14,
-  "last-dance":         15,
-  "last-dance-private": 15,
+  "wedding-party-walk":       1,
+  "bride-walk":               2,
+  "the-kiss":                 3,
+  "ceremony-exit":            4,
+  "wedding-party-entrance":   5,
+  "grand-entrance":           6,
+  "first-dance":              7,
+  "father-daughter":          8,
+  "mother-son":               9,
+  "anniversary-dance":        10,
+  "cake-cutting":             11,
+  "bouquet-toss":             12,
+  "last-song-of-the-night":   13,
+  "last-dance":               14,
+  "last-dance-private":       14,
 };
 
 function getSectionLabel(sectionId: string): string {
