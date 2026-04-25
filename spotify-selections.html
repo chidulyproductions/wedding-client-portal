@@ -1861,25 +1861,58 @@
       return match ? match[1] : null;
     }
 
-    // ── FETCH SONG INFO (Spotify / YouTube / SoundCloud oEmbed) ──
+    // ── FETCH SONG INFO (Spotify via Web API edge fn; YouTube / SoundCloud via oEmbed) ──
+    // Spotify's public oEmbed endpoint does not return author_name, so we route
+    // Spotify URLs through the `spotify` Supabase Edge Function (Web API
+    // client-credentials) which returns the real artist. YouTube and SoundCloud
+    // continue using oEmbed since their responses include author_name (channel
+    // / uploader name — imperfect but populates).
     async function fetchSongInfo(url, sectionId) {
       const platform = detectPlatform(url);
+      if (!platform) return null;
+
       try {
-        let oembedUrl;
+        let title = null;
+        let artist = '';
+
         if (platform === 'spotify') {
-          oembedUrl = 'https://open.spotify.com/oembed?url=' + encodeURIComponent(url);
+          // Primary: Supabase Edge Function (Spotify Web API)
+          const fnRes = await fetch('https://lfnlftxqdelcrmbceiob.supabase.co/functions/v1/spotify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+            },
+            body: JSON.stringify({ spotifyUrl: url })
+          });
+          if (fnRes.ok) {
+            const data = await fnRes.json();
+            title = data.title || null;
+            artist = data.artist || '';
+          } else {
+            // Fallback: oEmbed (title-only) so the form still progresses if
+            // the edge function is unhealthy. Artist will be empty here.
+            console.log('Spotify Web API path failed (' + fnRes.status + '), falling back to oEmbed');
+            const obRes = await fetch('https://open.spotify.com/oembed?url=' + encodeURIComponent(url));
+            const ob = await obRes.json();
+            title = ob.title || null;
+            artist = '';
+          }
         } else if (platform === 'youtube') {
-          oembedUrl = 'https://www.youtube.com/oembed?url=' + encodeURIComponent(url) + '&format=json';
+          const res = await fetch('https://www.youtube.com/oembed?url=' + encodeURIComponent(url) + '&format=json');
+          const data = await res.json();
+          title = data.title || null;
+          artist = data.author_name || '';
         } else if (platform === 'soundcloud') {
-          oembedUrl = 'https://soundcloud.com/oembed?url=' + encodeURIComponent(url) + '&format=json';
-        } else {
-          return null;
+          const res = await fetch('https://soundcloud.com/oembed?url=' + encodeURIComponent(url) + '&format=json');
+          const data = await res.json();
+          title = data.title || null;
+          artist = data.author_name || '';
         }
-        const response = await fetch(oembedUrl);
-        const data = await response.json();
-        const artist = data.author_name || '';
-        if (data.title) updateProgram(sectionId, data.title, artist, url);
-        return { title: data.title || null, artist, html: data.html || null };
+
+        if (title) updateProgram(sectionId, title, artist, url);
+        return { title, artist };
       } catch (err) {
         console.log('Could not fetch song info:', err);
         return null;
