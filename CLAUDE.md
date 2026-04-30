@@ -44,7 +44,7 @@ Static site (no build step) hosted on **GitHub Pages**. Backend is **Supabase** 
 - Supabase project ref: `lfnlftxqdelcrmbceiob`
 - Resend domain: `chiduly.com` (email from `notifications@send.chiduly.com`)
 - RLS is **disabled** on `wedding_selections` (anon key is public in frontend)
-- Auth: Magic links via `sb.auth.signInWithOtp` for client access; admin uses Supabase auth
+- Auth: Admin uses Supabase auth to log into the dashboard. Admin sends client magic links via `sb.auth.signInWithOtp`, but `spotify-selections.html` itself has no auth calls — client saves go through the public anon key. Client-side auth enforcement is a deferred future change.
 
 ## Gotchas
 
