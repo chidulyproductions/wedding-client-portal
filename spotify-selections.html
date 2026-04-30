@@ -2113,6 +2113,7 @@
           spotify_url: null,
           song_title: null,
           artist: null,
+          entered_by: 'client',
           updated_at: new Date().toISOString()
         }, { onConflict: 'client_key,section_id' });
         if (error) console.log('Delete error:', error);
@@ -2142,6 +2143,7 @@
             song_title: text,
             artist: null,
             notes: text,
+            entered_by: 'client',
             updated_at: new Date().toISOString()
           }, { onConflict: 'client_key,section_id' });
           if (error) console.log('Announcement save error:', error);
@@ -2179,6 +2181,7 @@
           spotify_url: spotifyUrl || null,
           song_title: songTitle || null,
           artist: artist || null,
+          entered_by: 'client',
           updated_at: new Date().toISOString()
         }, { onConflict: 'client_key,section_id' });
         if (error) {
@@ -2203,6 +2206,7 @@
           client_key: getClientKey(),
           section_id: sectionId + '-notes',
           notes: notes,
+          entered_by: 'client',
           updated_at: new Date().toISOString()
         }, { onConflict: 'client_key,section_id' });
         if (error) console.log('Save notes error:', error);
@@ -2473,7 +2477,8 @@
             songTitle: null,
             artist: null,
             notes: label,   // store the label in notes
-            customDef: true
+            customDef: true,
+            enteredBy: 'client'
           })
         });
       } catch(e) { console.log('Save custom def error:', e); }
