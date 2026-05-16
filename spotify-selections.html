@@ -11,7 +11,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Allura&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,7 +47,6 @@
       --green: #B76E79;
 
       /* Typography */
-      --font-script: 'Allura', cursive;
       --font-display: 'Playfair Display', serif;
       --font-body: 'DM Sans', sans-serif;
     }
@@ -582,11 +581,12 @@
       overflow: visible;
     }
 
-    /* Couple names — script showstopper */
+    /* Couple names — display showstopper, matches hero "Details for…" heading */
     .program-couple {
-      font-family: var(--font-script);
+      font-family: var(--font-display);
       font-size: clamp(2.5rem, 6vw, 4rem);
-      font-weight: 400;
+      font-weight: 700;
+      font-style: italic;
       letter-spacing: 0.02em;
       background: linear-gradient(135deg, #B76E79 0%, #F7E7CE 50%, #B76E79 100%);
       background-size: 200%;
