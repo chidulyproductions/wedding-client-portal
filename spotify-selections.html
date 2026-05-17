@@ -590,7 +590,7 @@
       letter-spacing: 0.02em;
       background: linear-gradient(135deg, #B76E79 0%, #F7E7CE 50%, #B76E79 100%);
       background-size: 200%;
-      background-position: 0% 50%;
+      background-position: 50% 50%;
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -601,7 +601,8 @@
       transition: background-position 600ms ease;
     }
 
-    .program-couple:hover { background-position: 100% 50%; }
+    /* Hover shimmer: stay centered to keep both ends of long names legible against the light brochure-bg. */
+    .program-couple:hover { background-position: 50% 50%; }
 
     .program-title {
       font-family: var(--font-display);
