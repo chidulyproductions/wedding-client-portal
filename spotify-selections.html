@@ -701,18 +701,20 @@
 
     .program-list li::after { display: none; }
 
+    /* Moment label — italic Playfair Display for the categorical line ("Guest Seating", "Bride Walk", …). */
     .program-moment {
-      font-family: var(--font-body);
-      font-weight: 500;
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 400;
       font-size: 0.9rem;
       color: var(--charcoal);
       text-align: center;
       letter-spacing: 0.03em;
     }
 
+    /* Song/playlist name — upright Playfair, blush, the content line beneath the moment label. */
     .program-song {
       font-family: var(--font-display);
-      font-style: italic;
       font-weight: 400;
       color: var(--blush);
       font-size: 1rem;
