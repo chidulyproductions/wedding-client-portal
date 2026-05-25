@@ -632,7 +632,10 @@
       letter-spacing: 0.1em;
       color: var(--lavender);
       text-align: left;
-      margin: 0 0 2px;
+      /* Nudge past the leading heart-ornament (18px svg + 10px each-side margin = 38px) plus the 0.5rem
+         flex gap between heart and headline, so "Announcing As..." aligns with the first letter of the
+         client name rather than the heart's left edge. */
+      margin: 0 0 2px 2.875rem;
     }
 
     .program-title {
