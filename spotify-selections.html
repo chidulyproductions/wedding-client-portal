@@ -581,7 +581,8 @@
       overflow: visible;
     }
 
-    /* Couple names — display showstopper, matches hero "Details for…" heading */
+    /* Couple names / announcement — display showstopper, matches hero "Details for…" heading. Anchor that
+       hyperlinks to #section-announcement so clicking the headline jumps to the announcement input. */
     .program-couple {
       font-family: var(--font-display);
       font-size: clamp(2.5rem, 6vw, 4rem);
@@ -597,6 +598,8 @@
       margin: 8px 0 12px;
       line-height: 1.15;
       display: block;
+      text-decoration: none;
+      cursor: pointer;
       animation: flyUp 700ms 700ms ease both;
       transition: background-position 600ms ease;
     }
@@ -776,23 +779,6 @@
       opacity: 0.6;
     }
 
-    .program-announcing {
-      font-family: var(--font-body);
-      font-size: 0.75rem;
-      letter-spacing: 0.1em;
-      color: var(--muted);
-      margin-top: 10px;
-      margin-bottom: 4px;
-    }
-
-    .program-announcing-link {
-      color: var(--blush);
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .program-announcing-link:hover { opacity: 0.75; }
-
     /* ── FOOTER ── */
     footer {
       position: relative;
@@ -952,14 +938,11 @@
       <div class="program-header">
         <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem;">
           <span class="heart-ornament" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg></span>
-          <div class="program-couple" id="program-couple"></div>
+          <a class="program-couple" id="program-couple" href="#section-announcement" title="Click to edit your announcement"></a>
           <span class="heart-ornament" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg></span>
         </div>
         <h2 class="program-title">Wedding Music Program</h2>
         <div class="program-date" id="program-date"></div>
-        <div class="program-announcing" id="program-announcing" style="display:none;">
-          Announcing as <a href="#section-announcement" class="program-announcing-link" id="program-announcing-link">Mr &amp; Mrs —</a>
-        </div>
         <div class="program-rule"></div>
       </div>
 
@@ -2198,14 +2181,19 @@
       setTimeout(() => pill.classList.remove('visible'), 3000);
     }
 
+    // Updates the brochure headline. When `text` is set, display the announcement (with leading/trailing
+    // matched quotes stripped for cleanliness). When empty, fall back to the couple's name from URL params
+    // — same default applyPersonalization() uses on first load. (WED-16)
     function updateAnnouncingAs(text) {
-      const el = document.getElementById('program-announcing');
-      const link = document.getElementById('program-announcing-link');
+      const headline = document.getElementById('program-couple');
+      if (!headline) return;
       if (text) {
-        link.textContent = text;
-        el.style.display = 'block';
+        const stripped = text.trim().replace(/^["'“”‘’]+|["'“”‘’]+$/g, '').trim();
+        headline.textContent = stripped || text;
+      } else if (name) {
+        headline.textContent = decodeURIComponent(name);
       } else {
-        el.style.display = 'none';
+        headline.textContent = '';
       }
     }
 
