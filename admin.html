@@ -1051,6 +1051,7 @@
         client_key: clientKey,
         section_id: 'admin-reply',
         notes: text,
+        entered_by: 'admin',
         updated_at: new Date().toISOString()
       }, { onConflict: 'client_key,section_id' });
 

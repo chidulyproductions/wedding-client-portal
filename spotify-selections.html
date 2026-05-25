@@ -701,10 +701,9 @@
 
     .program-list li::after { display: none; }
 
-    /* Moment label — italic Playfair Display for the categorical line ("Guest Seating", "Bride Walk", …). */
+    /* Moment label — upright Playfair Display for the categorical line ("Guest Seating", "Bride Walk", …). */
     .program-moment {
       font-family: var(--font-display);
-      font-style: italic;
       font-weight: 400;
       font-size: 0.9rem;
       color: var(--charcoal);
@@ -712,9 +711,10 @@
       letter-spacing: 0.03em;
     }
 
-    /* Song/playlist name — upright Playfair, blush, the content line beneath the moment label. */
+    /* Song/playlist name — italic Playfair, blush, the content line beneath the moment label. */
     .program-song {
       font-family: var(--font-display);
+      font-style: italic;
       font-weight: 400;
       color: var(--blush);
       font-size: 1rem;
@@ -1091,7 +1091,7 @@
         </div>
         <div class="embed-area" id="guest-seating-embed"></div>
         <div class="input-group" style="margin-top:12px;">
-          <textarea class="text-input" id="guest-seating-notes" placeholder="Notes for Chi Duly..." style="height:80px; resize:vertical;"></textarea>
+          <textarea class="text-input" id="guest-seating-notes" placeholder="artist names, genres etc" style="height:80px; resize:vertical;"></textarea>
         </div>
         <div class="saved-pill" id="guest-seating-saved">✓ Saved</div>
         <button class="clear-btn" id="guest-seating-clear" onclick="clearSelection('guest-seating')">✕ Clear Selection</button>
@@ -1120,6 +1120,9 @@
           </div>
         </div>
         <div class="embed-area" id="wedding-party-walk-embed"></div>
+        <div class="input-group" style="margin-top:12px;">
+          <textarea class="text-input" id="wedding-party-walk-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+        </div>
         <div class="saved-pill" id="wedding-party-walk-saved">✓ Song Saved</div>
         <button class="clear-btn" id="wedding-party-walk-clear" onclick="clearSelection('wedding-party-walk')">✕ Clear Selection</button>
       </div>
@@ -1147,6 +1150,9 @@
           </div>
         </div>
         <div class="embed-area" id="bride-walk-embed"></div>
+        <div class="input-group" style="margin-top:12px;">
+          <textarea class="text-input" id="bride-walk-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+        </div>
         <div class="saved-pill" id="bride-walk-saved">✓ Song Saved</div>
         <button class="clear-btn" id="bride-walk-clear" onclick="clearSelection('bride-walk')">✕ Clear Selection</button>
       </div>
@@ -1174,6 +1180,9 @@
           </div>
         </div>
         <div class="embed-area" id="the-kiss-embed"></div>
+        <div class="input-group" style="margin-top:12px;">
+          <textarea class="text-input" id="the-kiss-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+        </div>
         <div class="saved-pill" id="the-kiss-saved">✓ Song Saved</div>
         <button class="clear-btn" id="the-kiss-clear" onclick="clearSelection('the-kiss')">✕ Clear Selection</button>
       </div>
@@ -1201,6 +1210,9 @@
           </div>
         </div>
         <div class="embed-area" id="ceremony-exit-embed"></div>
+        <div class="input-group" style="margin-top:12px;">
+          <textarea class="text-input" id="ceremony-exit-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+        </div>
         <div class="saved-pill" id="ceremony-exit-saved">✓ Song Saved</div>
         <button class="clear-btn" id="ceremony-exit-clear" onclick="clearSelection('ceremony-exit')">✕ Clear Selection</button>
       </div>
@@ -1228,6 +1240,9 @@
           </div>
         </div>
         <div class="embed-area" id="wedding-party-entrance-embed"></div>
+        <div class="input-group" style="margin-top:12px;">
+          <textarea class="text-input" id="wedding-party-entrance-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+        </div>
         <div class="saved-pill" id="wedding-party-entrance-saved">✓ Song Saved</div>
         <button class="clear-btn" id="wedding-party-entrance-clear" onclick="clearSelection('wedding-party-entrance')">✕ Clear Selection</button>
       </div>
@@ -1255,6 +1270,9 @@
           </div>
         </div>
         <div class="embed-area" id="grand-entrance-embed"></div>
+        <div class="input-group" style="margin-top:12px;">
+          <textarea class="text-input" id="grand-entrance-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+        </div>
         <div class="saved-pill" id="grand-entrance-saved">✓ Song Saved</div>
         <button class="clear-btn" id="grand-entrance-clear" onclick="clearSelection('grand-entrance')">✕ Clear Selection</button>
       </div>
@@ -1283,6 +1301,9 @@
         </div>
         
         <div class="embed-area" id="first-dance-embed"></div>
+        <div class="input-group" style="margin-top:12px;">
+          <textarea class="text-input" id="first-dance-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+        </div>
         <div class="saved-pill" id="first-dance-saved">✓ Song Saved</div>
         <button class="clear-btn" id="first-dance-clear" onclick="clearSelection('first-dance')">✕ Clear Selection</button>
       </div>
@@ -1311,6 +1332,9 @@
         </div>
         
         <div class="embed-area" id="father-daughter-embed"></div>
+        <div class="input-group" style="margin-top:12px;">
+          <textarea class="text-input" id="father-daughter-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+        </div>
         <div class="saved-pill" id="father-daughter-saved">✓ Song Saved</div>
         <button class="clear-btn" id="father-daughter-clear" onclick="clearSelection('father-daughter')">✕ Clear Selection</button>
       </div>
@@ -1339,6 +1363,9 @@
         </div>
         
         <div class="embed-area" id="mother-son-embed"></div>
+        <div class="input-group" style="margin-top:12px;">
+          <textarea class="text-input" id="mother-son-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+        </div>
         <div class="saved-pill" id="mother-son-saved">✓ Song Saved</div>
         <button class="clear-btn" id="mother-son-clear" onclick="clearSelection('mother-son')">✕ Clear Selection</button>
       </div>
@@ -1366,6 +1393,9 @@
           </div>
         </div>
         <div class="embed-area" id="anniversary-dance-embed"></div>
+        <div class="input-group" style="margin-top:12px;">
+          <textarea class="text-input" id="anniversary-dance-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+        </div>
         <div class="saved-pill" id="anniversary-dance-saved">✓ Song Saved</div>
         <button class="clear-btn" id="anniversary-dance-clear" onclick="clearSelection('anniversary-dance')">✕ Clear Selection</button>
       </div>
@@ -1391,6 +1421,9 @@
           <button class="btn" onclick="embedSpotify('last-song-of-the-night')">upload</button>
         </div>
         <div class="embed-area" id="last-song-of-the-night-embed"></div>
+        <div class="input-group" style="margin-top:12px;">
+          <textarea class="text-input" id="last-song-of-the-night-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+        </div>
         <div class="saved-pill" id="last-song-of-the-night-saved">✓ Song Saved</div>
         <button class="clear-btn" id="last-song-of-the-night-clear" onclick="clearSelection('last-song-of-the-night')">✕ Clear Selection</button>
       </div>
@@ -1417,6 +1450,9 @@
           </div>
         </div>
         <div class="embed-area" id="cake-cutting-embed"></div>
+        <div class="input-group" style="margin-top:12px;">
+          <textarea class="text-input" id="cake-cutting-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+        </div>
         <div class="saved-pill" id="cake-cutting-saved">✓ Song Saved</div>
         <button class="clear-btn" id="cake-cutting-clear" onclick="clearSelection('cake-cutting')">✕ Clear Selection</button>
       </div>
@@ -1444,6 +1480,9 @@
           </div>
         </div>
         <div class="embed-area" id="bouquet-toss-embed"></div>
+        <div class="input-group" style="margin-top:12px;">
+          <textarea class="text-input" id="bouquet-toss-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+        </div>
         <div class="saved-pill" id="bouquet-toss-saved">✓ Song Saved</div>
         <button class="clear-btn" id="bouquet-toss-clear" onclick="clearSelection('bouquet-toss')">✕ Clear Selection</button>
       </div>
@@ -1471,6 +1510,9 @@
           </div>
         </div>
         <div class="embed-area" id="last-dance-private-embed"></div>
+        <div class="input-group" style="margin-top:12px;">
+          <textarea class="text-input" id="last-dance-private-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+        </div>
         <div class="saved-pill" id="last-dance-private-saved">✓ Song Saved</div>
         <button class="clear-btn" id="last-dance-private-clear" onclick="clearSelection('last-dance-private')">✕ Clear Selection</button>
       </div>
@@ -1499,7 +1541,7 @@
         </div>
         <div class="embed-area" id="cocktail-hour-embed"></div>
         <div class="input-group" style="margin-top:12px;">
-          <textarea class="text-input" id="cocktail-hour-notes" placeholder="Notes for Chi Duly..." style="height:80px; resize:vertical;"></textarea>
+          <textarea class="text-input" id="cocktail-hour-notes" placeholder="artist names, genres etc" style="height:80px; resize:vertical;"></textarea>
         </div>
         <div class="saved-pill" id="cocktail-hour-saved">✓ Saved</div>
         <button class="clear-btn" id="cocktail-hour-clear" onclick="clearSelection('cocktail-hour')">✕ Clear Selection</button>
@@ -1529,7 +1571,7 @@
         </div>
         <div class="embed-area" id="dinner-hour-embed"></div>
         <div class="input-group" style="margin-top:12px;">
-          <textarea class="text-input" id="dinner-hour-notes" placeholder="Notes for Chi Duly..." style="height:80px; resize:vertical;"></textarea>
+          <textarea class="text-input" id="dinner-hour-notes" placeholder="artist names, genres etc" style="height:80px; resize:vertical;"></textarea>
         </div>
         <div class="saved-pill" id="dinner-hour-saved">✓ Saved</div>
         <button class="clear-btn" id="dinner-hour-clear" onclick="clearSelection('dinner-hour')">✕ Clear Selection</button>
@@ -1559,7 +1601,7 @@
           </div>
         </div>
         <div class="embed-area" id="dance-floor-embed"></div>
-        <textarea class="text-input" id="dance-floor-notes" placeholder="Notes for Chi Duly..." style="height:80px; resize:vertical;"></textarea>
+        <textarea class="text-input" id="dance-floor-notes" placeholder="artist names, genres etc" style="height:80px; resize:vertical;"></textarea>
         <div class="saved-pill" id="dance-floor-saved">✓ Saved</div>
         <button class="clear-btn" id="dance-floor-clear" onclick="clearSelection('dance-floor')">✕ Clear Selection</button>
       </div>
@@ -2116,6 +2158,7 @@
           spotify_url: null,
           song_title: null,
           artist: null,
+          entered_by: 'client',
           updated_at: new Date().toISOString()
         }, { onConflict: 'client_key,section_id' });
         if (error) console.log('Delete error:', error);
@@ -2145,6 +2188,7 @@
             song_title: text,
             artist: null,
             notes: text,
+            entered_by: 'client',
             updated_at: new Date().toISOString()
           }, { onConflict: 'client_key,section_id' });
           if (error) console.log('Announcement save error:', error);
@@ -2182,6 +2226,7 @@
           spotify_url: spotifyUrl || null,
           song_title: songTitle || null,
           artist: artist || null,
+          entered_by: 'client',
           updated_at: new Date().toISOString()
         }, { onConflict: 'client_key,section_id' });
         if (error) {
@@ -2206,6 +2251,7 @@
           client_key: getClientKey(),
           section_id: sectionId + '-notes',
           notes: notes,
+          entered_by: 'client',
           updated_at: new Date().toISOString()
         }, { onConflict: 'client_key,section_id' });
         if (error) console.log('Save notes error:', error);
@@ -2413,6 +2459,9 @@
               <button class="btn" onclick="embedSpotify('${id}')">upload</button>
             </div>
             <div class="embed-area" id="${id}-embed"></div>
+            <div class="input-group" style="margin-top:12px;">
+              <textarea class="text-input" id="${id}-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+            </div>
             <div class="saved-pill" id="${id}-saved">✓ Song Saved</div>
             <button class="clear-btn" id="${id}-clear" onclick="clearSelection('${id}')">✕ Clear Selection</button>
           </div>
@@ -2476,7 +2525,8 @@
             songTitle: null,
             artist: null,
             notes: label,   // store the label in notes
-            customDef: true
+            customDef: true,
+            enteredBy: 'client'
           })
         });
       } catch(e) { console.log('Save custom def error:', e); }
@@ -2490,18 +2540,25 @@
       loadSelections();
     });
 
-    // ── ADDITIONAL NOTES AUTO-SAVE ──
+    // ── NOTES AUTO-SAVE ──
+    // Generalized: every textarea whose id ends in '-notes' auto-saves with a 1.5s debounce.
+    // Covers additional-notes (global), all playlist sections (cocktail-hour-notes, etc.), every
+    // single-track section (first-dance-notes, cake-cutting-notes, etc.) AND dynamically-created
+    // custom moments (custom-XXXXX-notes). Event delegation on document so it works for sections
+    // added after DOMContentLoaded. (WED-12)
     (function() {
-      const notesEl = document.getElementById('additional-notes');
-      if (!notesEl) return;
-      let timer = null;
-      notesEl.addEventListener('input', () => {
-        clearTimeout(timer);
-        timer = setTimeout(async () => {
-          await saveNotes('additional', notesEl.value);
-          const pill = document.getElementById('additional-saved');
+      const notesTimers = new Map();
+      document.addEventListener('input', (e) => {
+        const t = e.target;
+        if (!(t instanceof HTMLTextAreaElement)) return;
+        if (!t.id.endsWith('-notes')) return;
+        const baseId = t.id.replace(/-notes$/, '');
+        clearTimeout(notesTimers.get(baseId));
+        notesTimers.set(baseId, setTimeout(async () => {
+          await saveNotes(baseId, t.value);
+          const pill = document.getElementById(baseId + '-saved');
           if (pill) { pill.classList.add('visible'); setTimeout(() => pill.classList.remove('visible'), 2000); }
-        }, 1500);
+        }, 1500));
       });
     })();
 
