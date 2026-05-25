@@ -161,6 +161,7 @@
       -webkit-text-fill-color: transparent;
     }
 
+
     .hero-desc {
       max-width: 560px;
       font-size: clamp(0.95rem, 1.5vw, 1.05rem);
@@ -602,6 +603,21 @@
     /* Placeholder state: shown when no announcement is set yet. Dimmed to signal "fill me in" affordance. */
     .program-couple.is-placeholder { opacity: 0.45; }
 
+    /* "Announcing As..." small lead-in inside the brochure, sits above the program-couple headline.
+       Styled to match .program-category (lavender italic Playfair with 0.1em tracking) so the brochure's
+       two lead-in styles — announcement prefix and section categories — feel visually consistent. */
+    .program-announcing-prefix {
+      display: none;
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      color: var(--lavender);
+      text-align: center;
+      margin: 0 0 2px;
+    }
+
     .program-title {
       font-family: var(--font-display);
       font-style: italic;
@@ -672,7 +688,7 @@
     .program-category {
       font-family: var(--font-display);
       font-style: italic;
-      font-size: 0.85rem;
+      font-size: 1rem;
       font-weight: 400;
       letter-spacing: 0.1em;
       color: var(--lavender);
@@ -694,7 +710,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 5px;
+      gap: 7px;
     }
 
     .program-list li::after { display: none; }
@@ -703,7 +719,7 @@
     .program-moment {
       font-family: var(--font-display);
       font-weight: 400;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: var(--charcoal);
       text-align: center;
       letter-spacing: 0.03em;
@@ -715,7 +731,7 @@
       font-style: italic;
       font-weight: 400;
       color: var(--blush);
-      font-size: 1rem;
+      font-size: 1.15rem;
       text-align: center;
     }
 
@@ -922,15 +938,18 @@
     <span class="badge">Music Selections</span>
   </header>
 
-  <!-- HERO -->
-
-
+  <!-- HERO (top — Chi Duly brand + program intro) -->
+  <section class="hero">
+    <p class="hero-tag">Chi Duly Productions</p>
+    <h1><span style="color: #F8F1E9;">Wedding</span> <em id="program-name">Music Program.</em></h1>
+  </section>
 
   <!-- WEDDING PROGRAM -->
   <div class="program-wrapper">
 
     <div class="program">
       <div class="program-header">
+        <p class="program-announcing-prefix" id="program-announcing-prefix">Announcing As...</p>
         <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem;">
           <span class="heart-ornament" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg></span>
           <a class="program-couple" id="program-couple" href="#section-announcement" title="Click to edit your announcement"></a>
@@ -1805,6 +1824,10 @@
         const decoded = decodeURIComponent(name);
         document.getElementById('hero-tag').textContent = decoded + "'s Spotify Picks";
         document.getElementById('client-name').innerHTML = '<span style="color:#F8F1E9; font-style:normal;">Details for </span>' + decoded + '.';
+        const programNameEl = document.getElementById('program-name');
+        if (programNameEl) {
+          programNameEl.innerHTML = '<span style="color:#F8F1E9; font-style:normal;">Music Program for </span>' + decoded + '.';
+        }
         document.title = decoded + "'s Music Selections | Chi Duly Productions";
       }
       // Brochure headline starts in placeholder state. loadSelections() may overwrite via updateAnnouncingAs().
@@ -2205,12 +2228,15 @@
       const headline = document.getElementById('program-couple');
       if (!headline) return;
       const stripped = text ? text.trim().replace(/^["'“”‘’]+|["'“”‘’!]+$/g, '').trim() : '';
+      const prefixLabel = document.getElementById('program-announcing-prefix');
       if (stripped) {
         headline.textContent = stripped;
         headline.classList.remove('is-placeholder');
+        if (prefixLabel) prefixLabel.style.display = 'block';
       } else {
         headline.textContent = 'Announcing As...';
         headline.classList.add('is-placeholder');
+        if (prefixLabel) prefixLabel.style.display = 'none';
       }
       fitHeadlineToOneLine();
     }
