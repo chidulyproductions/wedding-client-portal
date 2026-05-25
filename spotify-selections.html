@@ -54,7 +54,7 @@
     html { scroll-behavior: smooth; }
 
     body {
-      background: var(--canvas);
+      background: #1a1818;
       color: var(--charcoal);
       font-family: var(--font-body);
       font-weight: 400;
@@ -62,12 +62,12 @@
       overflow-x: hidden;
     }
 
-    /* Warm radial gradient base */
+    /* Warm dark radial gradient base — subtle glow at top, settles into the dark warm-gray canvas. */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background: radial-gradient(ellipse at 50% 0%, #FDF6F0, #F8F1E9 70%);
+      background: radial-gradient(ellipse at 50% 0%, #2a2222, #1a1818 70%);
       pointer-events: none;
       z-index: 0;
     }
@@ -1010,7 +1010,7 @@
 
   <section class="hero">
     <p class="hero-tag" id="hero-tag">Your Spotify Picks</p>
-    <h1><span style="color: #1a1218;">The</span> <em id="client-name">Details.</em></h1>
+    <h1><span style="color: #F8F1E9;">The</span> <em id="client-name">Details.</em></h1>
 
   </section>
 
@@ -1812,7 +1812,7 @@
       if (name) {
         const decoded = decodeURIComponent(name);
         document.getElementById('hero-tag').textContent = decoded + "'s Spotify Picks";
-        document.getElementById('client-name').innerHTML = '<span style="color:#1a1218; font-style:normal;">Details for </span>' + decoded + '.';
+        document.getElementById('client-name').innerHTML = '<span style="color:#F8F1E9; font-style:normal;">Details for </span>' + decoded + '.';
         document.title = decoded + "'s Music Selections | Chi Duly Productions";
       }
       // Brochure headline starts in placeholder state. loadSelections() may overwrite via updateAnnouncingAs().
