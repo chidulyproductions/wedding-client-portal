@@ -591,6 +591,7 @@
       display: block;
       text-decoration: none;
       cursor: pointer;
+      white-space: nowrap;
       animation: flyUp 700ms 700ms ease both;
       transition: background-position 600ms ease;
     }
@@ -2211,7 +2212,47 @@
         headline.textContent = 'Announcing As...';
         headline.classList.add('is-placeholder');
       }
+      fitHeadlineToOneLine();
     }
+
+    // Iteratively shrinks the headline font-size until it fits on a single line within its flex
+    // container (after hearts and gaps). CSS sets white-space: nowrap so the natural width is the
+    // single-line width; we just compare that against the available width and step down 1px at a
+    // time until it fits or hits the floor (16px). Runs after every announcement change and on
+    // window resize (debounced). (WED-25)
+    function fitHeadlineToOneLine() {
+      const headline = document.getElementById('program-couple');
+      if (!headline) return;
+      const wrapper = headline.parentElement;
+      if (!wrapper) return;
+      // Reset to default CSS size before measuring so we always converge from the same top.
+      headline.style.fontSize = '';
+      // Available width inside the flex row = wrapper width minus other children + gaps between them.
+      const wrapperStyle = getComputedStyle(wrapper);
+      const gap = parseFloat(wrapperStyle.columnGap || wrapperStyle.gap) || 0;
+      let occupied = 0;
+      for (const child of wrapper.children) {
+        if (child !== headline) occupied += child.offsetWidth;
+      }
+      const gapsCount = Math.max(0, wrapper.children.length - 1);
+      occupied += gap * gapsCount;
+      const available = wrapper.clientWidth - occupied;
+      // Step down 1px at a time until it fits, with a floor so it never disappears.
+      let currentSize = parseFloat(getComputedStyle(headline).fontSize);
+      const minSize = 16;
+      let guard = 200; // safety to prevent infinite loops
+      while (headline.scrollWidth > available && currentSize > minSize && guard-- > 0) {
+        currentSize -= 1;
+        headline.style.fontSize = currentSize + 'px';
+      }
+    }
+
+    // Debounced resize handler: re-fit the headline when the viewport changes width.
+    let _fitHeadlineResizeTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(_fitHeadlineResizeTimer);
+      _fitHeadlineResizeTimer = setTimeout(fitHeadlineToOneLine, 150);
+    });
 
     // ── SAVE SELECTION TO SUPABASE ──
     async function saveSelection(sectionId, spotifyUrl, songTitle, artist) {
