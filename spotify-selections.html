@@ -550,7 +550,24 @@
       padding: 48px 40px;
     }
 
-    .program-header { margin-bottom: 28px; }
+    .program-header { margin-bottom: 28px; text-align: center; }
+
+    /* Wraps the announcing prefix + heart-headline-heart row. Sized to its widest child (the row) and
+       centered in .program-header via the header's text-align:center. align-items:flex-start lets the
+       prefix sit at the left edge of the row above, so "Announcing As..." aligns with the start of the
+       headline group rather than the brochure card's far-left edge. */
+    .program-couple-wrap {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    .program-couple-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
     /* Heart ornaments flanking couple names */
     .heart-ornament {
@@ -949,11 +966,13 @@
 
     <div class="program">
       <div class="program-header">
-        <p class="program-announcing-prefix" id="program-announcing-prefix">Announcing As...</p>
-        <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem;">
-          <span class="heart-ornament" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg></span>
-          <a class="program-couple" id="program-couple" href="#section-announcement" title="Click to edit your announcement"></a>
-          <span class="heart-ornament" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg></span>
+        <div class="program-couple-wrap">
+          <p class="program-announcing-prefix" id="program-announcing-prefix">Announcing As...</p>
+          <div class="program-couple-row">
+            <span class="heart-ornament" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg></span>
+            <a class="program-couple" id="program-couple" href="#section-announcement" title="Click to edit your announcement"></a>
+            <span class="heart-ornament" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg></span>
+          </div>
         </div>
         <div class="program-date" id="program-date"></div>
         <div class="program-rule"></div>
