@@ -2204,13 +2204,15 @@
       setTimeout(() => pill.classList.remove('visible'), 3000);
     }
 
-    // Updates the brochure headline. When `text` is set, display the announcement (with leading/trailing
-    // matched quotes stripped for cleanliness). When empty, show the "Announcing As..." placeholder dimmed
-    // to signal the client should click to set it. (WED-16, WED-17)
+    // Updates the brochure headline. When `text` is set, display the announcement with leading/trailing
+    // matched quotes stripped + trailing '!' removed (the brochure card is visual presentation, not a
+    // vocal-emphasis cue card — punctuation enthusiasm belongs in the DJ's notes, not the headline).
+    // When empty, show the "Announcing As..." placeholder dimmed to signal the client should click to
+    // set it. (WED-16, WED-17, WED-22)
     function updateAnnouncingAs(text) {
       const headline = document.getElementById('program-couple');
       if (!headline) return;
-      const stripped = text ? text.trim().replace(/^["'“”‘’]+|["'“”‘’]+$/g, '').trim() : '';
+      const stripped = text ? text.trim().replace(/^["'“”‘’]+|["'“”‘’!]+$/g, '').trim() : '';
       if (stripped) {
         headline.textContent = stripped;
         headline.classList.remove('is-placeholder');
