@@ -963,24 +963,18 @@
       <div class="program-rule-thin"></div>
 
       <div class="program-section">
-        <div class="program-category">Reception</div>
+        <div class="program-category">Evening Reception</div>
         <ul class="program-list">
           <li id="brochure-cocktail-hour"><span class="program-moment">Cocktail Hour</span><span class="program-song">— —</span></li>
           <li id="brochure-dinner-hour"><span class="program-moment">Dinner Hour</span><span class="program-song">— —</span></li>
           <li id="brochure-wedding-party-entrance"><span class="program-moment">Wedding Party Entrance</span><span class="program-song">— —</span></li>
           <li id="brochure-grand-entrance"><span class="program-moment">Grand Entrance</span><span class="program-song">— —</span></li>
-        </ul>
-      </div>
-
-      <div class="program-rule-thin"></div>
-
-      <div class="program-section">
-        <div class="program-category">Special Dances</div>
-        <ul class="program-list">
           <li id="brochure-first-dance"><span class="program-moment">First Dance</span><span class="program-song">— —</span></li>
           <li id="brochure-father-daughter"><span class="program-moment">Father / Daughter</span><span class="program-song">— —</span></li>
           <li id="brochure-mother-son"><span class="program-moment">Mother / Son</span><span class="program-song">— —</span></li>
           <li id="brochure-anniversary-dance"><span class="program-moment">Anniversary Dance</span><span class="program-song">— —</span></li>
+          <li id="brochure-cake-cutting"><span class="program-moment">Cake Cutting</span><span class="program-song">— —</span></li>
+          <li id="brochure-second-look-entrance"><span class="program-moment">Second Look Entrance</span><span class="program-song">— —</span></li>
         </ul>
       </div>
 
@@ -998,7 +992,6 @@
       <div class="program-section">
         <div class="program-category">Additional</div>
         <ul class="program-list">
-          <li id="brochure-cake-cutting"><span class="program-moment">Cake Cutting</span><span class="program-song">— —</span></li>
           <li id="brochure-bouquet-toss"><span class="program-moment">Bouquet Toss</span><span class="program-song">— —</span></li>
           <li id="brochure-dance-floor-must-plays"><span class="program-moment">Dance Floor Must Plays</span><span class="program-song">— —</span></li>
           <li id="brochure-last-dance-private"><span class="program-moment">Last Dance (Private)</span><span class="program-song">— —</span></li>
@@ -1447,6 +1440,36 @@
       <button class="undo-btn" onclick="undoRemove('cake-cutting')">↩ Undo</button>
     </div>
 
+    <!-- SECOND LOOK ENTRANCE -->
+    <div class="music-section" id="section-second-look-entrance" data-section="second-look-entrance">
+      <div class="section-header" style="position:relative;">
+        <div class="section-header-left">
+          <div class="section-number">Song Link</div>
+          <div class="section-title">SECOND LOOK ENTRANCE</div>
+        </div>
+        <button class="remove-btn" onclick="removeSection('second-look-entrance')" id="remove-second-look-entrance" title="Remove section">🗑</button>
+      </div>
+      <div class="section-body">
+        <div class="input-group">
+                    <div class="input-row">
+            <input type="text" class="text-input" id="second-look-entrance-link" placeholder="Paste song link here (Spotify, YouTube, SoundCloud...)" />
+            <button class="btn" onclick="embedSpotify('second-look-entrance')">upload</button>
+          </div>
+        </div>
+        <div class="embed-area" id="second-look-entrance-embed"></div>
+        <div class="input-group" style="margin-top:12px;">
+          <textarea class="text-input" id="second-look-entrance-notes" placeholder="start at 45 seconds" style="height:80px; resize:vertical;"></textarea>
+        </div>
+        <div class="saved-pill" id="second-look-entrance-saved">✓ Song Saved</div>
+        <button class="clear-btn" id="second-look-entrance-clear" onclick="clearSelection('second-look-entrance')">✕ Clear Selection</button>
+      </div>
+    </div>
+
+    <div class="undo-bar" id="undo-second-look-entrance">
+      <span>Section removed</span>
+      <button class="undo-btn" onclick="undoRemove('second-look-entrance')">↩ Undo</button>
+    </div>
+
     <!-- BOUQUET TOSS -->
     <div class="music-section" id="section-bouquet-toss" data-section="bouquet-toss">
       <div class="section-header" style="position:relative;">
@@ -1812,24 +1835,28 @@
 
     // ── SECTION TO PROGRAM MAPPING ──
     const sectionProgramMap = {
-      'first-dance':       { category: 'special', label: 'First Dance' },
-      'father-daughter':   { category: 'special', label: 'Father / Daughter' },
-      'mother-son':        { category: 'special', label: 'Mother / Son' },
-      'anniversary-dance': { category: 'special', label: 'Anniversary Dance' },
-      'bride-walk':        { category: 'ceremony', label: 'Bride Walk' },
-      'the-kiss':          { category: 'ceremony', label: 'The Kiss' },
-      'ceremony-exit':     { category: 'ceremony', label: 'Ceremony Exit' },
-      'wedding-party-walk': { category: 'ceremony', label: 'Wedding Party Walk' },
-      'cocktail-hour':          { category: 'reception', label: 'Cocktail Hour' },
-      'dinner-hour':            { category: 'reception', label: 'Dinner Hour' },
-      'wedding-party-entrance':    { category: 'introductions', label: 'Wedding Party Entrance' },
-      'grand-entrance':    { category: 'introductions', label: 'Grand Entrance' },
-      'guest-seating':     { category: 'ceremony', label: 'Guest Seating' },
-      'cake-cutting':      { category: 'additional', label: 'Cake Cutting' },
-      'bouquet-toss':      { category: 'additional', label: 'Bouquet Toss' },
-      'last-song-of-the-night':         { category: 'additional', label: 'Last Song of the Night' },
-      'dance-floor':       { category: 'additional', label: 'Dance Floor Must Plays' },
-      'last-dance-private': { category: 'additional', label: 'Last Dance (Private)' },
+      // Ceremony
+      'guest-seating':            { category: 'ceremony',  label: 'Guest Seating' },
+      'wedding-party-walk':       { category: 'ceremony',  label: 'Wedding Party Walk' },
+      'bride-walk':               { category: 'ceremony',  label: 'Bride Walk' },
+      'the-kiss':                 { category: 'ceremony',  label: 'The Kiss' },
+      'ceremony-exit':            { category: 'ceremony',  label: 'Ceremony Exit' },
+      // Evening Reception (merged from former Reception + Special Dances + Cake Cutting + new Second Look Entrance)
+      'cocktail-hour':            { category: 'reception', label: 'Cocktail Hour' },
+      'dinner-hour':              { category: 'reception', label: 'Dinner Hour' },
+      'wedding-party-entrance':   { category: 'reception', label: 'Wedding Party Entrance' },
+      'grand-entrance':           { category: 'reception', label: 'Grand Entrance' },
+      'first-dance':              { category: 'reception', label: 'First Dance' },
+      'father-daughter':          { category: 'reception', label: 'Father / Daughter' },
+      'mother-son':               { category: 'reception', label: 'Mother / Son' },
+      'anniversary-dance':        { category: 'reception', label: 'Anniversary Dance' },
+      'cake-cutting':             { category: 'reception', label: 'Cake Cutting' },
+      'second-look-entrance':     { category: 'reception', label: 'Second Look Entrance' },
+      // Additional
+      'bouquet-toss':             { category: 'additional', label: 'Bouquet Toss' },
+      'last-song-of-the-night':   { category: 'additional', label: 'Last Song of the Night' },
+      'dance-floor':              { category: 'additional', label: 'Dance Floor Must Plays' },
+      'last-dance-private':       { category: 'additional', label: 'Last Dance (Private)' },
     };
 
     // ── INIT MAKE SELECTION LINKS ──
