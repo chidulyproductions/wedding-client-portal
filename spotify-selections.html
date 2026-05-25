@@ -607,6 +607,9 @@
     /* Hover shimmer: stay centered to keep both ends of long names legible against the light brochure-bg. */
     .program-couple:hover { background-position: 50% 50%; }
 
+    /* Placeholder state: shown when no announcement is set yet. Dimmed to signal "fill me in" affordance. */
+    .program-couple.is-placeholder { opacity: 0.45; }
+
     .program-title {
       font-family: var(--font-display);
       font-style: italic;
@@ -1795,9 +1798,10 @@
         const decoded = decodeURIComponent(name);
         document.getElementById('hero-tag').textContent = decoded + "'s Spotify Picks";
         document.getElementById('client-name').innerHTML = '<span style="color:#1a1218; font-style:normal;">Details for </span>' + decoded + '.';
-        document.getElementById('program-couple').textContent = decoded;
         document.title = decoded + "'s Music Selections | Chi Duly Productions";
       }
+      // Brochure headline starts in placeholder state. loadSelections() may overwrite via updateAnnouncingAs().
+      updateAnnouncingAs('');
       if (dateParam) {
         const d = new Date(dateParam + 'T00:00:00');
         const formatted = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -2182,18 +2186,18 @@
     }
 
     // Updates the brochure headline. When `text` is set, display the announcement (with leading/trailing
-    // matched quotes stripped for cleanliness). When empty, fall back to the couple's name from URL params
-    // — same default applyPersonalization() uses on first load. (WED-16)
+    // matched quotes stripped for cleanliness). When empty, show the "Announcing As..." placeholder dimmed
+    // to signal the client should click to set it. (WED-16, WED-17)
     function updateAnnouncingAs(text) {
       const headline = document.getElementById('program-couple');
       if (!headline) return;
-      if (text) {
-        const stripped = text.trim().replace(/^["'“”‘’]+|["'“”‘’]+$/g, '').trim();
-        headline.textContent = stripped || text;
-      } else if (name) {
-        headline.textContent = decodeURIComponent(name);
+      const stripped = text ? text.trim().replace(/^["'“”‘’]+|["'“”‘’]+$/g, '').trim() : '';
+      if (stripped) {
+        headline.textContent = stripped;
+        headline.classList.remove('is-placeholder');
       } else {
-        headline.textContent = '';
+        headline.textContent = 'Announcing As...';
+        headline.classList.add('is-placeholder');
       }
     }
 
