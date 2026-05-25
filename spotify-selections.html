@@ -188,9 +188,11 @@
     }
 
     /* ── MUSIC SECTION CARD — glassmorphic ── */
+    /* Each moment's input card. Solid cream matching the brochure card so the dark text + light inputs
+       inside read clearly against the dark page canvas. Blush top-stripe preserved as visual accent. */
     .music-section {
-      background: var(--card-glass);
-      border: 1px solid rgba(255, 255, 255, 0.4);
+      background: var(--brochure-bg);
+      border: 1px solid var(--border-rose);
       border-top: 1px solid var(--border-strong);
       border-radius: 16px;
       overflow: hidden;
@@ -199,17 +201,6 @@
       transition: box-shadow 300ms ease, transform 300ms ease;
       opacity: 0;
       animation: fadeUp 500ms ease both;
-    }
-
-    @supports (backdrop-filter: blur(12px)) {
-      .music-section {
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-      }
-    }
-
-    @supports not (backdrop-filter: blur(12px)) {
-      .music-section { background: rgba(255, 252, 248, 0.92); }
     }
 
     .music-section:hover {
