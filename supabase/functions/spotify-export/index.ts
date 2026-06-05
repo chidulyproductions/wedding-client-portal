@@ -1,6 +1,6 @@
 import "@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import { selectExportSections, orderPrefix } from "./selection.ts"
+import { selectExportSections, orderPrefix, extractSpotifyPlaylistId } from "./selection.ts"
 
 const SPOTIFY_CLIENT_ID = Deno.env.get("SPOTIFY_CLIENT_ID")!;
 const SPOTIFY_CLIENT_SECRET = Deno.env.get("SPOTIFY_CLIENT_SECRET")!;
@@ -91,11 +91,43 @@ async function updatePlaylistDescription(playlistId: string, description: string
   });
 }
 
+// Spotify caps track-write requests at 100 URIs. Replace the playlist with the
+// first 100 (PUT) and append the rest in chunks of 100 (POST).
 async function replacePlaylistTracks(playlistId: string, trackUris: string[], accessToken: string) {
+  const first = trackUris.slice(0, 100);
   await spotifyFetch(`/playlists/${playlistId}/tracks`, accessToken, {
     method: "PUT",
-    body: JSON.stringify({ uris: trackUris }),
+    body: JSON.stringify({ uris: first }),
   });
+  for (let i = 100; i < trackUris.length; i += 100) {
+    await spotifyFetch(`/playlists/${playlistId}/tracks`, accessToken, {
+      method: "POST",
+      body: JSON.stringify({ uris: trackUris.slice(i, i + 100) }),
+    });
+  }
+}
+
+// Read every track URI from a source playlist (the client-pasted playlist),
+// paginating 100 at a time. Skips local files and non-track items (e.g.
+// podcast episodes) which can't be re-added to another playlist.
+async function fetchPlaylistTrackUris(playlistId: string, accessToken: string): Promise<string[]> {
+  const uris: string[] = [];
+  let offset = 0;
+  while (true) {
+    const data = await spotifyFetch(
+      `/playlists/${playlistId}/tracks?limit=100&offset=${offset}&fields=items(track(uri,type,is_local)),next`,
+      accessToken,
+    );
+    for (const item of data.items ?? []) {
+      const track = item?.track;
+      if (track && track.type === "track" && !track.is_local && typeof track.uri === "string") {
+        uris.push(track.uri);
+      }
+    }
+    if (!data.next || (data.items?.length ?? 0) < 100) break;
+    offset += 100;
+  }
+  return uris;
 }
 
 Deno.serve(async (req) => {
@@ -165,7 +197,29 @@ Deno.serve(async (req) => {
 
       let playlistId = await findPlaylistByName(playlistName, userId, accessToken);
 
-      if (isSpotifyTrackUrl(spotifyUrl)) {
+      if (section.kind === "playlist") {
+        // Playlist section: copy the tracks from the client's pasted playlist
+        // into a playlist of the same name in the DJ's account.
+        const sourceId = extractSpotifyPlaylistId(spotifyUrl);
+        if (!sourceId) {
+          // Not a Spotify playlist URL — record the link for manual handling.
+          manualSections.push(momentLabel);
+          if (playlistId) {
+            await replacePlaylistTracks(playlistId, [], accessToken);
+            await updatePlaylistDescription(playlistId, spotifyUrl, accessToken);
+          } else {
+            playlistId = await createPlaylist(playlistName, spotifyUrl, userId, accessToken);
+          }
+        } else {
+          const trackUris = await fetchPlaylistTrackUris(sourceId, accessToken);
+          if (!playlistId) {
+            playlistId = await createPlaylist(playlistName, spotifyUrl, userId, accessToken);
+          } else {
+            await updatePlaylistDescription(playlistId, spotifyUrl, accessToken);
+          }
+          await replacePlaylistTracks(playlistId, trackUris, accessToken);
+        }
+      } else if (isSpotifyTrackUrl(spotifyUrl)) {
         const trackId = extractSpotifyTrackId(spotifyUrl);
         if (!trackId) {
           // Malformed Spotify URL — treat as manual

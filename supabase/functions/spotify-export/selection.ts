@@ -1,15 +1,23 @@
 // Pure selection logic for the Spotify export — decides WHICH sections of a
-// client's program become single-track playlists, and what each is named.
+// client's program become Spotify playlists, what each is named, and whether
+// each is a single-track moment or a multi-track playlist section.
 //
 // The guiding rule: the export must mirror the client's brochure exactly. The
 // brochure shows a moment only when its row has a non-null `spotify_url`; any
 // null-url row is a tombstone (deleted/never-filled) and is hidden. So export
 // here filters to the same set, rather than walking a hardcoded list of every
-// standard moment (which is what caused empty "phantom" playlists for deleted
-// sections like Ceremony Exit / Bouquet Toss, and dropped non-template moments
-// like a per-client special add or a custom category).
+// standard moment (which caused empty "phantom" playlists for deleted sections
+// and dropped non-template moments like a per-client special add).
+//
+// Two kinds of export:
+//   - "track":    a single song → a one-track playlist in the DJ's account.
+//   - "playlist": the client pasted a Spotify *playlist* URL (guest seating,
+//                 cocktail, dinner, dance floor) → the DJ gets a playlist with
+//                 those same tracks copied in.
 //
 // Kept side-effect-free so it can be unit-tested without Spotify/Supabase.
+
+export type ExportKind = "track" | "playlist";
 
 export interface SelectionRow {
   section_id: string;
@@ -23,25 +31,34 @@ export interface ExportSection {
   section_id: string;
   label: string;
   order: number;
+  kind: ExportKind;
   spotify_url: string;
 }
 
-// Sections that are never single-track exports: playlist embeds, free text,
-// and admin/meta rows.
+// Multi-track playlist sections: the client's value is a Spotify playlist URL.
+export const PLAYLIST_SECTIONS = new Set<string>([
+  "guest-seating", "cocktail-hour", "dinner-hour", "dance-floor",
+]);
+
+// Rows that are never exported: free text, admin/meta, and the orphan
+// "dance-floor-must-plays" brochure entry that clients cannot edit.
 export const EXCLUDED_SECTIONS = new Set<string>([
-  "guest-seating", "cocktail-hour",
-  "dinner-hour", "dance-floor", "dance-floor-must-plays",
+  "dance-floor-must-plays",
   "announcement", "additional-notes", "admin-reply",
 ]);
 
-// Default-template moments only. Per-client special additions (e.g.
-// "second-look-entrance") and custom categories are intentionally NOT listed
+// Labels for default-template moments + playlist sections. Match the brochure's
+// `sectionProgramMap` labels in spotify-selections.html. Per-client special
+// additions (e.g. "second-look-entrance") and custom categories are NOT listed
 // here — they are resolved dynamically so they are not baked into the template.
 export const SECTION_LABELS: Record<string, string> = {
+  "guest-seating":            "Guest Seating",
   "wedding-party-walk":       "Wedding Party Walk",
   "bride-walk":               "Bride Walk",
   "the-kiss":                 "The Kiss",
   "ceremony-exit":            "Ceremony Exit",
+  "cocktail-hour":            "Cocktail Hour",
+  "dinner-hour":              "Dinner Hour",
   "wedding-party-entrance":   "Wedding Party Entrance",
   "grand-entrance":           "Grand Entrance",
   "first-dance":              "First Dance",
@@ -50,27 +67,34 @@ export const SECTION_LABELS: Record<string, string> = {
   "anniversary-dance":        "Anniversary Dance",
   "cake-cutting":             "Cake Cutting",
   "bouquet-toss":             "Bouquet Toss",
+  "dance-floor":              "Dance Floor Must Plays",
   "last-song-of-the-night":   "Last Song of the Night",
   "last-dance":               "Last Dance (Private)",
   "last-dance-private":       "Last Dance (Private)",
 };
 
+// One chronological sequence covering single-track moments and playlist
+// sections, so Spotify's A-Z playlist sort = the wedding program order.
 export const SECTION_ORDER: Record<string, number> = {
-  "wedding-party-walk":       1,
-  "bride-walk":               2,
-  "the-kiss":                 3,
-  "ceremony-exit":            4,
-  "wedding-party-entrance":   5,
-  "grand-entrance":           6,
-  "first-dance":              7,
-  "father-daughter":          8,
-  "mother-son":               9,
-  "anniversary-dance":        10,
-  "cake-cutting":             11,
-  "bouquet-toss":             12,
-  "last-song-of-the-night":   13,
-  "last-dance":               14,
-  "last-dance-private":       14,
+  "guest-seating":            1,
+  "wedding-party-walk":       2,
+  "bride-walk":               3,
+  "the-kiss":                 4,
+  "ceremony-exit":            5,
+  "cocktail-hour":            6,
+  "dinner-hour":              7,
+  "wedding-party-entrance":   8,
+  "grand-entrance":           9,
+  "first-dance":              10,
+  "father-daughter":          11,
+  "mother-son":               12,
+  "anniversary-dance":        13,
+  "cake-cutting":             14,
+  "bouquet-toss":             15,
+  "dance-floor":              16,
+  "last-song-of-the-night":   17,
+  "last-dance":               18,
+  "last-dance-private":       18,
 };
 
 // Non-template sections sort after all template moments. Special hardcoded
@@ -94,9 +118,9 @@ function isNonExportableRow(row: SelectionRow): boolean {
 }
 
 /**
- * Returns the ordered set of single-track sections to export for a client,
- * mirroring exactly what the brochure displays. Each result carries a
- * human-readable label and a numeric sort order.
+ * Returns the ordered set of sections to export for a client, mirroring exactly
+ * what the brochure displays. Each result carries a human-readable label, a
+ * numeric sort order, and a kind ("track" or "playlist").
  */
 export function selectExportSections(rows: SelectionRow[]): ExportSection[] {
   // Resolve custom-moment labels: a `custom-def-<id>` row holds the label in
@@ -127,7 +151,8 @@ export function selectExportSections(rows: SelectionRow[]): ExportSection[] {
       label = slugToTitle(id);
       order = NON_TEMPLATE_ORDER;
     }
-    out.push({ section_id: id, label, order, spotify_url: row.spotify_url });
+    const kind: ExportKind = PLAYLIST_SECTIONS.has(id) ? "playlist" : "track";
+    out.push({ section_id: id, label, order, kind, spotify_url: row.spotify_url });
   }
 
   out.sort((a, b) => a.order - b.order || a.label.localeCompare(b.label));
@@ -137,4 +162,9 @@ export function selectExportSections(rows: SelectionRow[]): ExportSection[] {
 // Zero-padded prefix so playlist names sort chronologically in Spotify's A-Z view.
 export function orderPrefix(order: number): string {
   return String(order).padStart(2, "0") + " ";
+}
+
+export function extractSpotifyPlaylistId(url: string): string | null {
+  const match = url.match(/open\.spotify\.com\/playlist\/([a-zA-Z0-9]+)/);
+  return match ? match[1] : null;
 }
