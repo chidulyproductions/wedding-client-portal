@@ -1,5 +1,6 @@
 import "@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { selectExportSections, orderPrefix } from "./selection.ts"
 
 const SPOTIFY_CLIENT_ID = Deno.env.get("SPOTIFY_CLIENT_ID")!;
 const SPOTIFY_CLIENT_SECRET = Deno.env.get("SPOTIFY_CLIENT_SECRET")!;
@@ -10,66 +11,6 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-const EXCLUDED_SECTIONS = new Set([
-  // Text/playlist embed sections — not single-track exports
-  "guest-seating", "cocktail-hour",
-  "dinner-hour", "dance-floor", "dance-floor-must-plays",
-  "announcement", "additional-notes", "admin-reply",
-]);
-
-// Human-readable labels for each section. Keys MUST match the brochure
-// `id="brochure-<section_id>"` values in spotify-selections.html.
-const SECTION_LABELS: Record<string, string> = {
-  "wedding-party-walk":       "Wedding Party Walk",
-  "bride-walk":               "Bride Walk",
-  "the-kiss":                 "The Kiss",
-  "ceremony-exit":            "Ceremony Exit",
-  "wedding-party-entrance":   "Wedding Party Entrance",
-  "grand-entrance":           "Grand Entrance",
-  "first-dance":              "First Dance",
-  "father-daughter":          "Father/Daughter Dance",
-  "mother-son":               "Mother/Son Dance",
-  "anniversary-dance":        "Anniversary Dance",
-  "cake-cutting":             "Cake Cutting",
-  "bouquet-toss":             "Bouquet Toss",
-  "last-song-of-the-night":   "Last Song of the Night",
-  "last-dance":               "Last Dance (Private)",
-  "last-dance-private":       "Last Dance (Private)",
-};
-
-// Chronological order matching the wedding program / brochure.
-// Used to prefix playlist names so Spotify's A-Z sort = ceremony order.
-const SECTION_ORDER: Record<string, number> = {
-  "wedding-party-walk":       1,
-  "bride-walk":               2,
-  "the-kiss":                 3,
-  "ceremony-exit":            4,
-  "wedding-party-entrance":   5,
-  "grand-entrance":           6,
-  "first-dance":              7,
-  "father-daughter":          8,
-  "mother-son":               9,
-  "anniversary-dance":        10,
-  "cake-cutting":             11,
-  "bouquet-toss":             12,
-  "last-song-of-the-night":   13,
-  "last-dance":               14,
-  "last-dance-private":       14,
-};
-
-function getSectionLabel(sectionId: string): string {
-  if (sectionId.startsWith("custom-def-")) return "Custom Moment";
-  return SECTION_LABELS[sectionId] ?? sectionId;
-}
-
-// Returns a zero-padded prefix so playlist names sort chronologically in Spotify
-function getSectionPrefix(sectionId: string): string {
-  const order = SECTION_ORDER[sectionId];
-  if (order !== undefined) return String(order).padStart(2, "0") + " ";
-  if (sectionId.startsWith("custom-def-")) return "99 ";
-  return "";
-}
 
 function isSpotifyTrackUrl(url: string): boolean {
   return url.startsWith("https://open.spotify.com/track/");
@@ -201,52 +142,30 @@ Deno.serve(async (req) => {
 
     const { data: selections, error: selErr } = await supabase
       .from("wedding_selections")
-      .select("section_id, spotify_url, song_title, artist")
+      .select("section_id, spotify_url, song_title, artist, notes")
       .eq("client_key", client_key);
 
     if (selErr) throw new Error(`Failed to load selections: ${selErr.message}`);
 
-    // Build lookup of client's actual selections, excluding non-exportable rows
-    const selectionsMap: Record<string, { spotify_url: string | null; song_title: string | null }> = {};
-    for (const row of selections ?? []) {
-      if (EXCLUDED_SECTIONS.has(row.section_id)) continue;
-      if (row.section_id.endsWith("-notes")) continue;
-      if (row.song_title === "__custom_def__") continue;
-      if (!row.spotify_url && !row.song_title) continue; // tombstone — section was removed
-      selectionsMap[row.section_id] = row;
-    }
-
-    // All known sections in chronological order, plus any custom sections the client defined
-    const knownSectionIds = Object.keys(SECTION_ORDER).sort(
-      (a, b) => SECTION_ORDER[a] - SECTION_ORDER[b]
-    );
-    const customSectionIds = Object.keys(selectionsMap).filter(
-      (id) => id.startsWith("custom-def-")
-    );
-    const allSectionIds = [...knownSectionIds, ...customSectionIds];
+    // Mirror the brochure: export exactly the moments the client's program shows.
+    // selectExportSections drops tombstoned/empty rows, playlist embeds, notes,
+    // and custom-moment definition rows — and resolves labels + chronological
+    // order, including for per-client special and custom sections. This replaces
+    // the old behavior of walking a hardcoded list of every standard moment,
+    // which created empty "phantom" playlists for deleted/never-filled sections.
+    const sections = selectExportSections(selections ?? []);
 
     const userId = await getSpotifyUserId(accessToken);
     const manualSections: string[] = [];
     const exportedPlaylists: { section_id: string; playlist_id: string; playlist_name: string; playlist_url: string }[] = [];
 
-    for (const sectionId of allSectionIds) {
-      const row = selectionsMap[sectionId]; // may be undefined — section not filled in
-      const momentLabel = getSectionLabel(sectionId);
-      const prefix = getSectionPrefix(sectionId);
-      const playlistName = `${client_name} — ${prefix}${momentLabel}`;
-      const spotifyUrl = row?.spotify_url ?? null;
+    for (const section of sections) {
+      const { section_id: sectionId, label: momentLabel, spotify_url: spotifyUrl } = section;
+      const playlistName = `${client_name} — ${orderPrefix(section.order)}${momentLabel}`;
 
       let playlistId = await findPlaylistByName(playlistName, userId, accessToken);
 
-      if (!spotifyUrl) {
-        // No song selected — create/keep an empty placeholder playlist
-        if (playlistId) {
-          await replacePlaylistTracks(playlistId, [], accessToken);
-          await updatePlaylistDescription(playlistId, "", accessToken);
-        } else {
-          playlistId = await createPlaylist(playlistName, "", userId, accessToken);
-        }
-      } else if (isSpotifyTrackUrl(spotifyUrl)) {
+      if (isSpotifyTrackUrl(spotifyUrl)) {
         const trackId = extractSpotifyTrackId(spotifyUrl);
         if (!trackId) {
           // Malformed Spotify URL — treat as manual
@@ -288,6 +207,35 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Cleanup: empty any previously-exported playlist whose section is no longer
+    // in the program (deleted/tombstoned since the last export) so stale phantom
+    // playlists don't keep showing old songs. Spotify's API can't delete a
+    // playlist, so we empty its tracks + description and drop our tracking row.
+    const exportedSectionIds = new Set(sections.map((s) => s.section_id));
+    const { data: priorPlaylists } = await supabase
+      .from("spotify_playlists")
+      .select("section_id, playlist_id")
+      .eq("client_key", client_key);
+
+    const stalePlaylists = (priorPlaylists ?? []).filter(
+      (p) => !exportedSectionIds.has(p.section_id)
+    );
+    for (const stale of stalePlaylists) {
+      try {
+        await replacePlaylistTracks(stale.playlist_id, [], accessToken);
+        await updatePlaylistDescription(stale.playlist_id, "", accessToken);
+      } catch (_e) {
+        // Playlist may have been deleted/unfollowed in Spotify — ignore.
+      }
+    }
+    if (stalePlaylists.length > 0) {
+      await supabase
+        .from("spotify_playlists")
+        .delete()
+        .eq("client_key", client_key)
+        .in("section_id", stalePlaylists.map((p) => p.section_id));
+    }
+
     // Persist playlist IDs back to Supabase
     if (exportedPlaylists.length > 0) {
       await supabase.from("spotify_playlists").upsert(
@@ -305,15 +253,17 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true,
-      exported: allSectionIds.length,
+      exported: exportedPlaylists.length,
       manual: manualSections,
+      cleaned: stalePlaylists.length,
       playlists: exportedPlaylists,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
