@@ -1347,6 +1347,9 @@
         if (data.manual && data.manual.length > 0) {
           msg += `\n\nHandle manually (link is in the playlist description):\n${data.manual.join('\n')}`;
         }
+        if (data.via_embed && data.via_embed.length > 0) {
+          msg += `\n\nPulled from a Spotify Mix/editorial playlist (snapshot — give these a quick look):\n${data.via_embed.join('\n')}`;
+        }
         if (data.failed && data.failed.length > 0) {
           msg += `\n\n⚠ Could not export (Spotify error — e.g. a private or Spotify-generated playlist):\n${data.failed.join('\n')}`;
         }

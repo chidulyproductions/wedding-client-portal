@@ -1,6 +1,6 @@
 import "@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import { selectExportSections, orderPrefix, extractSpotifyPlaylistId } from "./selection.ts"
+import { selectExportSections, orderPrefix, extractSpotifyPlaylistId, extractTrackUrisFromEmbedHtml } from "./selection.ts"
 
 const SPOTIFY_CLIENT_ID = Deno.env.get("SPOTIFY_CLIENT_ID")!;
 const SPOTIFY_CLIENT_SECRET = Deno.env.get("SPOTIFY_CLIENT_SECRET")!;
@@ -107,6 +107,19 @@ async function replacePlaylistTracks(playlistId: string, trackUris: string[], ac
   }
 }
 
+// Fallback for playlists the Web API can't read (Spotify's own algorithmic/
+// editorial playlists 404): the public embed page still lists the tracks. Copying
+// those known URIs into the DJ's own playlist is allowed. Best-effort — returns []
+// if the embed can't be fetched/parsed, so the caller degrades to a manual playlist.
+async function fetchPlaylistTrackUrisViaEmbed(playlistId: string): Promise<string[]> {
+  const res = await fetch(`https://open.spotify.com/embed/playlist/${playlistId}`, {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; ChiDulyExport/1.0)" },
+  });
+  if (!res.ok) return [];
+  const html = await res.text();
+  return extractTrackUrisFromEmbedHtml(html);
+}
+
 // Read every track URI from a source playlist (the client-pasted playlist),
 // paginating 100 at a time. Skips local files and non-track items (e.g.
 // podcast episodes) which can't be re-added to another playlist.
@@ -190,6 +203,7 @@ Deno.serve(async (req) => {
     const userId = await getSpotifyUserId(accessToken);
     const manualSections: string[] = [];
     const failedSections: string[] = [];
+    const viaEmbedSections: string[] = [];
     const exportedPlaylists: { section_id: string; playlist_id: string; playlist_name: string; playlist_url: string }[] = [];
 
     for (const section of sections) {
@@ -213,19 +227,32 @@ Deno.serve(async (req) => {
               playlistId = await createPlaylist(playlistName, spotifyUrl, userId, accessToken);
             }
           } else {
-            // Read the source playlist's tracks — but Spotify's Web API returns 404
-            // for its own algorithmic/editorial playlists (blocked since Nov 2024),
-            // and user playlists can be private/deleted. If we can't read the source,
-            // don't abort the whole export: fall back to a manual playlist (empty,
-            // with the source link in the description) so the DJ handles just that one.
+            // Read the source playlist's tracks. Spotify's Web API returns 404 for
+            // its own algorithmic/editorial playlists (blocked since Nov 2024), and
+            // user playlists can be private/deleted. On failure, fall back to the
+            // public embed (which still lists the tracks) so we can copy the songs
+            // anyway. If even that fails, degrade to a manual playlist (empty, with
+            // the source link in the description) rather than aborting the export.
             let trackUris: string[] | null = null;
             try {
               trackUris = await fetchPlaylistTrackUris(sourceId, accessToken);
             } catch (fetchErr) {
               console.error(
-                `Could not read source playlist for "${momentLabel}" (${spotifyUrl}):`,
+                `API could not read source playlist for "${momentLabel}" (${spotifyUrl}); trying embed:`,
                 fetchErr instanceof Error ? fetchErr.message : String(fetchErr),
               );
+              try {
+                const embedUris = await fetchPlaylistTrackUrisViaEmbed(sourceId);
+                if (embedUris.length > 0) {
+                  trackUris = embedUris;
+                  viaEmbedSections.push(momentLabel);
+                }
+              } catch (embedErr) {
+                console.error(
+                  `Embed fallback also failed for "${momentLabel}":`,
+                  embedErr instanceof Error ? embedErr.message : String(embedErr),
+                );
+              }
             }
             if (trackUris === null) {
               manualSections.push(momentLabel);
@@ -345,6 +372,7 @@ Deno.serve(async (req) => {
       exported: exportedPlaylists.length,
       manual: manualSections,
       failed: failedSections,
+      via_embed: viaEmbedSections,
       cleaned: stalePlaylists.length,
       playlists: exportedPlaylists,
     }), {
