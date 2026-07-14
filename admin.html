@@ -1345,7 +1345,10 @@
 
         let msg = `Exported ${data.exported} playlist${data.exported !== 1 ? 's' : ''} to Spotify.`;
         if (data.manual && data.manual.length > 0) {
-          msg += `\n\nHandle manually (non-Spotify links — check playlist descriptions):\n${data.manual.join('\n')}`;
+          msg += `\n\nHandle manually (link is in the playlist description):\n${data.manual.join('\n')}`;
+        }
+        if (data.failed && data.failed.length > 0) {
+          msg += `\n\n⚠ Could not export (Spotify error — e.g. a private or Spotify-generated playlist):\n${data.failed.join('\n')}`;
         }
         alert(msg);
 

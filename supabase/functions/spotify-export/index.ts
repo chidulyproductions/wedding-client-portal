@@ -189,20 +189,84 @@ Deno.serve(async (req) => {
 
     const userId = await getSpotifyUserId(accessToken);
     const manualSections: string[] = [];
+    const failedSections: string[] = [];
     const exportedPlaylists: { section_id: string; playlist_id: string; playlist_name: string; playlist_url: string }[] = [];
 
     for (const section of sections) {
       const { section_id: sectionId, label: momentLabel, spotify_url: spotifyUrl } = section;
       const playlistName = `${client_name} — ${orderPrefix(section.order)}${momentLabel}`;
 
-      let playlistId = await findPlaylistByName(playlistName, userId, accessToken);
+      try {
+        let playlistId = await findPlaylistByName(playlistName, userId, accessToken);
 
-      if (section.kind === "playlist") {
-        // Playlist section: copy the tracks from the client's pasted playlist
-        // into a playlist of the same name in the DJ's account.
-        const sourceId = extractSpotifyPlaylistId(spotifyUrl);
-        if (!sourceId) {
-          // Not a Spotify playlist URL — record the link for manual handling.
+        if (section.kind === "playlist") {
+          // Playlist section: copy the tracks from the client's pasted playlist
+          // into a playlist of the same name in the DJ's account.
+          const sourceId = extractSpotifyPlaylistId(spotifyUrl);
+          if (!sourceId) {
+            // Not a Spotify playlist URL — record the link for manual handling.
+            manualSections.push(momentLabel);
+            if (playlistId) {
+              await replacePlaylistTracks(playlistId, [], accessToken);
+              await updatePlaylistDescription(playlistId, spotifyUrl, accessToken);
+            } else {
+              playlistId = await createPlaylist(playlistName, spotifyUrl, userId, accessToken);
+            }
+          } else {
+            // Read the source playlist's tracks — but Spotify's Web API returns 404
+            // for its own algorithmic/editorial playlists (blocked since Nov 2024),
+            // and user playlists can be private/deleted. If we can't read the source,
+            // don't abort the whole export: fall back to a manual playlist (empty,
+            // with the source link in the description) so the DJ handles just that one.
+            let trackUris: string[] | null = null;
+            try {
+              trackUris = await fetchPlaylistTrackUris(sourceId, accessToken);
+            } catch (fetchErr) {
+              console.error(
+                `Could not read source playlist for "${momentLabel}" (${spotifyUrl}):`,
+                fetchErr instanceof Error ? fetchErr.message : String(fetchErr),
+              );
+            }
+            if (trackUris === null) {
+              manualSections.push(momentLabel);
+              if (playlistId) {
+                await replacePlaylistTracks(playlistId, [], accessToken);
+                await updatePlaylistDescription(playlistId, spotifyUrl, accessToken);
+              } else {
+                playlistId = await createPlaylist(playlistName, spotifyUrl, userId, accessToken);
+              }
+            } else {
+              if (!playlistId) {
+                playlistId = await createPlaylist(playlistName, spotifyUrl, userId, accessToken);
+              } else {
+                await updatePlaylistDescription(playlistId, spotifyUrl, accessToken);
+              }
+              await replacePlaylistTracks(playlistId, trackUris, accessToken);
+            }
+          }
+        } else if (isSpotifyTrackUrl(spotifyUrl)) {
+          const trackId = extractSpotifyTrackId(spotifyUrl);
+          if (!trackId) {
+            // Malformed Spotify URL — treat as manual
+            manualSections.push(momentLabel);
+            if (playlistId) {
+              await replacePlaylistTracks(playlistId, [], accessToken);
+              await updatePlaylistDescription(playlistId, spotifyUrl, accessToken);
+            } else {
+              playlistId = await createPlaylist(playlistName, spotifyUrl, userId, accessToken);
+            }
+          } else {
+            const trackUri = `spotify:track:${trackId}`;
+            if (playlistId) {
+              await replacePlaylistTracks(playlistId, [trackUri], accessToken);
+              await updatePlaylistDescription(playlistId, "", accessToken);
+            } else {
+              playlistId = await createPlaylist(playlistName, "", userId, accessToken);
+              await replacePlaylistTracks(playlistId, [trackUri], accessToken);
+            }
+          }
+        } else {
+          // Non-Spotify URL (YouTube, SoundCloud, etc.) — empty playlist, URL in description
           manualSections.push(momentLabel);
           if (playlistId) {
             await replacePlaylistTracks(playlistId, [], accessToken);
@@ -210,54 +274,25 @@ Deno.serve(async (req) => {
           } else {
             playlistId = await createPlaylist(playlistName, spotifyUrl, userId, accessToken);
           }
-        } else {
-          const trackUris = await fetchPlaylistTrackUris(sourceId, accessToken);
-          if (!playlistId) {
-            playlistId = await createPlaylist(playlistName, spotifyUrl, userId, accessToken);
-          } else {
-            await updatePlaylistDescription(playlistId, spotifyUrl, accessToken);
-          }
-          await replacePlaylistTracks(playlistId, trackUris, accessToken);
         }
-      } else if (isSpotifyTrackUrl(spotifyUrl)) {
-        const trackId = extractSpotifyTrackId(spotifyUrl);
-        if (!trackId) {
-          // Malformed Spotify URL — treat as manual
-          manualSections.push(momentLabel);
-          if (playlistId) {
-            await replacePlaylistTracks(playlistId, [], accessToken);
-            await updatePlaylistDescription(playlistId, spotifyUrl, accessToken);
-          } else {
-            playlistId = await createPlaylist(playlistName, spotifyUrl, userId, accessToken);
-          }
-        } else {
-          const trackUri = `spotify:track:${trackId}`;
-          if (playlistId) {
-            await replacePlaylistTracks(playlistId, [trackUri], accessToken);
-            await updatePlaylistDescription(playlistId, "", accessToken);
-          } else {
-            playlistId = await createPlaylist(playlistName, "", userId, accessToken);
-            await replacePlaylistTracks(playlistId, [trackUri], accessToken);
-          }
-        }
-      } else {
-        // Non-Spotify URL (YouTube, SoundCloud, etc.) — empty playlist, URL in description
-        manualSections.push(momentLabel);
+
         if (playlistId) {
-          await replacePlaylistTracks(playlistId, [], accessToken);
-          await updatePlaylistDescription(playlistId, spotifyUrl, accessToken);
-        } else {
-          playlistId = await createPlaylist(playlistName, spotifyUrl, userId, accessToken);
+          exportedPlaylists.push({
+            section_id: sectionId,
+            playlist_id: playlistId,
+            playlist_name: playlistName,
+            playlist_url: `https://open.spotify.com/playlist/${playlistId}`,
+          });
         }
-      }
-
-      if (playlistId) {
-        exportedPlaylists.push({
-          section_id: sectionId,
-          playlist_id: playlistId,
-          playlist_name: playlistName,
-          playlist_url: `https://open.spotify.com/playlist/${playlistId}`,
-        });
+      } catch (sectionErr) {
+        // Any unexpected Spotify error on one section (rate limit, transient 5xx,
+        // a write failure, etc.) must not abort the whole batch — record it and
+        // keep exporting the remaining sections.
+        console.error(
+          `Export failed for section "${momentLabel}":`,
+          sectionErr instanceof Error ? sectionErr.message : String(sectionErr),
+        );
+        failedSections.push(momentLabel);
       }
     }
 
@@ -309,6 +344,7 @@ Deno.serve(async (req) => {
       success: true,
       exported: exportedPlaylists.length,
       manual: manualSections,
+      failed: failedSections,
       cleaned: stalePlaylists.length,
       playlists: exportedPlaylists,
     }), {
