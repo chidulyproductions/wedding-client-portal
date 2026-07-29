@@ -121,8 +121,11 @@ Short, scannable: what changed and from where, what was applied automatically, w
   "last_run": "2026-07-29T08:00:00Z",
   "imessage_last_rowid": 224981,
   "email_watermark": "2026-07-28T00:00:00Z",
-  "playlist_snapshots": { "4L07syZPv4k4pjWGM92F8G": "MTcs..." },
-  "second_dj": { "name": "Coleman Howard (CFLO)", "handoff_path": "..." }
+  "playlist_snapshots": { "4L07syZPv4k4pjWGM92F8G": "MTcsZTgwNGE2..." },
+  "second_dj": {
+    "name": "Coleman Howard (CFLO)",
+    "handoff_path": "~/Dropbox/Chi Duly Handoffs/260815_Brian & Stephanie/"
+  }
 }
 ```
 
