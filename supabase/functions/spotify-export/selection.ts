@@ -168,3 +168,44 @@ export function extractSpotifyPlaylistId(url: string): string | null {
   const match = url.match(/open\.spotify\.com\/playlist\/([a-zA-Z0-9]+)/);
   return match ? match[1] : null;
 }
+
+// Spotify blocks the Web API from *reading* its own algorithmic/editorial
+// playlists (404 since Nov 2024), but the public embed page
+// (/embed/playlist/{id}) still lists the tracks in a `__NEXT_DATA__` JSON blob.
+// This pulls the ordered, de-duplicated `spotify:track:` URIs out of that HTML so
+// the export can still copy the songs into the DJ's own playlist — adding known
+// track URIs is NOT blocked, only reading the source is. Pure (HTML in, URIs out)
+// so it can be unit-tested without network access. Returns [] if the page can't
+// be parsed (structure changed, empty, etc.), so callers degrade gracefully.
+export function extractTrackUrisFromEmbedHtml(html: string): string[] {
+  const m = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+  if (!m) return [];
+  let data: unknown;
+  try {
+    data = JSON.parse(m[1]);
+  } catch {
+    return [];
+  }
+  const uris: string[] = [];
+  const seen = new Set<string>();
+  const visit = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      for (const item of node) visit(item);
+      return;
+    }
+    if (!node || typeof node !== "object") return;
+    const obj = node as Record<string, unknown>;
+    if (Array.isArray(obj.trackList)) {
+      for (const t of obj.trackList) {
+        const uri = (t as Record<string, unknown> | null)?.uri;
+        if (typeof uri === "string" && uri.startsWith("spotify:track:") && !seen.has(uri)) {
+          seen.add(uri);
+          uris.push(uri);
+        }
+      }
+    }
+    for (const v of Object.values(obj)) visit(v);
+  };
+  visit(data);
+  return uris;
+}

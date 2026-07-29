@@ -1,5 +1,34 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { selectExportSections, extractSpotifyPlaylistId, type SelectionRow } from "./selection.ts";
+import { selectExportSections, extractSpotifyPlaylistId, extractTrackUrisFromEmbedHtml, type SelectionRow } from "./selection.ts";
+
+// Minimal stand-in for Spotify's /embed/playlist/{id} page: a __NEXT_DATA__ blob
+// whose entity carries a `trackList`. Mirrors the real shape (each entry has a
+// `uri`), plus a duplicate and a non-track uri to exercise dedupe + filtering.
+function embedHtmlFixture(): string {
+  const next = {
+    props: { pageProps: { state: { data: { entity: { trackList: [
+      { uri: "spotify:track:AAA", title: "Song A", subtitle: "Artist A" },
+      { uri: "spotify:track:BBB", title: "Song B", subtitle: "Artist B" },
+      { uri: "spotify:track:AAA", title: "Song A", subtitle: "Artist A" }, // dup → dropped
+      { uri: "spotify:episode:ZZZ", title: "A podcast", subtitle: "Not a track" }, // non-track → dropped
+      { uri: "spotify:track:CCC", title: "Song C", subtitle: "Artist C" },
+    ] } } } } },
+  };
+  return `<html><body><script id="__NEXT_DATA__" type="application/json">${JSON.stringify(next)}</script></body></html>`;
+}
+
+Deno.test("extractTrackUrisFromEmbedHtml pulls ordered, de-duped spotify:track URIs", () => {
+  assertEquals(extractTrackUrisFromEmbedHtml(embedHtmlFixture()), [
+    "spotify:track:AAA",
+    "spotify:track:BBB",
+    "spotify:track:CCC",
+  ]);
+});
+
+Deno.test("extractTrackUrisFromEmbedHtml returns [] when the embed can't be parsed", () => {
+  assertEquals(extractTrackUrisFromEmbedHtml("<html>no next data here</html>"), []);
+  assertEquals(extractTrackUrisFromEmbedHtml('<script id="__NEXT_DATA__">{not json}</script>'), []);
+});
 
 // A realistic Sierra & Thad-style dataset: filled single-track moments,
 // tombstoned moments, a special non-template section, a custom moment, the
