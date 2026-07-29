@@ -40,7 +40,7 @@ Helpers live in `tools/program_sync/` in this repo, invoked by the skill. Serato
 ## Stages
 
 ### 0 · Resolve
-Couple name → `client_key`, wedding date, event folder, calendar event, days-until (`T-minus`). Loads the per-wedding state file (below). Reads a `second_dj` flag to decide whether stage 6 runs.
+Couple name → `client_key`, wedding date, event folder, calendar event, days-until (`T-minus`). Loads the per-wedding state file (below). Reads a `second_dj` flag to decide whether stage 7 runs.
 
 ### 1 · Mine
 Everything since the last watermark:
@@ -81,16 +81,29 @@ Calls the existing `spotify-export` edge function — the same thing the admin *
 
 Regenerates `SPOTIFY-PROGRAM.md`, the ordered links index, on every run so it cannot drift from the portal.
 
-### 5 · Serato crates
+### 5 · Source missing audio
+Runs **before** crate building, because a crate built around a missing track bakes in a substitution nobody approved.
+
+Every program track is matched against the local library. Anything missing — or present only below the 320kbps floor — is **downloaded, not merely reported**, following the established source priority: `library → SpotDL → DMS → Bandcamp free/NYP → raw yt-dlp`. Free or already-paid sources only.
+
+Downloads use the **exact Spotify URL stored in the program**, never a search by title. The couple's chosen version is the contract; a same-titled library edit is not a substitute for a special moment.
+
+Each download is verified before it counts as sourced:
+- bitrate ≥ 320kbps MP3 (or 256 AAC / FLAC)
+- duration within a few seconds of the Spotify track — a large mismatch means the wrong version was fetched
+
+Transient provider failures are retried; a failure is only reported after a retry (a single YouTube error is frequently not permanent). Anything still unsourced after retry is escalated in the report as a blocker, with the moment it belongs to named, since an unsourced ceremony track is a gig-day risk rather than a chore.
+
+### 6 · Serato crates
 Builds/refreshes the per-wedding crate tree using the existing naming convention (parent `<Couple> - <City State> <M-D-YY> <Start>pm`, numbered subcrates with gaps, `archived` for swaps).
 
 Matching follows established tiers: strict artist+title for special-moment songs, relaxed/best-guess for playlist-derived crates with every substitution reported. Play count breaks ties. Playlist crates sort by Spotify popularity descending.
 
 **Hard precondition: Serato must not be running.** It rewrites `Subcrates/` wholesale on launch/save and will silently destroy externally-written crates. The helper aborts with a clear message if Serato is open, and the report tells Chris to open Serato once afterward to ingest.
 
-Unmatched tracks become a sourcing list in the report rather than a silent gap.
+By this point stage 5 has sourced everything obtainable, so a track still unmatched here is a genuine blocker — a version that could not be found at acceptable quality, or one awaiting a human decision on substitution. Crates are built without it and the gap is named loudly in the report; it is never silently filled with a same-titled library edit.
 
-### 6 · Second-DJ handoff package — conditional
+### 7 · Second-DJ handoff package — conditional
 Runs only when the wedding carries a `second_dj` flag. Most weddings skip it entirely. Built in v1 anyway so it exists the next time Chris supplies gear and program for another DJ.
 
 Assembles a cloud folder:
@@ -101,14 +114,14 @@ Assembles a cloud folder:
 - **`SPOTIFY-PROGRAM.md`** — the ordered playlist links index
 - **`README.md`** — the exact drop location the other DJ must use for the crate paths to resolve
 
-### 7 · Meetings
+### 8 · Meetings
 - **Final catchup with the couple:** T-30 → T-14 window. If today is inside it and no call is booked, create a hold on the **Primary** calendar.
 - **Chris ↔ second DJ sync:** before load-in, when `second_dj` is set.
 - Never on the DJ Calendar — that is gigs only.
 - Holds are created without attendees. Chris invites people himself; the pipeline never sends invitations.
 - Agenda is generated from the open items found in stage 2.
 
-### 8 · Report
+### 9 · Report
 Short, scannable: what changed and from where, what was applied automatically, what is queued for approval, what is blocked, what to ask the couple, next meeting date.
 
 ## State
@@ -149,8 +162,9 @@ Without it, every run re-surfaces months-old messages. With it, runs are increme
 1. Stages 0–2 + 8 — resolve, mine, diff, report. Read-only. Delivers most of the value and is safe to trust early.
 2. Stage 3 — the apply/queue split.
 3. Stage 4 — Spotify export call (thin; the function already exists).
-4. Stage 5 — Serato crates.
-5. Stages 6–7 — handoff package and meetings.
+4. Stage 5 — source missing audio. Standalone value: it answers "do I actually have this wedding's music?"
+5. Stage 6 — Serato crates.
+6. Stages 7–8 — handoff package and meetings.
 
 Each phase is independently useful; the pipeline is valuable at the end of phase 1.
 
