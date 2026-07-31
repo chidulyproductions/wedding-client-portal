@@ -123,3 +123,21 @@ Deno.test("extractSpotifyPlaylistId strips query params", () => {
   assertEquals(extractSpotifyPlaylistId("https://open.spotify.com/playlist/04ixvzyU733OjHBAXwaEbT"), "04ixvzyU733OjHBAXwaEbT");
   assertEquals(extractSpotifyPlaylistId("https://open.spotify.com/track/39X2xdmnX3UAWNmyhKdVtc"), null);
 });
+
+Deno.test("custom moment keeps its real label (id already carries the custom- prefix)", () => {
+  // Regression: the def row is 'custom-def-' + id where id is 'custom-<ts>'.
+  // Re-prefixing produced 'custom-custom-<ts>', missing the song row entirely,
+  // so real labels ("Parents Dance", "Chad the Beer Guy's Walk Down") were
+  // replaced by the fallback string "Custom Moment" on export.
+  const rows = [
+    { section_id: "custom-def-custom-1785514306580", spotify_url: null,
+      song_title: "__custom_def__", notes: "Parents Dance" },
+    { section_id: "custom-1785514306580",
+      spotify_url: "https://open.spotify.com/track/1myZ6GQewhAzMH2dKtKSWK",
+      song_title: "Dance With Me", artist: "Bruno Mars", notes: null },
+  ];
+  const out = selectExportSections(rows);
+  assertEquals(out.length, 1);
+  assertEquals(out[0].label, "Parents Dance");
+  assertEquals(out[0].kind, "track");
+});
