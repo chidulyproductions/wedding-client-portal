@@ -94,6 +94,15 @@ Each download is verified before it counts as sourced:
 
 Transient provider failures are retried; a failure is only reported after a retry (a single YouTube error is frequently not permanent). Anything still unsourced after retry is escalated in the report as a blocker, with the moment it belongs to named, since an unsourced ceremony track is a gig-day risk rather than a chore.
 
+**Two failure modes this stage must handle** — both found the first time this ran, both of which silently dropped tracks:
+
+1. **Artist-gated rejections are missing tracks too.** When a playlist wants a *cover* and the library holds only the original by a different artist, the artist gate correctly refuses the substitution — but a title match exists, so the track is not classified as missing either. It falls through both paths and disappears. Rejections must feed the sourcing queue.
+2. **Freshly downloaded files are invisible to the matcher.** Serato has not ingested them into `database V2` yet, and a naive before/after directory diff sees no new file on a re-run, so previously-sourced tracks get dropped the second time the build runs. Resolve files on disk by exact normalized `artists - title` before attempting any download.
+
+Both are fixed in `_chiduly-tools/build_playlist_crate_reference.py` (branch `fix/crate-builder-sourcing-gaps`). Any reimplementation must preserve them.
+
+**Never reconcile by loose filename search.** An early attempt to repair a crate by scanning the library for anything resembling each playlist title attached second files to tracks that were already matched — inflating one crate to 94 paths for 65 tracks. Reconciliation is only ever valid against the matcher's own unmatched list, using exact normalized names.
+
 ### 6 · Serato crates
 Builds/refreshes the per-wedding crate tree using the existing naming convention (parent `<Couple> - <City State> <M-D-YY> <Start>pm`, numbered subcrates with gaps, `archived` for swaps).
 
