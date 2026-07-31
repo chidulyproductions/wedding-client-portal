@@ -128,7 +128,13 @@ export function selectExportSections(rows: SelectionRow[]): ExportSection[] {
   const customLabels: Record<string, string> = {};
   for (const row of rows) {
     if (row.song_title === "__custom_def__" && row.section_id.startsWith("custom-def-")) {
-      const id = "custom-" + row.section_id.slice("custom-def-".length);
+      // The generated id already carries the "custom-" prefix (the client page
+      // builds it as 'custom-' + Date.now(), then stores the def row as
+      // 'custom-def-' + id). Re-adding the prefix produced 'custom-custom-<ts>',
+      // which never matched the song row 'custom-<ts>' — so every custom moment
+      // silently exported as the literal string "Custom Moment".
+      const rest = row.section_id.slice("custom-def-".length);
+      const id = rest.startsWith("custom-") ? rest : "custom-" + rest;
       customLabels[id] = (row.notes && row.notes.trim()) || "Custom Moment";
     }
   }
