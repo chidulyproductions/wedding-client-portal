@@ -841,7 +841,7 @@
       const { data: notesData } = await sb.from('wedding_selections')
         .select('client_key, section_id, notes, updated_at')
         .in('client_key', clientKeys)
-        .in('section_id', ['additional-notes', 'admin-reply']);
+        .in('section_id', ['additional-notes', 'admin-reply', 'dj-setup-link']);
       const notesMap = {};
       (notesData || []).forEach(r => {
         if (!notesMap[r.client_key]) notesMap[r.client_key] = {};
@@ -856,6 +856,9 @@
         const clientNote = notesMap[ck]?.['additional-notes']?.notes || '';
         const adminReply = notesMap[ck]?.['admin-reply']?.notes || '';
         const replyTime = notesMap[ck]?.['admin-reply']?.updated_at || '';
+        // Stored in wedding_selections (not clients) so the client-facing page,
+        // which reads with the anon key, can see it too — clients is RLS-blocked.
+        const seratoLink = notesMap[ck]?.['dj-setup-link']?.notes || '';
         return `
           <tr>
             <td>
@@ -904,15 +907,15 @@
                 <button class="action-btn lock" onclick="toggleLock('${c.id}', ${c.locked})">${c.locked ? 'Unlock' : 'Lock'}</button>
                 <button class="action-btn" onclick="toggleNotesRow('${c.id}')" style="${clientNote ? 'color:#b06878;font-weight:600;' : ''}">Notes${clientNote ? ' ●' : ''}</button>
                 <button class="action-btn" onclick="exportToSpotify('${ck}', '${c.name.replace(/'/g, "\\'")}', this)">Export ♫</button>
-                <button class="action-btn" data-link="${c.serato_link || ''}" onclick="seratoSetup('${c.id}', this)"
-                  title="${c.serato_link ? 'Open the Serato Setup folder' : 'No Serato Setup folder linked yet — click to add one'}"
-                  style="${c.serato_link ? 'color:#7fb069;' : ''}">Serato Setup${c.serato_link ? ' ↗' : ''}</button>
-                ${c.serato_link ? `<button class="action-btn" onclick="showSeratoEdit('${c.id}')" title="Change the Serato Setup link">✎</button>` : ''}
+                <button class="action-btn" data-link="${seratoLink}" onclick="seratoSetup('${c.id}', this)"
+                  title="${seratoLink ? 'Open the Serato Setup folder' : 'No Serato Setup folder linked yet — click to add one'}"
+                  style="${seratoLink ? 'color:#7fb069;' : ''}">Serato Setup${seratoLink ? ' ↗' : ''}</button>
+                ${seratoLink ? `<button class="action-btn" onclick="showSeratoEdit('${c.id}')" title="Change the Serato Setup link">✎</button>` : ''}
                 <button class="action-btn delete" onclick="archiveClient('${c.id}')">Archive</button>
                 <div class="edit-email-form serato-link-form" id="serato-link-${c.id}">
                   <input class="edit-email-input" type="url" id="serato-link-input-${c.id}"
-                    placeholder="Paste the Serato Setup folder link (Dropbox)" value="${c.serato_link || ''}" />
-                  <button class="edit-email-save" onclick="saveSeratoLink('${c.id}')">Save</button>
+                    placeholder="Paste the Serato Setup folder link (Dropbox)" value="${seratoLink}" />
+                  <button class="edit-email-save" onclick="saveSeratoLink('${c.id}', '${ck}')">Save</button>
                   <button class="edit-email-cancel" onclick="hideSeratoEdit('${c.id}')">✕</button>
                 </div>
               `}
@@ -1200,7 +1203,7 @@
       showSeratoEdit(id);   // nothing stored yet — prompt for it
     }
 
-    async function saveSeratoLink(id) {
+    async function saveSeratoLink(id, clientKey) {
       const input = document.getElementById('serato-link-input-' + id);
       const link = input.value.trim();
       // Empty clears the link; anything else must be a real URL.
@@ -1210,7 +1213,18 @@
         setTimeout(() => { input.style.borderColor = ''; }, 2000);
         return;
       }
-      const { error } = await sb.from('clients').update({ serato_link: link || null }).eq('id', id);
+      // Lives in wedding_selections, not clients: the client-facing page reads
+      // with the anon key and clients is RLS-blocked, so it could never see it
+      // there. URL goes in `notes` with a null spotify_url, which also keeps the
+      // row out of the Spotify export (it skips rows with no spotify_url).
+      const { error } = await sb.from('wedding_selections').upsert({
+        client_key: clientKey,
+        section_id: 'dj-setup-link',
+        spotify_url: null,
+        song_title: null,
+        artist: null,
+        notes: link || null,
+      }, { onConflict: 'client_key,section_id' });
       if (error) { alert('Error saving Serato Setup link: ' + error.message); return; }
       hideSeratoEdit(id);
       loadClients();
