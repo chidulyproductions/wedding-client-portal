@@ -904,7 +904,17 @@
                 <button class="action-btn lock" onclick="toggleLock('${c.id}', ${c.locked})">${c.locked ? 'Unlock' : 'Lock'}</button>
                 <button class="action-btn" onclick="toggleNotesRow('${c.id}')" style="${clientNote ? 'color:#b06878;font-weight:600;' : ''}">Notes${clientNote ? ' ●' : ''}</button>
                 <button class="action-btn" onclick="exportToSpotify('${ck}', '${c.name.replace(/'/g, "\\'")}', this)">Export ♫</button>
+                <button class="action-btn" data-link="${c.serato_link || ''}" onclick="seratoSetup('${c.id}', this)"
+                  title="${c.serato_link ? 'Open the Serato Setup folder' : 'No Serato Setup folder linked yet — click to add one'}"
+                  style="${c.serato_link ? 'color:#7fb069;' : ''}">Serato Setup${c.serato_link ? ' ↗' : ''}</button>
+                ${c.serato_link ? `<button class="action-btn" onclick="showSeratoEdit('${c.id}')" title="Change the Serato Setup link">✎</button>` : ''}
                 <button class="action-btn delete" onclick="archiveClient('${c.id}')">Archive</button>
+                <div class="edit-email-form serato-link-form" id="serato-link-${c.id}">
+                  <input class="edit-email-input" type="url" id="serato-link-input-${c.id}"
+                    placeholder="Paste the Serato Setup folder link (Dropbox)" value="${c.serato_link || ''}" />
+                  <button class="edit-email-save" onclick="saveSeratoLink('${c.id}')">Save</button>
+                  <button class="edit-email-cancel" onclick="hideSeratoEdit('${c.id}')">✕</button>
+                </div>
               `}
               <div class="delete-confirm" id="delete-confirm-${c.id}">
                 <div class="delete-confirm-msg">
@@ -1167,6 +1177,42 @@
       const { error } = await sb.from('clients').update({ email: newEmail }).eq('id', id);
       if (error) { alert('Error updating email: ' + error.message); return; }
       hideEditEmail(id);
+      loadClients();
+    }
+
+    // ── SERATO SETUP LINK ──
+    // The handoff package (audio + crates + program docs) is assembled locally
+    // from Chris's Serato library — the site can't build it. This just stores
+    // where it lives so the folder is one click away from the client row.
+    function showSeratoEdit(id) {
+      document.querySelectorAll('.serato-link-form.visible').forEach(el => el.classList.remove('visible'));
+      document.getElementById('serato-link-' + id).classList.add('visible');
+      document.getElementById('serato-link-input-' + id).focus();
+    }
+
+    function hideSeratoEdit(id) {
+      document.getElementById('serato-link-' + id).classList.remove('visible');
+    }
+
+    function seratoSetup(id, btn) {
+      const link = btn.dataset.link;
+      if (link) { window.open(link, '_blank', 'noopener'); return; }
+      showSeratoEdit(id);   // nothing stored yet — prompt for it
+    }
+
+    async function saveSeratoLink(id) {
+      const input = document.getElementById('serato-link-input-' + id);
+      const link = input.value.trim();
+      // Empty clears the link; anything else must be a real URL.
+      if (link && !/^https?:\/\//i.test(link)) {
+        input.style.borderColor = 'var(--blush)';
+        input.placeholder = 'Must start with https://';
+        setTimeout(() => { input.style.borderColor = ''; }, 2000);
+        return;
+      }
+      const { error } = await sb.from('clients').update({ serato_link: link || null }).eq('id', id);
+      if (error) { alert('Error saving Serato Setup link: ' + error.message); return; }
+      hideSeratoEdit(id);
       loadClients();
     }
 
