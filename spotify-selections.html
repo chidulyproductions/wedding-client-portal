@@ -955,7 +955,10 @@
     <a href="#" class="logo">
       <img src="chi-duly-logo.svg" alt="Chi Duly Productions" class="logo-img" />
     </a>
-    <span class="badge">Music Selections</span>
+    <span class="badge" id="header-badge">Music Selections</span>
+    <a class="badge" id="dj-setup-badge" href="#" target="_blank" rel="noopener"
+       style="display:none; color:var(--blush); border-color:var(--blush); text-decoration:none;"
+       title="Everything a DJ needs to run this program — crates, audio and notes">DJ Setup Link</a>
   </header>
 
   <!-- HERO (top — Chi Duly brand + program intro) -->
@@ -2463,6 +2466,22 @@
             const label = row.notes;
             if (label && row.song_title === '__custom_def__') {
               createCustomMoment(customId, label);
+            }
+            return;
+          }
+
+          // DJ Setup Link — the handoff folder (crates, audio, program notes).
+          // Swaps the header badge for a link out. Kept available to the couple
+          // on purpose: if the DJ has to be replaced last-minute, or Chris is
+          // prepping the program for another DJ, whoever steps in can be handed
+          // everything immediately. Not a song row — bail before the rest.
+          if (sid === 'dj-setup-link') {
+            const link = (row.notes || '').trim();
+            if (link) {
+              const a = document.getElementById('dj-setup-badge');
+              const plain = document.getElementById('header-badge');
+              if (a) { a.href = link; a.style.display = ''; }
+              if (plain) plain.style.display = 'none';
             }
             return;
           }
