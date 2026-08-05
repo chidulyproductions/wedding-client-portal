@@ -123,24 +123,31 @@ Expected: `[]` or `[{"audio_url":null}]` — **not** an error mentioning `column
 
 - [ ] **Step 4: Verify the bucket is public and capped**
 
-Run:
-```bash
-curl -s "https://lfnlftxqdelcrmbceiob.supabase.co/storage/v1/bucket/client-audio" \
-  -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY"
-```
-Expected: JSON containing `"public":true` and `"file_size_limit":26214400`.
+The bucket **metadata** endpoint is not readable by `anon` — the migration grants policies on `storage.objects`, not `storage.buckets`, so `GET /storage/v1/bucket/client-audio` answers `Bucket not found` even when the bucket is fine. Verify by behavior instead:
 
-- [ ] **Step 5: Create the throwaway test client**
-
-Run:
 ```bash
-curl -s -X POST "https://lfnlftxqdelcrmbceiob.supabase.co/rest/v1/clients" \
+printf 'x' > /tmp/probe.mp3
+curl -s -X POST "https://lfnlftxqdelcrmbceiob.supabase.co/storage/v1/object/client-audio/probe.mp3" \
   -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
-  -H "Content-Type: application/json" -H "Prefer: return=representation" \
-  -d '{"name":"ZZ Audio Test","wedding_date":"2027-01-01","email":"chidulytrash@gmail.com","locked":false}'
+  -H "Content-Type: audio/mpeg" --data-binary @/tmp/probe.mp3
+curl -s -o /dev/null -w "public GET: %{http_code}\n" \
+  "https://lfnlftxqdelcrmbceiob.supabase.co/storage/v1/object/public/client-audio/probe.mp3"
+curl -s -X POST "https://lfnlftxqdelcrmbceiob.supabase.co/storage/v1/object/client-audio/probe.txt" \
+  -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+  -H "Content-Type: text/plain" --data-binary @/tmp/probe.mp3
+curl -s -X DELETE "https://lfnlftxqdelcrmbceiob.supabase.co/storage/v1/object/client-audio/probe.mp3" \
+  -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY"
+rm /tmp/probe.mp3
 ```
-Expected: a JSON array with one client row. Its portal is
-`spotify-selections.html?name=ZZ%20Audio%20Test&date=2027-01-01`, client key `zz-audio-test-2027-01-01`.
+Expected: the upload returns a `Key`; the public GET returns `200`; the `text/plain` upload is rejected with `invalid_mime_type` (proving `allowed_mime_types` is really set on the bucket row, and with it `file_size_limit` from the same insert); the delete succeeds.
+
+- [ ] **Step 5: Note the test-portal URL — no client row needed**
+
+The `clients` table has RLS enabled and requires an authenticated session, so an anon caller **cannot** create a test client. It doesn't need one. `getClientKey()` derives the key from URL parameters alone, `wedding_selections` has RLS off, and `checkLockStatus` simply finds no match and carries on. So the test portal is:
+
+`spotify-selections.html?name=ZZ%20Audio%20Test&date=2027-01-01` → client key `zz-audio-test-2027-01-01`
+
+with no row in `clients` behind it. The one thing this costs is the locked-portal check in Task 13, which is handled there.
 
 - [ ] **Step 6: Commit**
 
@@ -1266,24 +1273,19 @@ Expected: it uploads and renders exactly like a fixed section, and the brochure'
 
 Reload. Expected: the custom moment returns with its audio player intact.
 
-- [ ] **Step 4: Verify the lock**
+- [ ] **Step 4: Verify the lock guard**
 
-Lock the test client:
-```bash
-curl -s -X PATCH "https://lfnlftxqdelcrmbceiob.supabase.co/rest/v1/clients?name=eq.ZZ%20Audio%20Test" \
-  -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
-  -H "Content-Type: application/json" -d '{"locked":true}'
-```
-Reload the portal. Expected: the lock overlay covers the page. In the console, run
-`handleAudioUpload('first-dance', new File([new Uint8Array(10)], 'x.mp3', {type:'audio/mpeg'}))`.
-Expected: it resolves without uploading — `audioUrls['first-dance']` is unchanged and no new row is written.
+The `clients` table requires an authenticated session to write, so the test portal has no client row to lock (see Task 1 Step 5). The overlay itself is pre-existing, unchanged behavior; what this change adds is the `portalLocked` guard, so that is what gets verified. In the console:
 
-Unlock again:
-```bash
-curl -s -X PATCH "https://lfnlftxqdelcrmbceiob.supabase.co/rest/v1/clients?name=eq.ZZ%20Audio%20Test" \
-  -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
-  -H "Content-Type: application/json" -d '{"locked":false}'
+```javascript
+portalLocked = true;
+await handleAudioUpload('first-dance', new File([new Uint8Array(10)], 'x.mp3', {type:'audio/mpeg'}));
+audioUrls['first-dance'];   // unchanged
+portalLocked = false;
 ```
+Expected: the call resolves without uploading — `audioUrls['first-dance']` is whatever it was, no status message appears, and no new object lands in the bucket.
+
+Confirm the assignment is wired to the real lock by reading `checkLockStatus`: `portalLocked = true` sits in the same branch that shows the overlay, so any client whose row has `locked = true` gets both. A full end-to-end lock test needs a real locked client and is left for Chris to spot-check on a real portal after merge.
 
 - [ ] **Step 5: Commit**
 
@@ -1383,15 +1385,13 @@ Append to `TODOS.md`:
 Add an "Uploaded audio" list to each client in admin.html — every section with an `audio_url`, labelled by moment, with download links — so every custom edit for one wedding can be pulled in one pass instead of scrolling the client portal. Deferred from the custom-audio-upload design (2026-08-05); portal-level download was enough to ship.
 ```
 
-- [ ] **Step 4: Delete the test client and its data**
+- [ ] **Step 4: Delete the test data**
 
 ```bash
 curl -s -X DELETE "https://lfnlftxqdelcrmbceiob.supabase.co/rest/v1/wedding_selections?client_key=eq.zz-audio-test-2027-01-01" \
   -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY"
-curl -s -X DELETE "https://lfnlftxqdelcrmbceiob.supabase.co/rest/v1/clients?name=eq.ZZ%20Audio%20Test" \
-  -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY"
 ```
-Expected: HTTP 204 from both.
+Expected: HTTP 204. There is no client row to delete — none was ever created (Task 1 Step 5).
 
 Then delete every object left in the bucket from testing, using the list from Task 14 Step 6:
 ```bash
