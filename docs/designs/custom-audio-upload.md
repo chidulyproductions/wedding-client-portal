@@ -83,8 +83,12 @@ extension.
 - An ✕ on the player removes the audio and deletes its object. The Spotify link and its
   embed come back.
 - Clearing the whole section removes both the row and the stored object.
-- Removing a section (the tombstone path) hides it but leaves the object in place, matching
-  how removal already preserves the row for undo.
+- Removing a section (the 🗑 tombstone path) also deletes the object and nulls `audio_url`.
+  Undo therefore restores the section **without** its audio; the link and everything else
+  come back as normal. This is deliberate: an uploaded file is never the only copy, so
+  nothing is at risk, and it keeps storage free of files no page will ever render.
+
+No path leaves an object in the bucket that no row points at.
 
 ### Brochure
 
@@ -149,6 +153,8 @@ an audio line — not to guess now.
 - Editing the link after attaching audio: link saves, no embed appears, audio survives.
 - Replacing audio deletes the prior storage object.
 - Removing audio restores the embed and leaves `spotify_url` intact.
+- Removing a section deletes its object and nulls `audio_url`; undo brings the section back
+  with its link and no audio, and no player is left pointing at a deleted file.
 - Oversize file and non-audio file are both rejected, by the bucket and not only by the page.
 - A locked portal refuses upload.
 - Reload after each of the above restores the same visible state.
