@@ -53,3 +53,15 @@ Bring admin.html into the same aesthetic family as the redesigned client portal.
 Clean up the original infrastructure: remove Netlify functions (save-selection.js, load-selections.js, spotify.js), archive original HTML files, decommission Supabase edge functions (save-selection, load-selections), update DNS if applicable, and remove netlify.toml.
 
 **Context:** Both sites hit the same Supabase DB. Running them in parallel during migration is safe, but leaving both live long-term risks confusion and stale behavior.
+
+## Admin: Per-Client Uploaded Audio Listing
+**Priority:** P3 | **Effort:** S
+**Depends on:** Custom audio upload shipped
+
+Add an "Uploaded audio" list to each client in admin.html — every section with an `audio_url`, labelled by moment, with download links — so every custom edit for one wedding can be pulled in one pass instead of scrolling the client portal. Deferred from the custom-audio-upload design (2026-08-05); portal-level download was enough to ship.
+
+## Storage: Watch the client-audio bucket
+**Priority:** P3 | **Effort:** S
+**Depends on:** Custom audio upload shipped
+
+The `client-audio` bucket accepts anon uploads (the anon key is public), capped at 25 MB per file but not in total, against a 1 GB free-tier ceiling. No monitoring exists. Worth either a periodic size check or scoping uploads to a client-key-prefixed path so abuse can be traced and rate-limited. Raised in the Task 1 code-quality review.
