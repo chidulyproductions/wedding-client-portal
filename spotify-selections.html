@@ -1870,6 +1870,9 @@
         if (clients?.length && clients[0].locked) {
           const overlay = document.getElementById('locked-overlay');
           overlay.style.display = 'flex';
+          // The overlay covers the page, but a keyboard user can still reach
+          // the file input behind it, so uploads are refused explicitly too.
+          portalLocked = true;
         }
       } catch(e) { /* continue normally */ }
     }
@@ -2927,6 +2930,7 @@
           <button class="undo-btn" onclick="undoRemove('${id}')">↩ Undo</button>
         </div>`;
       container.appendChild(wrapper);
+      initAudioControls();  // the new section needs its attach control too
 
       // Register in sectionProgramMap
       sectionProgramMap[id] = { category: 'custom', label: label };
