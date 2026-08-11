@@ -2232,17 +2232,33 @@
       deleteSelection(sectionId);
     }
 
-    function undoRemove(sectionId) {
+    async function undoRemove(sectionId) {
       document.getElementById('section-' + sectionId).classList.remove('removed');
       document.getElementById('undo-' + sectionId).classList.remove('visible');
       // Restore brochure entry
       const brochureItem = document.getElementById('brochure-' + sectionId);
       if (brochureItem) brochureItem.style.display = '';
-      // Re-save whatever is in the input
+      // Re-save whatever is in the input. Deliberately NOT silent: silent mode
+      // repaints the embed without writing, which left the tombstone row in
+      // place, so an undone section came back hidden on the next reload.
       const linkInput = document.getElementById(sectionId + '-link');
       if (linkInput && linkInput.value.trim()) {
-        embedSpotify(sectionId, true);
+        embedSpotify(sectionId, false);
+        return;
       }
+      // Nothing left to write back — the section is empty, which is exactly what
+      // a tombstone row looks like, so re-saving one would re-hide the section on
+      // reload. Drop the row instead: absent means "never touched", which loads
+      // visible and empty. Reachable since audio-only moments became possible —
+      // removing one purges its file, leaving nothing for the branch above.
+      try {
+        if (!sb) return;
+        const { error } = await sb.from('wedding_selections')
+          .delete()
+          .eq('client_key', getClientKey())
+          .eq('section_id', sectionId);
+        if (error) console.log('Undo error:', error);
+      } catch (e) { console.log('Undo error:', e); }
     }
 
     async function deleteSelection(sectionId) {
