@@ -217,6 +217,42 @@
     }
     #section-announcement:hover { transform: none; }
 
+    /* Custom audio: attach control + player. Replaces the platform embed when
+       a file is present — the section never shows two players at once. */
+    .audio-attach-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 10px; flex-wrap: wrap;
+    }
+    .audio-attach-label {
+      font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted); cursor: pointer;
+      border: 1px dashed #3a3440; border-radius: 8px;
+      padding: 8px 14px; transition: border-color 0.2s, color 0.2s;
+    }
+    .audio-attach-label:hover { border-color: var(--accent); color: var(--accent); }
+    .audio-attach-row input[type="file"] { display: none; }
+    .audio-status { font-size: 0.8rem; color: var(--muted); }
+    .audio-status.error { color: #ff6b6b; }
+    .audio-area { display: none; margin-top: 12px; }
+    .audio-area.visible { display: block; }
+    .audio-label {
+      font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 8px;
+    }
+    .audio-area audio { width: 100%; }
+    .audio-actions { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+    .audio-download { font-size: 0.8rem; color: var(--accent); text-decoration: none; }
+    .audio-download:hover { text-decoration: underline; }
+    .audio-remove {
+      background: none; border: none; color: #888;
+      cursor: pointer; font-size: 0.85rem; padding: 0;
+    }
+    .audio-remove:hover { color: #ff6b6b; }
+    .program-edit-tag {
+      font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--accent); margin-left: 8px; white-space: nowrap;
+    }
+
     /* Section card stagger via nth-child (covers all 18 fixed + 7 custom slots) */
     .sections > .music-section:nth-child(1)  { animation-delay: calc(0  * 28ms + 500ms); }
     .sections > .music-section:nth-child(2)  { animation-delay: calc(1  * 28ms + 500ms); }
@@ -2398,6 +2434,144 @@
       }
     }
 
+    // ── CUSTOM AUDIO ──
+    // A moment can carry an uploaded audio file alongside its Spotify link. The
+    // file is what gets played; the link is kept untouched so the Spotify export
+    // still holds the original unedited version as a backup. When audio is
+    // present the section renders ONLY the audio player — embedSpotify is
+    // suppressed from writing to the embed area (see setEmbed there).
+    const AUDIO_BUCKET = 'client-audio';
+    const AUDIO_MAX_BYTES = 26214400; // 25 MB — must match the bucket's file_size_limit
+    const AUDIO_URL_PREFIX = SUPABASE_URL + '/storage/v1/object/public/' + AUDIO_BUCKET + '/';
+    const audioUrls = {};   // sectionId -> public URL of its audio, when it has any
+    const songTitles = {};  // sectionId -> latest known title, for the download filename
+    let portalLocked = false;
+
+    // Rows are anon-writable (RLS is off), so a stored audio_url is untrusted
+    // input. Only URLs inside our own bucket are ever handed to an <audio> src
+    // or a download href.
+    function isTrustedAudioUrl(url) {
+      return typeof url === 'string' && url.startsWith(AUDIO_URL_PREFIX);
+    }
+
+    // Public URLs look like:
+    //   https://<ref>.supabase.co/storage/v1/object/public/client-audio/<object>
+    // The object path is what the storage delete API wants.
+    function audioPathFromUrl(url) {
+      if (!isTrustedAudioUrl(url)) return null;
+      return decodeURIComponent(url.slice(AUDIO_URL_PREFIX.length).split('?')[0]);
+    }
+
+    function audioFileExt(fileName) {
+      const m = (fileName || '').match(/\.([a-z0-9]{1,5})$/i);
+      return m ? m[1].toLowerCase() : 'mp3';
+    }
+
+    // "01 First Dance_FINAL.wav" -> "01 First Dance FINAL". Used to prefill the
+    // name field on an audio-only moment, so the brochure never reads like a
+    // filename unless the client leaves it that way on purpose.
+    function titleFromFileName(fileName) {
+      return (fileName || '')
+        .replace(/\.[a-z0-9]{1,5}$/i, '')
+        .replace(/[_]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    // Cross-origin `download` attributes are ignored, so the readable filename
+    // has to come from Supabase's ?download= parameter instead.
+    function audioDownloadHref(sectionId, url) {
+      const manual = document.getElementById(sectionId + '-manual-input');
+      const base = (manual && manual.value.trim()) || songTitles[sectionId] || sectionId;
+      const safe = base.replace(/[\/\\:*?"<>|]/g, '-');
+      const ext = (audioPathFromUrl(url) || '').split('.').pop() || 'mp3';
+      return url + '?download=' + encodeURIComponent(safe + '.' + ext);
+    }
+
+    function audioValidationError(file) {
+      if (!file.type.startsWith('audio/')) return 'That is not an audio file';
+      if (file.size > AUDIO_MAX_BYTES) return 'Too large — 25 MB maximum';
+      return null;
+    }
+
+    // Writes ONLY audio_url. spotify_url is deliberately absent from the payload
+    // so PostgREST's merge-duplicates leaves the link exactly as it was.
+    async function saveAudioUrl(sectionId, audioUrl) {
+      if (!sb) return false;
+      const { error } = await sb.from('wedding_selections').upsert({
+        client_key: getClientKey(),
+        section_id: sectionId,
+        audio_url: audioUrl,
+        entered_by: 'client',
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'client_key,section_id' });
+      if (error) { console.log('Audio save error:', error); return false; }
+      return true;
+    }
+
+    async function deleteAudioObject(url) {
+      const path = audioPathFromUrl(url);
+      if (!path || !sb) return;
+      const { error } = await sb.storage.from(AUDIO_BUCKET).remove([path]);
+      if (error) console.log('Audio object delete error:', error);
+    }
+
+    // The 18 fixed sections are hand-written and near-identical, and custom
+    // moments are built at runtime. Injecting the control from JS covers both
+    // and keeps one definition of it. Built with DOM methods, not markup
+    // strings, because section ids and titles flow in from the database.
+    function initAudioControls() {
+      document.querySelectorAll('.music-section[data-section]').forEach(section => {
+        const sectionId = section.dataset.section;
+        if (document.getElementById(sectionId + '-audio-attach')) return;
+        const embedArea = document.getElementById(sectionId + '-embed');
+        if (!embedArea) return;
+
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'audio/*';
+        input.id = sectionId + '-audio-input';
+        input.addEventListener('change', () => {
+          const file = input.files[0];
+          input.value = '';  // so picking the same file twice still fires change
+          handleAudioUpload(sectionId, file);
+        });
+
+        const label = document.createElement('label');
+        label.className = 'audio-attach-label';
+        label.htmlFor = input.id;
+        label.textContent = '🎵 Attach custom edit';
+
+        const status = document.createElement('span');
+        status.className = 'audio-status';
+        status.id = sectionId + '-audio-status';
+
+        const row = document.createElement('div');
+        row.className = 'audio-attach-row';
+        row.id = sectionId + '-audio-attach';
+        row.append(label, input, status);
+        embedArea.after(row);
+
+        const area = document.createElement('div');
+        area.className = 'audio-area';
+        area.id = sectionId + '-audio-area';
+        row.after(area);
+      });
+    }
+
+    function showAudioStatus(sectionId, message, isError) {
+      const el = document.getElementById(sectionId + '-audio-status');
+      if (!el) return;
+      el.textContent = message || '';
+      el.classList.toggle('error', !!isError);
+    }
+
+    function setAttachLabel(sectionId, text) {
+      const row = document.getElementById(sectionId + '-audio-attach');
+      const label = row ? row.querySelector('.audio-attach-label') : null;
+      if (label) label.textContent = text;
+    }
+
     // ── LOAD ALL SELECTIONS ON PAGE LOAD ──
     async function loadSelections() {
       try {
@@ -2646,6 +2820,7 @@
       applyPersonalization();
       checkLockStatus();
       initMakeSelectionLinks();
+      initAudioControls();
       loadSelections();
     });
 
