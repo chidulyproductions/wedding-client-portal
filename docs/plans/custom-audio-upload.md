@@ -36,7 +36,7 @@ Read these before Task 1. They are the non-obvious facts this plan depends on:
 
 **Create:**
 - `supabase/migrations/20260805_audio_upload.sql` — `audio_url` column, `client-audio` bucket, storage policies.
-- `supabase/migrations/20260805_notify_dj_audio.sql` — replaces the trigger function so the payload carries audio fields.
+- `supabase/migrations/20260806_notify_dj_audio.sql` — replaces the trigger function so the payload carries audio fields.
 - `supabase/functions/notify-dj/line.ts` — pure before/after line formatting. Extracted so it is testable, mirroring `spotify-export/selection.ts`.
 - `supabase/functions/notify-dj/line_test.ts` — Deno tests for the above.
 
@@ -417,7 +417,7 @@ git commit -m "fix(notify-dj): an audio upload is no longer emailed as a removal
 ## Task 5: Send audio fields from the database trigger
 
 **Files:**
-- Create: `supabase/migrations/20260805_notify_dj_audio.sql`
+- Create: `supabase/migrations/20260806_notify_dj_audio.sql`
 
 - [ ] **Step 1: Write the migration**
 
@@ -500,7 +500,7 @@ curl -s -X DELETE "https://lfnlftxqdelcrmbceiob.supabase.co/rest/v1/wedding_sele
 - [ ] **Step 5: Commit**
 
 ```bash
-git add supabase/migrations/20260805_notify_dj_audio.sql
+git add supabase/migrations/20260806_notify_dj_audio.sql
 git commit -m "feat(db): send audio_url in the notify-dj trigger payload"
 ```
 
