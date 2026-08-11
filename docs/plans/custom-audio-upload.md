@@ -358,6 +358,8 @@ import { escapeHtml, formatSongLine, formatAfterLine } from "./line.ts";
 
 Then delete the local `escapeHtml` function (around line 73) and the local `formatSongLine` function (lines 77–83). Nothing else references them.
 
+**Known behavior change (verified 2026-08-05, accepted):** the extracted `escapeHtml` also escapes `"` as `&quot;`, which the original did not. All three call sites (index.ts lines 179, 180, 182) interpolate into element **text content**, never an attribute value, and `&quot;` renders as `"` in text — so the email Chris receives is visually identical. The extra escaping is defensive cover for any future attribute interpolation. `formatSongLine` is otherwise character-for-character the original.
+
 - [ ] **Step 2: Accept the audio fields from the trigger payload**
 
 In the destructuring of `payload` (around line 99), add two fields after `new_spotify_url`:
