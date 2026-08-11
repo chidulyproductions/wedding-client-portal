@@ -1,5 +1,6 @@
 import "@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { escapeHtml, formatAfterLine } from "./line.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -70,18 +71,6 @@ function formatWeddingDate(dateStr: string): string {
   });
 }
 
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function formatSongLine(title: string | null, artist: string | null, spotifyUrl: string | null): string {
-  if (!spotifyUrl && !title && !artist) return "—";
-  const parts: string[] = [];
-  if (title) parts.push(escapeHtml(title));
-  if (artist) parts.push(`by ${escapeHtml(artist)}`);
-  return parts.length > 0 ? parts.join(" ") : "—";
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -105,6 +94,8 @@ Deno.serve(async (req) => {
       new_song_title,
       new_artist,
       new_spotify_url,
+      old_audio_url,
+      new_audio_url,
     } = payload;
 
     if (!client_key || !section_id) {
@@ -165,11 +156,12 @@ Deno.serve(async (req) => {
     const momentLabel = getSectionLabel(section_id);
 
     // Build the before/after display strings
-    const beforeLine = formatSongLine(old_song_title ?? null, old_artist ?? null, old_spotify_url ?? null);
-    // "After" shows "(removed)" if new_spotify_url is null
-    const afterLine = (new_spotify_url == null)
-      ? "(removed)"
-      : formatSongLine(new_song_title ?? null, new_artist ?? null, new_spotify_url);
+    const beforeLine = formatAfterLine(
+      old_song_title ?? null, old_artist ?? null, old_spotify_url ?? null, old_audio_url ?? null,
+    );
+    const afterLine = formatAfterLine(
+      new_song_title ?? null, new_artist ?? null, new_spotify_url ?? null, new_audio_url ?? null,
+    );
 
     const emailHtml = `
       <div style="font-family: 'Georgia', serif; max-width: 560px; margin: 0 auto; color: #1a1218;">

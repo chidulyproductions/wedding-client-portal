@@ -217,6 +217,42 @@
     }
     #section-announcement:hover { transform: none; }
 
+    /* Custom audio: attach control + player. Replaces the platform embed when
+       a file is present — the section never shows two players at once. */
+    .audio-attach-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 10px; flex-wrap: wrap;
+    }
+    .audio-attach-label {
+      font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted); cursor: pointer;
+      border: 1px dashed #3a3440; border-radius: 8px;
+      padding: 8px 14px; transition: border-color 0.2s, color 0.2s;
+    }
+    .audio-attach-label:hover { border-color: var(--accent); color: var(--accent); }
+    .audio-attach-row input[type="file"] { display: none; }
+    .audio-status { font-size: 0.8rem; color: var(--muted); }
+    .audio-status.error { color: #ff6b6b; }
+    .audio-area { display: none; margin-top: 12px; }
+    .audio-area.visible { display: block; }
+    .audio-label {
+      font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 8px;
+    }
+    .audio-area audio { width: 100%; }
+    .audio-actions { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+    .audio-download { font-size: 0.8rem; color: var(--accent); text-decoration: none; }
+    .audio-download:hover { text-decoration: underline; }
+    .audio-remove {
+      background: none; border: none; color: #888;
+      cursor: pointer; font-size: 0.85rem; padding: 0;
+    }
+    .audio-remove:hover { color: #ff6b6b; }
+    .program-edit-tag {
+      font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--accent); margin-left: 8px; white-space: nowrap;
+    }
+
     /* Section card stagger via nth-child (covers all 18 fixed + 7 custom slots) */
     .sections > .music-section:nth-child(1)  { animation-delay: calc(0  * 28ms + 500ms); }
     .sections > .music-section:nth-child(2)  { animation-delay: calc(1  * 28ms + 500ms); }
@@ -1834,6 +1870,9 @@
         if (clients?.length && clients[0].locked) {
           const overlay = document.getElementById('locked-overlay');
           overlay.style.display = 'flex';
+          // The overlay covers the page, but a keyboard user can still reach
+          // the file input behind it, so uploads are refused explicitly too.
+          portalLocked = true;
         }
       } catch(e) { /* continue normally */ }
     }
@@ -1909,6 +1948,7 @@
 
     // ── UPDATE PROGRAM ──
     function updateProgram(sectionId, title, artist, spotifyUrl) {
+      if (title) songTitles[sectionId] = title;
       const items = document.querySelectorAll('.program-list li');
       items.forEach(item => {
         const moment = item.querySelector('.program-moment');
@@ -1923,6 +1963,12 @@
             displayText = artist ? artist + ' - ' + title : title;
           }
           song.innerHTML = '<a href="#section-' + sectionId + '" class="program-song-link">' + displayText + '</a>';
+          if (audioUrls[sectionId]) {
+            const tag = document.createElement('span');
+            tag.className = 'program-edit-tag';
+            tag.textContent = 'custom edit';
+            song.appendChild(tag);
+          }
           song.style.color = 'var(--blush)';
         }
       });
@@ -2084,9 +2130,17 @@
       const embedArea = document.getElementById(sectionId + '-embed');
       const savedPill = document.getElementById(sectionId + '-saved');
 
+      // A section with a custom edit shows only that player. The link is still
+      // parsed, saved, and exported — it just doesn't render an iframe.
+      const setEmbed = (html) => {
+        if (audioUrls[sectionId]) return;
+        embedArea.replaceChildren();
+        if (html) embedArea.insertAdjacentHTML('beforeend', html);
+      };
+
       // ── UNKNOWN PLATFORM: save URL + show manual title entry ──
       if (platform === 'unknown') {
-        embedArea.innerHTML = '';
+        setEmbed('');
         const manualArea = getOrCreateManualArea(sectionId);
         manualArea.classList.add('visible');
         if (!silent) {
@@ -2115,7 +2169,7 @@
         const isPlaylist = extracted.type === 'playlist';
         const height = isPlaylist ? '380' : '152';
         const embedUrl = `https://open.spotify.com/embed/${extracted.type}/${extracted.id}?utm_source=generator&theme=0`;
-        embedArea.innerHTML = `<iframe src="${embedUrl}" width="100%" height="${height}" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+        setEmbed(`<iframe src="${embedUrl}" width="100%" height="${height}" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`);
       }
 
       // ── YOUTUBE ──
@@ -2128,12 +2182,12 @@
           }
           return;
         }
-        embedArea.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}" width="100%" height="200" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius:6px;"></iframe>`;
+        setEmbed(`<iframe src="https://www.youtube.com/embed/${ytId}" width="100%" height="200" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius:6px;"></iframe>`);
       }
 
       // ── SOUNDCLOUD: show loading state, fetch oEmbed for embed HTML + title ──
       else if (platform === 'soundcloud') {
-        embedArea.innerHTML = '<div style="color:var(--muted); font-size:0.85rem; padding:8px 0;">Loading SoundCloud...</div>';
+        setEmbed('<div style="color:var(--muted); font-size:0.85rem; padding:8px 0;">Loading SoundCloud...</div>');
       }
 
       // Hide manual entry if switching back to a supported platform
@@ -2150,7 +2204,7 @@
       // Fetch song info in background — get title + (for SoundCloud) embed HTML
       fetchSongInfo(url, sectionId).then(info => {
         if (platform === 'soundcloud' && info?.html) {
-          embedArea.innerHTML = info.html;
+          setEmbed(info.html);
           // Fix SoundCloud iframe sizing
           const scFrame = embedArea.querySelector('iframe');
           if (scFrame) { scFrame.style.width = '100%'; scFrame.style.borderRadius = '6px'; }
@@ -2178,33 +2232,56 @@
       deleteSelection(sectionId);
     }
 
-    function undoRemove(sectionId) {
+    async function undoRemove(sectionId) {
       document.getElementById('section-' + sectionId).classList.remove('removed');
       document.getElementById('undo-' + sectionId).classList.remove('visible');
       // Restore brochure entry
       const brochureItem = document.getElementById('brochure-' + sectionId);
       if (brochureItem) brochureItem.style.display = '';
-      // Re-save whatever is in the input
+      // Re-save whatever is in the input. Deliberately NOT silent: silent mode
+      // repaints the embed without writing, which left the tombstone row in
+      // place, so an undone section came back hidden on the next reload.
       const linkInput = document.getElementById(sectionId + '-link');
       if (linkInput && linkInput.value.trim()) {
-        embedSpotify(sectionId, true);
+        embedSpotify(sectionId, false);
+        return;
       }
+      // Nothing left to write back — the section is empty, which is exactly what
+      // a tombstone row looks like, so re-saving one would re-hide the section on
+      // reload. Drop the row instead: absent means "never touched", which loads
+      // visible and empty. Reachable since audio-only moments became possible —
+      // removing one purges its file, leaving nothing for the branch above.
+      try {
+        if (!sb) return;
+        const { error } = await sb.from('wedding_selections')
+          .delete()
+          .eq('client_key', getClientKey())
+          .eq('section_id', sectionId);
+        if (error) console.log('Undo error:', error);
+      } catch (e) { console.log('Undo error:', e); }
     }
 
     async function deleteSelection(sectionId) {
       // Save a null tombstone so the section stays hidden on refresh
       try {
         if (!sb) return;
+        // Removal purges the audio too, so undo restores the section without
+        // it — deliberate, and it keeps the bucket free of unreferenced objects.
+        const removedAudio = audioUrls[sectionId];
+        delete audioUrls[sectionId];
+        clearAudioUI(sectionId);
         const { error } = await sb.from('wedding_selections').upsert({
           client_key: getClientKey(),
           section_id: sectionId,
           spotify_url: null,
           song_title: null,
           artist: null,
+          audio_url: null,
           entered_by: 'client',
           updated_at: new Date().toISOString()
         }, { onConflict: 'client_key,section_id' });
         if (error) console.log('Delete error:', error);
+        if (removedAudio) await deleteAudioObject(removedAudio);
       } catch(e) { console.log('Delete error:', e); }
     }
 
@@ -2385,6 +2462,14 @@
         });
       }
 
+      // Clearing a section takes the audio with it. An upload is never the only
+      // copy, so nothing is at risk, and no object is left without a row.
+      const clearedAudio = audioUrls[sectionId];
+      delete audioUrls[sectionId];
+      delete songTitles[sectionId];
+      clearAudioUI(sectionId);
+      if (clearedAudio) await deleteAudioObject(clearedAudio);
+
       // Delete the row entirely so section loads fresh on next visit
       try {
         if (!sb) return;
@@ -2396,6 +2481,266 @@
       } catch (err) {
         console.log('Clear error:', err);
       }
+    }
+
+    // ── CUSTOM AUDIO ──
+    // A moment can carry an uploaded audio file alongside its Spotify link. The
+    // file is what gets played; the link is kept untouched so the Spotify export
+    // still holds the original unedited version as a backup. When audio is
+    // present the section renders ONLY the audio player — embedSpotify is
+    // suppressed from writing to the embed area (see setEmbed there).
+    const AUDIO_BUCKET = 'client-audio';
+    const AUDIO_MAX_BYTES = 26214400; // 25 MB — must match the bucket's file_size_limit
+    const AUDIO_URL_PREFIX = SUPABASE_URL + '/storage/v1/object/public/' + AUDIO_BUCKET + '/';
+    const audioUrls = {};   // sectionId -> public URL of its audio, when it has any
+    const songTitles = {};  // sectionId -> latest known title, for the download filename
+    let portalLocked = false;
+
+    // Rows are anon-writable (RLS is off), so a stored audio_url is untrusted
+    // input. Only URLs inside our own bucket are ever handed to an <audio> src
+    // or a download href.
+    function isTrustedAudioUrl(url) {
+      return typeof url === 'string' && url.startsWith(AUDIO_URL_PREFIX);
+    }
+
+    // Public URLs look like:
+    //   https://<ref>.supabase.co/storage/v1/object/public/client-audio/<object>
+    // The object path is what the storage delete API wants.
+    function audioPathFromUrl(url) {
+      if (!isTrustedAudioUrl(url)) return null;
+      return decodeURIComponent(url.slice(AUDIO_URL_PREFIX.length).split('?')[0]);
+    }
+
+    function audioFileExt(fileName) {
+      const m = (fileName || '').match(/\.([a-z0-9]{1,5})$/i);
+      return m ? m[1].toLowerCase() : 'mp3';
+    }
+
+    // "01 First Dance_FINAL.wav" -> "01 First Dance FINAL". Used to prefill the
+    // name field on an audio-only moment, so the brochure never reads like a
+    // filename unless the client leaves it that way on purpose.
+    function titleFromFileName(fileName) {
+      return (fileName || '')
+        .replace(/\.[a-z0-9]{1,5}$/i, '')
+        .replace(/[_]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    // Cross-origin `download` attributes are ignored, so the readable filename
+    // has to come from Supabase's ?download= parameter instead.
+    function audioDownloadHref(sectionId, url) {
+      const manual = document.getElementById(sectionId + '-manual-input');
+      const base = (manual && manual.value.trim()) || songTitles[sectionId] || sectionId;
+      const safe = base.replace(/[\/\\:*?"<>|]/g, '-');
+      const ext = (audioPathFromUrl(url) || '').split('.').pop() || 'mp3';
+      return url + '?download=' + encodeURIComponent(safe + '.' + ext);
+    }
+
+    function audioValidationError(file) {
+      if (!file.type.startsWith('audio/')) return 'That is not an audio file';
+      if (file.size > AUDIO_MAX_BYTES) return 'Too large — 25 MB maximum';
+      return null;
+    }
+
+    // Writes ONLY audio_url. spotify_url is deliberately absent from the payload
+    // so PostgREST's merge-duplicates leaves the link exactly as it was.
+    async function saveAudioUrl(sectionId, audioUrl) {
+      if (!sb) return false;
+      const { error } = await sb.from('wedding_selections').upsert({
+        client_key: getClientKey(),
+        section_id: sectionId,
+        audio_url: audioUrl,
+        entered_by: 'client',
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'client_key,section_id' });
+      if (error) { console.log('Audio save error:', error); return false; }
+      return true;
+    }
+
+    async function deleteAudioObject(url) {
+      const path = audioPathFromUrl(url);
+      if (!path || !sb) return;
+      const { error } = await sb.storage.from(AUDIO_BUCKET).remove([path]);
+      if (error) console.log('Audio object delete error:', error);
+    }
+
+    // The 18 fixed sections are hand-written and near-identical, and custom
+    // moments are built at runtime. Injecting the control from JS covers both
+    // and keeps one definition of it. Built with DOM methods, not markup
+    // strings, because section ids and titles flow in from the database.
+    function initAudioControls() {
+      document.querySelectorAll('.music-section[data-section]').forEach(section => {
+        const sectionId = section.dataset.section;
+        if (document.getElementById(sectionId + '-audio-attach')) return;
+        const embedArea = document.getElementById(sectionId + '-embed');
+        if (!embedArea) return;
+
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'audio/*';
+        input.id = sectionId + '-audio-input';
+        input.addEventListener('change', () => {
+          const file = input.files[0];
+          input.value = '';  // so picking the same file twice still fires change
+          handleAudioUpload(sectionId, file);
+        });
+
+        const label = document.createElement('label');
+        label.className = 'audio-attach-label';
+        label.htmlFor = input.id;
+        label.textContent = '🎵 Attach custom edit';
+
+        const status = document.createElement('span');
+        status.className = 'audio-status';
+        status.id = sectionId + '-audio-status';
+
+        const row = document.createElement('div');
+        row.className = 'audio-attach-row';
+        row.id = sectionId + '-audio-attach';
+        row.append(label, input, status);
+        embedArea.after(row);
+
+        const area = document.createElement('div');
+        area.className = 'audio-area';
+        area.id = sectionId + '-audio-area';
+        row.after(area);
+      });
+    }
+
+    function showAudioStatus(sectionId, message, isError) {
+      const el = document.getElementById(sectionId + '-audio-status');
+      if (!el) return;
+      el.textContent = message || '';
+      el.classList.toggle('error', !!isError);
+    }
+
+    function setAttachLabel(sectionId, text) {
+      const row = document.getElementById(sectionId + '-audio-attach');
+      const label = row ? row.querySelector('.audio-attach-label') : null;
+      if (label) label.textContent = text;
+    }
+
+    function renderAudio(sectionId, url) {
+      if (!isTrustedAudioUrl(url)) { console.log('Refusing untrusted audio URL for', sectionId); return; }
+      const embedArea = document.getElementById(sectionId + '-embed');
+      if (embedArea) embedArea.replaceChildren();  // only the custom player shows
+      const area = document.getElementById(sectionId + '-audio-area');
+      if (!area) return;
+
+      const label = document.createElement('div');
+      label.className = 'audio-label';
+      label.textContent = 'Custom edit';
+
+      const player = document.createElement('audio');
+      player.controls = true;
+      player.preload = 'none';
+      player.src = url;
+
+      const dl = document.createElement('a');
+      dl.className = 'audio-download';
+      dl.id = sectionId + '-audio-dl';
+      dl.href = audioDownloadHref(sectionId, url);
+      dl.textContent = 'Download';
+
+      const rm = document.createElement('button');
+      rm.className = 'audio-remove';
+      rm.title = 'Remove custom edit';
+      rm.textContent = '✕ Remove edit';
+      rm.addEventListener('click', () => removeAudio(sectionId));
+
+      const actions = document.createElement('div');
+      actions.className = 'audio-actions';
+      actions.append(dl, rm);
+
+      area.replaceChildren(label, player, actions);
+      area.classList.add('visible');
+      setAttachLabel(sectionId, '🎵 Replace custom edit');
+    }
+
+    function clearAudioUI(sectionId) {
+      const area = document.getElementById(sectionId + '-audio-area');
+      if (area) { area.replaceChildren(); area.classList.remove('visible'); }
+      setAttachLabel(sectionId, '🎵 Attach custom edit');
+      showAudioStatus(sectionId, '', false);
+    }
+
+    async function handleAudioUpload(sectionId, file) {
+      if (!file) return;
+      if (portalLocked) return;
+      if (!sb) { showAudioStatus(sectionId, 'Connection error', true); return; }
+
+      const problem = audioValidationError(file);
+      if (problem) { showAudioStatus(sectionId, problem, true); return; }
+
+      showAudioStatus(sectionId, 'Uploading…', false);
+      const objectPath = crypto.randomUUID() + '.' + audioFileExt(file.name);
+
+      const { error: upErr } = await sb.storage
+        .from(AUDIO_BUCKET)
+        .upload(objectPath, file, { contentType: file.type, upsert: false });
+      if (upErr) {
+        console.log('Audio upload error:', upErr);
+        showAudioStatus(sectionId, upErr.message || 'Upload failed', true);
+        return;
+      }
+
+      const publicUrl = sb.storage.from(AUDIO_BUCKET).getPublicUrl(objectPath).data.publicUrl;
+      const previous = audioUrls[sectionId];
+
+      // Point the row at the new file BEFORE deleting the old one, so a failure
+      // never leaves the row referencing an object that no longer exists.
+      const saved = await saveAudioUrl(sectionId, publicUrl);
+      if (!saved) {
+        await deleteAudioObject(publicUrl);
+        showAudioStatus(sectionId, 'Save failed', true);
+        return;
+      }
+      audioUrls[sectionId] = publicUrl;
+      if (previous && previous !== publicUrl) await deleteAudioObject(previous);
+
+      // An audio-only moment has no link to borrow a title from, so reuse the
+      // existing manual-title field and prefill it from the filename.
+      const linkInput = document.getElementById(sectionId + '-link');
+      if (!linkInput || !linkInput.value.trim()) {
+        const manualArea = getOrCreateManualArea(sectionId);
+        manualArea.classList.add('visible');
+        const manualInput = document.getElementById(sectionId + '-manual-input');
+        if (manualInput && !manualInput.value.trim()) {
+          manualInput.value = titleFromFileName(file.name);
+          saveManualTitle(sectionId);
+        }
+      }
+
+      renderAudio(sectionId, publicUrl);
+      showAudioStatus(sectionId, '', false);
+      const clearEl = document.getElementById(sectionId + '-clear');
+      if (clearEl) clearEl.classList.add('visible');
+      const savedPill = document.getElementById(sectionId + '-saved');
+      if (savedPill) { savedPill.textContent = '✓ Saved'; savedPill.classList.add('visible'); }
+
+      const knownTitle = songTitles[sectionId];
+      if (knownTitle) {
+        updateProgram(sectionId, knownTitle, '', linkInput ? linkInput.value.trim() : '');
+      }
+    }
+
+    // Removes only the audio. The Spotify link and its embed come back.
+    async function removeAudio(sectionId) {
+      if (portalLocked) return;
+      const url = audioUrls[sectionId];
+      delete audioUrls[sectionId];
+      clearAudioUI(sectionId);
+      if (url) {
+        await saveAudioUrl(sectionId, null);
+        await deleteAudioObject(url);
+      }
+      const linkInput = document.getElementById(sectionId + '-link');
+      if (linkInput && linkInput.value.trim()) {
+        embedSpotify(sectionId, true);  // audioUrls is now clear, so this paints
+      }
+      const title = songTitles[sectionId];
+      if (title) updateProgram(sectionId, title, '', linkInput ? linkInput.value.trim() : '');
     }
 
     // ── LOAD ALL SELECTIONS ON PAGE LOAD ──
@@ -2428,6 +2773,10 @@
 
         deduped.forEach(row => {
           const sid = row.section_id;
+
+          // Must be recorded before embedSpotify runs for this row: it checks
+          // audioUrls to decide whether to paint an iframe at all.
+          if (row.audio_url) audioUrls[sid] = row.audio_url;
 
           // Handle announcement
           if (sid === 'announcement') {
@@ -2488,7 +2837,8 @@
 
           // Detect deleted marker (spotify_url is null/empty but row exists = was deleted)
           // Exclude custom-def rows (they intentionally have no spotify_url)
-          if (!row.spotify_url && row.song_title !== '__custom_def__') {
+          // A row with audio and no link is a real selection, not a tombstone.
+          if (!row.spotify_url && !row.audio_url && row.song_title !== '__custom_def__') {
             deletedSections.add(sid);
             return;
           }
@@ -2516,6 +2866,22 @@
                 updateProgram(sid, row.song_title, row.artist || '', row.spotify_url || '');
               }
             }
+          }
+
+          if (row.audio_url) {
+            sectionsWithData.add(sid);
+            if (row.song_title) songTitles[sid] = row.song_title;
+            // No link means no oEmbed title, so surface the saved name for editing.
+            if (!row.spotify_url) {
+              const manualArea = getOrCreateManualArea(sid);
+              manualArea.classList.add('visible');
+              const manualInput = document.getElementById(sid + '-manual-input');
+              if (manualInput && row.song_title) manualInput.value = row.song_title;
+              if (row.song_title) updateProgram(sid, row.song_title, row.artist || '', '');
+            }
+            renderAudio(sid, row.audio_url);
+            const clearEl = document.getElementById(sid + '-clear');
+            if (clearEl) clearEl.classList.add('visible');
           }
         });
 
@@ -2580,6 +2946,7 @@
           <button class="undo-btn" onclick="undoRemove('${id}')">↩ Undo</button>
         </div>`;
       container.appendChild(wrapper);
+      initAudioControls();  // the new section needs its attach control too
 
       // Register in sectionProgramMap
       sectionProgramMap[id] = { category: 'custom', label: label };
@@ -2646,6 +3013,7 @@
       applyPersonalization();
       checkLockStatus();
       initMakeSelectionLinks();
+      initAudioControls();
       loadSelections();
     });
 

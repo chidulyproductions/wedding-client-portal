@@ -20,8 +20,13 @@ Static site (no build step) hosted on **GitHub Pages**. Backend is **Supabase** 
 
 ### Supabase Tables
 
-- `clients` — id, name, wedding_date, email, locked
-- `wedding_selections` — client_key, section_id, spotify_url, song_title, artist, notes, updated_at, user_id. Unique on `(client_key, section_id)`.
+- `clients` — id, name, wedding_date, email, locked. **RLS is ON** and writes require an authenticated session (unlike `wedding_selections`), so the anon key cannot create or edit clients.
+- `wedding_selections` — client_key, section_id, spotify_url, audio_url, song_title, artist, notes, updated_at, user_id. Unique on `(client_key, section_id)`.
+
+### Supabase Storage
+
+- `client-audio` — public bucket for uploaded custom audio. Objects are named with a random UUID plus the original extension, so URLs are public but unguessable. The bucket itself enforces a 25 MB file size limit and an audio-only MIME allowlist; anon may read, insert, and delete.
+- **Known exposure:** because the anon key is public, anyone can upload to this bucket without any relationship to a real client. Per-file limits are enforced but total volume is not, and the free tier caps at 1 GB (~40 max-size files). If uploads ever look wrong, list the bucket and cross-check every object against an `audio_url` in `wedding_selections` — anything unreferenced is junk.
 
 ### Special section_id Conventions
 
@@ -30,7 +35,7 @@ Static site (no build step) hosted on **GitHub Pages**. Backend is **Supabase** 
 - `admin-reply` — Admin's reply (shown on client page, triggers email)
 - `custom-def-{id}` — Custom moment definitions (`song_title = '__custom_def__'`, label in `notes`)
 - `announcement` — Client announcement text
-- Null `spotify_url` with no `__custom_def__` = tombstone (section was deleted/removed)
+- Null `spotify_url` **and** null `audio_url`, with no `__custom_def__` = tombstone (section was deleted/removed). `spotify_url` alone is no longer sufficient — see Gotchas.
 
 ## Deployment
 
@@ -54,3 +59,13 @@ Static site (no build step) hosted on **GitHub Pages**. Backend is **Supabase** 
 - The brochure (program card at top of client page) updates live via `updateProgram()` and is driven by `sectionProgramMap`.
 - Delete uses a tombstone pattern (upsert with null spotify_url), not actual DELETE, so the section stays hidden on reload.
 - `clearSelection` does an actual DELETE from the table (different from remove/undo which uses tombstones).
+
+### Custom audio
+
+- A moment can carry an uploaded file (`audio_url`) **alongside** its `spotify_url`. When it does, the section renders **only** the audio player: `embedSpotify` writes through a `setEmbed` closure that is a no-op while `audioUrls[sectionId]` is set. The link is deliberately kept so the Spotify export still carries the original unedited version as a backup — that is the whole point of the feature, so never let an audio write clear `spotify_url`.
+- `spotify_url IS NULL` used to be a reliable tombstone marker. It is not any more: an audio-only moment has a null `spotify_url`. Anything testing for a deleted section must check `audio_url` too — `loadSelections` does. `spotify-export` is unaffected because it only exports `open.spotify.com/track/` URLs anyway.
+- Deleting audio (remove edit, clear selection, or remove section) deletes the storage object as well. Undo after removing a section restores the section **without** its audio, on purpose — an upload is never the only copy.
+- `undoRemove` must leave the database consistent, not just the DOM. With a link it re-saves non-silently (`embedSpotify(id, false)`); with nothing to save it DELETEs the row, because an empty row is indistinguishable from a tombstone and would re-hide the section on reload.
+- Audio URLs read back from the database are untrusted (RLS is off, anon key is public). `isTrustedAudioUrl` gates anything reaching an `<audio>` src or a download href, and the audio UI is built with DOM methods rather than markup strings. Keep it that way.
+- Downloads use Supabase's `?download=<filename>` parameter, not the HTML `download` attribute — the attribute is ignored cross-origin, and the page and the file are on different origins.
+- `saveAudioUrl` writes only `audio_url`; PostgREST leaves omitted columns alone. Any hand-written REST upsert must pass `?on_conflict=client_key,section_id` in the query string or it 409s on the unique constraint.
