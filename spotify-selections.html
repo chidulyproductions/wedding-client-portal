@@ -2120,9 +2120,17 @@
       const embedArea = document.getElementById(sectionId + '-embed');
       const savedPill = document.getElementById(sectionId + '-saved');
 
+      // A section with a custom edit shows only that player. The link is still
+      // parsed, saved, and exported — it just doesn't render an iframe.
+      const setEmbed = (html) => {
+        if (audioUrls[sectionId]) return;
+        embedArea.replaceChildren();
+        if (html) embedArea.insertAdjacentHTML('beforeend', html);
+      };
+
       // ── UNKNOWN PLATFORM: save URL + show manual title entry ──
       if (platform === 'unknown') {
-        embedArea.innerHTML = '';
+        setEmbed('');
         const manualArea = getOrCreateManualArea(sectionId);
         manualArea.classList.add('visible');
         if (!silent) {
@@ -2151,7 +2159,7 @@
         const isPlaylist = extracted.type === 'playlist';
         const height = isPlaylist ? '380' : '152';
         const embedUrl = `https://open.spotify.com/embed/${extracted.type}/${extracted.id}?utm_source=generator&theme=0`;
-        embedArea.innerHTML = `<iframe src="${embedUrl}" width="100%" height="${height}" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+        setEmbed(`<iframe src="${embedUrl}" width="100%" height="${height}" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`);
       }
 
       // ── YOUTUBE ──
@@ -2164,12 +2172,12 @@
           }
           return;
         }
-        embedArea.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}" width="100%" height="200" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius:6px;"></iframe>`;
+        setEmbed(`<iframe src="https://www.youtube.com/embed/${ytId}" width="100%" height="200" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius:6px;"></iframe>`);
       }
 
       // ── SOUNDCLOUD: show loading state, fetch oEmbed for embed HTML + title ──
       else if (platform === 'soundcloud') {
-        embedArea.innerHTML = '<div style="color:var(--muted); font-size:0.85rem; padding:8px 0;">Loading SoundCloud...</div>';
+        setEmbed('<div style="color:var(--muted); font-size:0.85rem; padding:8px 0;">Loading SoundCloud...</div>');
       }
 
       // Hide manual entry if switching back to a supported platform
@@ -2186,7 +2194,7 @@
       // Fetch song info in background — get title + (for SoundCloud) embed HTML
       fetchSongInfo(url, sectionId).then(info => {
         if (platform === 'soundcloud' && info?.html) {
-          embedArea.innerHTML = info.html;
+          setEmbed(info.html);
           // Fix SoundCloud iframe sizing
           const scFrame = embedArea.querySelector('iframe');
           if (scFrame) { scFrame.style.width = '100%'; scFrame.style.borderRadius = '6px'; }
@@ -2570,6 +2578,105 @@
       const row = document.getElementById(sectionId + '-audio-attach');
       const label = row ? row.querySelector('.audio-attach-label') : null;
       if (label) label.textContent = text;
+    }
+
+    function renderAudio(sectionId, url) {
+      if (!isTrustedAudioUrl(url)) { console.log('Refusing untrusted audio URL for', sectionId); return; }
+      const embedArea = document.getElementById(sectionId + '-embed');
+      if (embedArea) embedArea.replaceChildren();  // only the custom player shows
+      const area = document.getElementById(sectionId + '-audio-area');
+      if (!area) return;
+
+      const label = document.createElement('div');
+      label.className = 'audio-label';
+      label.textContent = 'Custom edit';
+
+      const player = document.createElement('audio');
+      player.controls = true;
+      player.preload = 'none';
+      player.src = url;
+
+      const dl = document.createElement('a');
+      dl.className = 'audio-download';
+      dl.id = sectionId + '-audio-dl';
+      dl.href = audioDownloadHref(sectionId, url);
+      dl.textContent = 'Download';
+
+      const rm = document.createElement('button');
+      rm.className = 'audio-remove';
+      rm.title = 'Remove custom edit';
+      rm.textContent = '✕ Remove edit';
+      rm.addEventListener('click', () => removeAudio(sectionId));
+
+      const actions = document.createElement('div');
+      actions.className = 'audio-actions';
+      actions.append(dl, rm);
+
+      area.replaceChildren(label, player, actions);
+      area.classList.add('visible');
+      setAttachLabel(sectionId, '🎵 Replace custom edit');
+    }
+
+    function clearAudioUI(sectionId) {
+      const area = document.getElementById(sectionId + '-audio-area');
+      if (area) { area.replaceChildren(); area.classList.remove('visible'); }
+      setAttachLabel(sectionId, '🎵 Attach custom edit');
+      showAudioStatus(sectionId, '', false);
+    }
+
+    async function handleAudioUpload(sectionId, file) {
+      if (!file) return;
+      if (portalLocked) return;
+      if (!sb) { showAudioStatus(sectionId, 'Connection error', true); return; }
+
+      const problem = audioValidationError(file);
+      if (problem) { showAudioStatus(sectionId, problem, true); return; }
+
+      showAudioStatus(sectionId, 'Uploading…', false);
+      const objectPath = crypto.randomUUID() + '.' + audioFileExt(file.name);
+
+      const { error: upErr } = await sb.storage
+        .from(AUDIO_BUCKET)
+        .upload(objectPath, file, { contentType: file.type, upsert: false });
+      if (upErr) {
+        console.log('Audio upload error:', upErr);
+        showAudioStatus(sectionId, upErr.message || 'Upload failed', true);
+        return;
+      }
+
+      const publicUrl = sb.storage.from(AUDIO_BUCKET).getPublicUrl(objectPath).data.publicUrl;
+      const previous = audioUrls[sectionId];
+
+      // Point the row at the new file BEFORE deleting the old one, so a failure
+      // never leaves the row referencing an object that no longer exists.
+      const saved = await saveAudioUrl(sectionId, publicUrl);
+      if (!saved) {
+        await deleteAudioObject(publicUrl);
+        showAudioStatus(sectionId, 'Save failed', true);
+        return;
+      }
+      audioUrls[sectionId] = publicUrl;
+      if (previous && previous !== publicUrl) await deleteAudioObject(previous);
+
+      // An audio-only moment has no link to borrow a title from, so reuse the
+      // existing manual-title field and prefill it from the filename.
+      const linkInput = document.getElementById(sectionId + '-link');
+      if (!linkInput || !linkInput.value.trim()) {
+        const manualArea = getOrCreateManualArea(sectionId);
+        manualArea.classList.add('visible');
+        const manualInput = document.getElementById(sectionId + '-manual-input');
+        if (manualInput && !manualInput.value.trim()) {
+          manualInput.value = titleFromFileName(file.name);
+          saveManualTitle(sectionId);
+        }
+      }
+
+      renderAudio(sectionId, publicUrl);
+      showAudioStatus(sectionId, '', false);
+      const clearEl = document.getElementById(sectionId + '-clear');
+      if (clearEl) clearEl.classList.add('visible');
+      const savedPill = document.getElementById(sectionId + '-saved');
+      if (savedPill) { savedPill.textContent = '✓ Saved'; savedPill.classList.add('visible'); }
     }
 
     // ── LOAD ALL SELECTIONS ON PAGE LOAD ──
