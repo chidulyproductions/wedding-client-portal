@@ -2246,16 +2246,23 @@
       // Save a null tombstone so the section stays hidden on refresh
       try {
         if (!sb) return;
+        // Removal purges the audio too, so undo restores the section without
+        // it — deliberate, and it keeps the bucket free of unreferenced objects.
+        const removedAudio = audioUrls[sectionId];
+        delete audioUrls[sectionId];
+        clearAudioUI(sectionId);
         const { error } = await sb.from('wedding_selections').upsert({
           client_key: getClientKey(),
           section_id: sectionId,
           spotify_url: null,
           song_title: null,
           artist: null,
+          audio_url: null,
           entered_by: 'client',
           updated_at: new Date().toISOString()
         }, { onConflict: 'client_key,section_id' });
         if (error) console.log('Delete error:', error);
+        if (removedAudio) await deleteAudioObject(removedAudio);
       } catch(e) { console.log('Delete error:', e); }
     }
 
@@ -2435,6 +2442,14 @@
           }
         });
       }
+
+      // Clearing a section takes the audio with it. An upload is never the only
+      // copy, so nothing is at risk, and no object is left without a row.
+      const clearedAudio = audioUrls[sectionId];
+      delete audioUrls[sectionId];
+      delete songTitles[sectionId];
+      clearAudioUI(sectionId);
+      if (clearedAudio) await deleteAudioObject(clearedAudio);
 
       // Delete the row entirely so section loads fresh on next visit
       try {
