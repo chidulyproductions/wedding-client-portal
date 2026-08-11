@@ -1945,6 +1945,7 @@
 
     // ── UPDATE PROGRAM ──
     function updateProgram(sectionId, title, artist, spotifyUrl) {
+      if (title) songTitles[sectionId] = title;
       const items = document.querySelectorAll('.program-list li');
       items.forEach(item => {
         const moment = item.querySelector('.program-moment');
@@ -2710,6 +2711,10 @@
         deduped.forEach(row => {
           const sid = row.section_id;
 
+          // Must be recorded before embedSpotify runs for this row: it checks
+          // audioUrls to decide whether to paint an iframe at all.
+          if (row.audio_url) audioUrls[sid] = row.audio_url;
+
           // Handle announcement
           if (sid === 'announcement') {
             const text = row.notes || row.song_title || '';
@@ -2769,7 +2774,8 @@
 
           // Detect deleted marker (spotify_url is null/empty but row exists = was deleted)
           // Exclude custom-def rows (they intentionally have no spotify_url)
-          if (!row.spotify_url && row.song_title !== '__custom_def__') {
+          // A row with audio and no link is a real selection, not a tombstone.
+          if (!row.spotify_url && !row.audio_url && row.song_title !== '__custom_def__') {
             deletedSections.add(sid);
             return;
           }
@@ -2797,6 +2803,22 @@
                 updateProgram(sid, row.song_title, row.artist || '', row.spotify_url || '');
               }
             }
+          }
+
+          if (row.audio_url) {
+            sectionsWithData.add(sid);
+            if (row.song_title) songTitles[sid] = row.song_title;
+            // No link means no oEmbed title, so surface the saved name for editing.
+            if (!row.spotify_url) {
+              const manualArea = getOrCreateManualArea(sid);
+              manualArea.classList.add('visible');
+              const manualInput = document.getElementById(sid + '-manual-input');
+              if (manualInput && row.song_title) manualInput.value = row.song_title;
+              if (row.song_title) updateProgram(sid, row.song_title, row.artist || '', '');
+            }
+            renderAudio(sid, row.audio_url);
+            const clearEl = document.getElementById(sid + '-clear');
+            if (clearEl) clearEl.classList.add('visible');
           }
         });
 
