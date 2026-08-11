@@ -192,7 +192,12 @@ curl -s "https://lfnlftxqdelcrmbceiob.supabase.co/rest/v1/wedding_selections?cli
 ```
 Expected: `spotify_url` is still the track URL, `song_title` is still `"Test Song"`, and `audio_url` is `"https://example.com/fake.mp3"`.
 
-**If `spotify_url` came back null,** the partial-upsert assumption is wrong. Change `saveAudioUrl` in Task 6 to read-then-write: `select` the row, and if it exists use `.update({audio_url})...eq(...)` instead of `.upsert(...)`, falling back to `.insert(...)` when it doesn't. Everything else in the plan is unaffected. Record the finding in `ERRORS.md`.
+**RESULT (verified 2026-08-05): the assumption holds.** After upserting only `audio_url`, the row still read `spotify_url = https://open.spotify.com/track/1234567890abcdefghijkl`, `song_title = "Test Song"`, `artist = "Test Artist"`, with `audio_url` set. Two things learned in passing:
+
+- **`on_conflict` is required in the query string**, not just the `Prefer` header. Without `?on_conflict=client_key,section_id` the request 409s with `duplicate key value violates unique constraint` — PostgREST falls back to the primary key as the conflict target. `supabase-js` supplies it from `{ onConflict: 'client_key,section_id' }`, so `saveAudioUrl` is fine, but any hand-written REST call must include it.
+- **Omitted columns are genuinely untouched, including `updated_at`** — it kept its old timestamp when left out of the payload. `saveAudioUrl` passes `updated_at` explicitly, so this is only a trap for future callers. `entered_by` stayed `client`, forced by the attribution trigger.
+
+**If `spotify_url` had come back null,** the partial-upsert assumption would be wrong. Change `saveAudioUrl` in Task 6 to read-then-write: `select` the row, and if it exists use `.update({audio_url})...eq(...)` instead of `.upsert(...)`, falling back to `.insert(...)` when it doesn't. Everything else in the plan is unaffected. Record the finding in `ERRORS.md`.
 
 - [ ] **Step 4: Clean up the probe row**
 
