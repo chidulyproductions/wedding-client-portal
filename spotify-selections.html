@@ -1960,6 +1960,12 @@
             displayText = artist ? artist + ' - ' + title : title;
           }
           song.innerHTML = '<a href="#section-' + sectionId + '" class="program-song-link">' + displayText + '</a>';
+          if (audioUrls[sectionId]) {
+            const tag = document.createElement('span');
+            tag.className = 'program-edit-tag';
+            tag.textContent = 'custom edit';
+            song.appendChild(tag);
+          }
           song.style.color = 'var(--blush)';
         }
       });
@@ -2678,6 +2684,29 @@
       if (clearEl) clearEl.classList.add('visible');
       const savedPill = document.getElementById(sectionId + '-saved');
       if (savedPill) { savedPill.textContent = '✓ Saved'; savedPill.classList.add('visible'); }
+
+      const knownTitle = songTitles[sectionId];
+      if (knownTitle) {
+        updateProgram(sectionId, knownTitle, '', linkInput ? linkInput.value.trim() : '');
+      }
+    }
+
+    // Removes only the audio. The Spotify link and its embed come back.
+    async function removeAudio(sectionId) {
+      if (portalLocked) return;
+      const url = audioUrls[sectionId];
+      delete audioUrls[sectionId];
+      clearAudioUI(sectionId);
+      if (url) {
+        await saveAudioUrl(sectionId, null);
+        await deleteAudioObject(url);
+      }
+      const linkInput = document.getElementById(sectionId + '-link');
+      if (linkInput && linkInput.value.trim()) {
+        embedSpotify(sectionId, true);  // audioUrls is now clear, so this paints
+      }
+      const title = songTitles[sectionId];
+      if (title) updateProgram(sectionId, title, '', linkInput ? linkInput.value.trim() : '');
     }
 
     // ── LOAD ALL SELECTIONS ON PAGE LOAD ──
