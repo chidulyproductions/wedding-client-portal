@@ -2009,6 +2009,7 @@
     // ── UPDATE PROGRAM ──
     function updateProgram(sectionId, title, artist, spotifyUrl) {
       if (title) songTitles[sectionId] = title;
+      if (artist) songArtists[sectionId] = artist;
       const items = document.querySelectorAll('.program-list li');
       items.forEach(item => {
         const moment = item.querySelector('.program-moment');
@@ -2269,12 +2270,18 @@
           const scFrame = embedArea.querySelector('iframe');
           if (scFrame) { scFrame.style.width = '100%'; scFrame.style.borderRadius = '6px'; }
         }
-        if (!info?.title) {
+        // A moment with a custom edit is titled by the edit, not by Spotify.
+        // Without this guard, re-submitting the backup link would quietly
+        // restore Spotify's title over the one taken from Serato.
+        const titledByEdit = !!audioUrls[sectionId];
+        if (!info?.title && !titledByEdit) {
           updateProgram(sectionId, 'Song Selected', '', url);
         }
-        if (!silent && info?.title) {
+        if (!silent && info?.title && !titledByEdit) {
           saveSelection(sectionId, url, info.title, info.artist || null);
         }
+        // Keep the artist for the brochure line even when the title is the edit's.
+        if (titledByEdit && info?.artist) songArtists[sectionId] = info.artist;
       });
     }
 
@@ -2555,7 +2562,8 @@
     const AUDIO_URL_PREFIX = SUPABASE_URL + '/storage/v1/object/public/' + AUDIO_BUCKET + '/';
     const audioUrls = {};   // sectionId -> public URL of its audio, when it has any
     const audioNames = {};  // sectionId -> name of the cut, e.g. "Quick Hitter"
-    const songTitles = {};  // sectionId -> latest known title, for the download filename
+    const songTitles = {};   // sectionId -> latest known title, for the download filename
+    const songArtists = {};  // sectionId -> latest known artist, so a retitle doesn't drop it
     let portalLocked = false;
 
     // Rows are anon-writable (RLS is off), so a stored audio_url is untrusted
@@ -2752,6 +2760,22 @@
       return seg.replace(/chi\s*duly/ig, '').replace(/\s+/g, ' ').trim().replace(/^[-–—\s]+|[-–—\s]+$/g, '');
     }
 
+    // Partial write of the program title. Deliberately omits spotify_url and
+    // artist so neither is disturbed — the backup link must survive an edit
+    // renaming the moment.
+    async function saveSongTitle(sectionId, title) {
+      if (!sb) return false;
+      const { error } = await sb.from('wedding_selections').upsert({
+        client_key: getClientKey(),
+        section_id: sectionId,
+        song_title: title || null,
+        entered_by: 'client',
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'client_key,section_id' });
+      if (error) { console.log('Song title save error:', error); return false; }
+      return true;
+    }
+
     async function saveAudioName(sectionId, name) {
       if (!sb) return false;
       const { error } = await sb.from('wedding_selections').upsert({
@@ -2858,12 +2882,19 @@
         if (e.key === 'Enter') { e.preventDefault(); label.blur(); }
         if (e.key === 'Escape') { paintLabel(); label.blur(); }
       });
-      label.addEventListener('blur', () => {
+      label.addEventListener('blur', async () => {
         const name = label.textContent.replace(/\s+/g, ' ').trim();
         if (name === (audioNames[sectionId] || '')) { paintLabel(); return; }
         audioNames[sectionId] = name;
         paintLabel();
-        saveAudioName(sectionId, name);
+        await saveAudioName(sectionId, name);
+        // The label is the moment's title everywhere, so the brochure follows.
+        if (name) {
+          songTitles[sectionId] = name;
+          await saveSongTitle(sectionId, name);
+          const li = document.getElementById(sectionId + '-link');
+          updateProgram(sectionId, name, songArtists[sectionId] || '', li ? li.value.trim() : '');
+        }
       });
 
       paintLabel();
@@ -2977,11 +3008,19 @@
       const derived = (await audioTitleFromFile(file)) || editNameFromFileName(file.name);
       if (derived) { audioNames[sectionId] = derived; await saveAudioName(sectionId, derived); }
 
-      // An audio-only moment has no link to borrow a title from, so reuse the
-      // existing manual-title field. Prefer the ID3 title here too — this one
-      // feeds the BROCHURE, and a raw filename lands junk in the couple's
-      // program summary.
+      // Chris's call: the edit's own title wins everywhere, brochure included.
+      // A moment with a custom edit is not the streaming track any more, so the
+      // program summary names the edit rather than Spotify's version of the
+      // song. Writing song_title also stops the oEmbed title reasserting itself
+      // in the brochure on the next link submit.
       const linkInput = document.getElementById(sectionId + '-link');
+      if (derived) {
+        songTitles[sectionId] = derived;
+        await saveSongTitle(sectionId, derived);   // partial: never touches spotify_url or artist
+        updateProgram(sectionId, derived, songArtists[sectionId] || '', linkInput ? linkInput.value.trim() : '');
+      }
+      // Audio-only moments additionally surface the editable program-name field,
+      // since there is no link whose lookup would otherwise fill it in.
       if (!linkInput || !linkInput.value.trim()) {
         const manualArea = getOrCreateManualArea(sectionId);
         manualArea.classList.add('visible');
@@ -3001,7 +3040,7 @@
 
       const knownTitle = songTitles[sectionId];
       if (knownTitle) {
-        updateProgram(sectionId, knownTitle, '', linkInput ? linkInput.value.trim() : '');
+        updateProgram(sectionId, knownTitle, songArtists[sectionId] || '', linkInput ? linkInput.value.trim() : '');
       }
     }
 
@@ -3018,10 +3057,14 @@
       }
       const linkInput = document.getElementById(sectionId + '-link');
       if (linkInput && linkInput.value.trim()) {
-        embedSpotify(sectionId, true);  // audioUrls is now clear, so this paints
+        // Non-silent on purpose. The moment is the streaming track again, so it
+        // must take back the streaming title too — the edit's title overwrote
+        // song_title, and only a fresh lookup can restore it. Silent mode would
+        // repaint the embed and leave the edit's name in the brochure forever.
+        embedSpotify(sectionId, false);
       }
       const title = songTitles[sectionId];
-      if (title) updateProgram(sectionId, title, '', linkInput ? linkInput.value.trim() : '');
+      if (title) updateProgram(sectionId, title, songArtists[sectionId] || '', linkInput ? linkInput.value.trim() : '');
     }
 
     // ── LOAD ALL SELECTIONS ON PAGE LOAD ──
