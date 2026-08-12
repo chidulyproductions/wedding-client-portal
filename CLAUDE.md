@@ -21,7 +21,7 @@ Static site (no build step) hosted on **GitHub Pages**. Backend is **Supabase** 
 ### Supabase Tables
 
 - `clients` — id, name, wedding_date, email, locked. **RLS is ON** and writes require an authenticated session (unlike `wedding_selections`), so the anon key cannot create or edit clients.
-- `wedding_selections` — client_key, section_id, spotify_url, audio_url, song_title, artist, notes, updated_at, user_id. Unique on `(client_key, section_id)`.
+- `wedding_selections` — client_key, section_id, spotify_url, audio_url, audio_name, song_title, artist, notes, updated_at, user_id. Unique on `(client_key, section_id)`.
 
 ### Supabase Storage
 
@@ -67,5 +67,8 @@ Static site (no build step) hosted on **GitHub Pages**. Backend is **Supabase** 
 - Deleting audio (remove edit, clear selection, or remove section) deletes the storage object as well. Undo after removing a section restores the section **without** its audio, on purpose — an upload is never the only copy.
 - `undoRemove` must leave the database consistent, not just the DOM. With a link it re-saves non-silently (`embedSpotify(id, false)`); with nothing to save it DELETEs the row, because an empty row is indistinguishable from a tombstone and would re-hide the section on reload.
 - Audio URLs read back from the database are untrusted (RLS is off, anon key is public). `isTrustedAudioUrl` gates anything reaching an `<audio>` src or a download href, and the audio UI is built with DOM methods rather than markup strings. Keep it that way.
+- When a section has audio it gets the `has-edit` class, which re-sequences `.section-body` with flex `order`: player first, then the attach control, then the Spotify link under a "Spotify backup link" heading. Ordering is CSS-only — no nodes move — so every existing element keeps its handlers. The header badge flips `SONG LINK` → `CUSTOM EDIT`.
+- The player label is two spans: the song title (owned by the selection) and `audio_name` (the cut, e.g. "Quick Hitter"), and **only the name is editable**. They were briefly one editable string, which broke — the title half is rewritten when the Spotify oEmbed lookup resolves to a longer title, so parsing the name back out of the combined text stored the whole label as the name. Don't recombine them.
+- `audio_name` is prefilled by `editNameFromFileName` from the DJ's filename, but that is only a guess: tested against all eight real edits, half came out unusable (a typo, a generic "Wedding Edit", another couple's names). It is meant to be corrected in place.
 - Downloads use Supabase's `?download=<filename>` parameter, not the HTML `download` attribute — the attribute is ignored cross-origin, and the page and the file are on different origins.
 - `saveAudioUrl` writes only `audio_url`; PostgREST leaves omitted columns alone. Any hand-written REST upsert must pass `?on_conflict=client_key,section_id` in the query string or it 409s on the unique constraint.
