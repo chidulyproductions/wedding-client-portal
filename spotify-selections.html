@@ -2008,8 +2008,18 @@
 
     // ── UPDATE PROGRAM ──
     function updateProgram(sectionId, title, artist, spotifyUrl) {
+      // A moment with a custom edit is titled by the edit — enforced here, at
+      // the one place the brochure is painted, because callers are not the
+      // whole story: fetchSongInfo repaints asynchronously with Spotify's
+      // title after load, and guarding each call site missed it.
+      const titledByEdit = !!(audioUrls[sectionId] && audioNames[sectionId]);
+      if (titledByEdit) {
+        title = audioNames[sectionId];
+        artist = songArtists[sectionId] || artist;   // don't let Spotify's artist replace Serato's
+      } else if (artist) {
+        songArtists[sectionId] = artist;
+      }
       if (title) songTitles[sectionId] = title;
-      if (artist) songArtists[sectionId] = artist;
       const items = document.querySelectorAll('.program-list li');
       items.forEach(item => {
         const moment = item.querySelector('.program-moment');
