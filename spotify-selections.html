@@ -248,6 +248,23 @@
       cursor: pointer; font-size: 0.85rem; padding: 0;
     }
     .audio-remove:hover { color: #ff6b6b; }
+    .audio-actions.confirming { flex-wrap: wrap; gap: 10px; }
+    .audio-confirm-msg {
+      flex-basis: 100%; font-size: 0.8rem; color: var(--muted); line-height: 1.5;
+    }
+    .audio-confirm-yes, .audio-confirm-no {
+      font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase;
+      border-radius: 8px; padding: 7px 16px; cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .audio-confirm-yes {
+      background: none; border: 1px solid #ff6b6b; color: #ff6b6b;
+    }
+    .audio-confirm-yes:hover { background: #ff6b6b; color: #1a1218; }
+    .audio-confirm-no {
+      background: none; border: 1px solid var(--accent); color: var(--accent);
+    }
+    .audio-confirm-no:hover { background: var(--accent); color: #1a1218; }
     .program-edit-tag {
       font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase;
       color: var(--accent); margin-left: 8px; white-space: nowrap;
@@ -2647,15 +2664,44 @@
       rm.className = 'audio-remove';
       rm.title = 'Remove custom edit';
       rm.textContent = '✕ Remove edit';
-      rm.addEventListener('click', () => removeAudio(sectionId));
 
       const actions = document.createElement('div');
       actions.className = 'audio-actions';
       actions.append(dl, rm);
 
+      // Removing deletes the uploaded file for good, and the DJ has to cut and
+      // send a new one. One unguarded click was too easy — confirm in place
+      // rather than in a browser dialog, which looks nothing like the page.
+      rm.addEventListener('click', () => confirmRemoveAudio(sectionId, actions));
+
       area.replaceChildren(label, player, actions);
       area.classList.add('visible');
       setAttachLabel(sectionId, '🎵 Replace custom edit');
+    }
+
+    // Swaps the actions row for a confirm prompt. Cancel re-renders the normal
+    // row from the URL still in audioUrls, so nothing is lost by backing out.
+    function confirmRemoveAudio(sectionId, actionsEl) {
+      const msg = document.createElement('span');
+      msg.className = 'audio-confirm-msg';
+      msg.textContent = 'Delete this custom edit? It can’t be undone — a new file would have to be uploaded.';
+
+      const yes = document.createElement('button');
+      yes.className = 'audio-confirm-yes';
+      yes.textContent = 'Delete';
+      yes.addEventListener('click', () => removeAudio(sectionId));
+
+      const no = document.createElement('button');
+      no.className = 'audio-confirm-no';
+      no.textContent = 'Keep it';
+      no.addEventListener('click', () => {
+        const url = audioUrls[sectionId];
+        if (url) renderAudio(sectionId, url);
+      });
+
+      actionsEl.replaceChildren(msg, yes, no);
+      actionsEl.classList.add('confirming');
+      no.focus();
     }
 
     function clearAudioUI(sectionId) {
