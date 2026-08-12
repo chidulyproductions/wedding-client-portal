@@ -2677,10 +2677,66 @@
       el.classList.toggle('error', !!isError);
     }
 
+    // ── ID3 ──
+    // Serato is the truth source for custom edits: the ID3 title tag is the
+    // string Serato's "song" column shows, and it is what Chris curates. So the
+    // player label is that tag, read straight out of the uploaded file.
+    // Filenames are only a fallback — they carry typos the tags don't.
+    //
+    // Minimal ID3v2 reader. Deliberately hand-rolled rather than pulling a
+    // library: this repo has no build step, and all we need is one frame.
+    function decodeId3Text(bytes) {
+      const enc = bytes[0];
+      const body = bytes.subarray(1);
+      try {
+        if (enc === 0) return new TextDecoder('iso-8859-1').decode(body);
+        if (enc === 1) return new TextDecoder('utf-16').decode(body);      // BOM-led
+        if (enc === 2) return new TextDecoder('utf-16be').decode(body);
+        return new TextDecoder('utf-8').decode(body);
+      } catch (e) { return ''; }
+    }
+
+    // ID3v2 sizes are "synchsafe": 7 bits per byte, top bit always clear.
+    function synchsafe(b, i) {
+      return (b[i] << 21) | (b[i+1] << 14) | (b[i+2] << 7) | b[i+3];
+    }
+
+    function readId3Title(buf) {
+      const b = new Uint8Array(buf);
+      if (b.length < 10 || b[0] !== 0x49 || b[1] !== 0x44 || b[2] !== 0x33) return '';  // "ID3"
+      const major = b[3];
+      const tagSize = synchsafe(b, 6);
+      let p = 10;
+      const end = Math.min(10 + tagSize, b.length);
+      while (p + 10 <= end) {
+        const id = String.fromCharCode(b[p], b[p+1], b[p+2], b[p+3]);
+        if (!/^[A-Z0-9]{4}$/.test(id)) break;   // padding or garbage — done
+        // v2.4 frame sizes are synchsafe; v2.3 are plain big-endian.
+        const size = major >= 4
+          ? synchsafe(b, p + 4)
+          : ((b[p+4] << 24) | (b[p+5] << 16) | (b[p+6] << 8) | b[p+7]) >>> 0;
+        if (size <= 0 || p + 10 + size > end) break;
+        if (id === 'TIT2') {
+          return decodeId3Text(b.subarray(p + 10, p + 10 + size)).replace(/\0+$/, '').trim();
+        }
+        p += 10 + size;
+      }
+      return '';
+    }
+
+    // Only the head of the file is needed — tags live at the front in v2.
+    async function audioTitleFromFile(file) {
+      try {
+        const head = await file.slice(0, 512 * 1024).arrayBuffer();
+        return readId3Title(head);
+      } catch (e) { console.log('ID3 read failed:', e); return ''; }
+    }
+
     // Pulls a readable name for the cut out of the DJ's filename — the last
-    // parenthetical, minus his own name. Only ever a PREFILL: tested against
-    // every real edit, half came out unusable ("Wedding Edit", a typo, the
-    // couple's own names), so the label is editable and this is the guess.
+    // parenthetical, minus his own name. Used only when the file carries no ID3
+    // title (some event-folder copies don't). Tested against every real edit,
+    // half came out unusable ("Wedding Edit", a typo, the couple's own names),
+    // which is exactly why the tag is preferred and the label stays editable.
     function editNameFromFileName(fileName) {
       const base = (fileName || '').replace(/\.[a-z0-9]{1,5}$/i, '');
       const groups = base.match(/\(([^()]*)\)/g);
@@ -2776,54 +2832,40 @@
       const area = document.getElementById(sectionId + '-audio-area');
       if (!area) return;
 
-      // Title and name are separate spans, and only the NAME is editable.
-      // They were briefly one editable string, which broke: the title half is
-      // rewritten asynchronously when the Spotify oEmbed lookup returns a
-      // longer title, so parsing the name back out of the combined text stored
-      // the whole label as the name. Never make one field out of two sources.
+      // One editable field holding the whole display title — normally the ID3
+      // title read off the uploaded file, which is the string Serato shows and
+      // the one Chris curates. It is self-contained ("Young & Beautiful
+      // (Orchestral Cover - Chi Duly Quick Edit)"), so it does NOT get composed
+      // with the Spotify song_title: an earlier version stitched the two
+      // together and broke, because the oEmbed lookup rewrites song_title
+      // asynchronously and the parse-back-out then swallowed the whole label.
+      // The brochure still shows the clean song_title — internal edit naming
+      // belongs on the player, not in the program summary.
       const label = document.createElement('div');
-      label.className = 'audio-label';
+      label.className = 'audio-label audio-label-name';
       label.id = sectionId + '-audio-label';
-
-      const titleSpan = document.createElement('span');
-      titleSpan.className = 'audio-label-title';
-      titleSpan.id = sectionId + '-audio-label-title';
-      titleSpan.textContent = songTitles[sectionId] || '';
-
-      const sep = document.createElement('span');
-      sep.className = 'audio-label-sep';
-      sep.textContent = ' — ';
-
-      const nameSpan = document.createElement('span');
-      nameSpan.className = 'audio-label-name';
-      nameSpan.id = sectionId + '-audio-label-name';
-      nameSpan.contentEditable = 'plaintext-only';
-      nameSpan.spellcheck = false;
-      nameSpan.title = 'Click to rename this edit';
-      nameSpan.textContent = audioNames[sectionId] || '';
+      label.contentEditable = 'plaintext-only';
+      label.spellcheck = false;
+      label.title = 'Click to rename this edit';
 
       const paintLabel = () => {
-        const t = songTitles[sectionId] || '';
-        const n = audioNames[sectionId] || '';
-        titleSpan.textContent = t || (n ? '' : 'Custom edit');
-        sep.hidden = !(t && n);
-        nameSpan.textContent = n;
-        nameSpan.classList.toggle('empty', !n);
+        const shown = audioNames[sectionId] || songTitles[sectionId] || '';
+        label.textContent = shown;
+        label.classList.toggle('empty', !shown);
       };
 
-      nameSpan.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); nameSpan.blur(); }
-        if (e.key === 'Escape') { nameSpan.textContent = audioNames[sectionId] || ''; nameSpan.blur(); }
+      label.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); label.blur(); }
+        if (e.key === 'Escape') { paintLabel(); label.blur(); }
       });
-      nameSpan.addEventListener('blur', () => {
-        const name = nameSpan.textContent.replace(/\s+/g, ' ').trim();
+      label.addEventListener('blur', () => {
+        const name = label.textContent.replace(/\s+/g, ' ').trim();
         if (name === (audioNames[sectionId] || '')) { paintLabel(); return; }
         audioNames[sectionId] = name;
         paintLabel();
         saveAudioName(sectionId, name);
       });
 
-      label.append(titleSpan, sep, nameSpan);
       paintLabel();
 
       const player = document.createElement('audio');
@@ -2927,21 +2969,25 @@
       audioUrls[sectionId] = publicUrl;
       if (previous && previous !== publicUrl) await deleteAudioObject(previous);
 
-      // Name the cut from the filename. A replacement supersedes the old name,
-      // since it is a different file — but never blank out a name the DJ typed
-      // by hand with a guess that came back empty.
-      const derived = editNameFromFileName(file.name);
+      // Name the cut from the file's ID3 title — the string Serato displays and
+      // Chris curates — falling back to the filename when a copy carries no
+      // tags (the event-folder duplicates often don't; the Serato originals do).
+      // A replacement supersedes the previous name since it is a different
+      // file, but a guess that comes back empty never blanks out a real name.
+      const derived = (await audioTitleFromFile(file)) || editNameFromFileName(file.name);
       if (derived) { audioNames[sectionId] = derived; await saveAudioName(sectionId, derived); }
 
       // An audio-only moment has no link to borrow a title from, so reuse the
-      // existing manual-title field and prefill it from the filename.
+      // existing manual-title field. Prefer the ID3 title here too — this one
+      // feeds the BROCHURE, and a raw filename lands junk in the couple's
+      // program summary.
       const linkInput = document.getElementById(sectionId + '-link');
       if (!linkInput || !linkInput.value.trim()) {
         const manualArea = getOrCreateManualArea(sectionId);
         manualArea.classList.add('visible');
         const manualInput = document.getElementById(sectionId + '-manual-input');
         if (manualInput && !manualInput.value.trim()) {
-          manualInput.value = titleFromFileName(file.name);
+          manualInput.value = derived || titleFromFileName(file.name);
           saveManualTitle(sectionId);
         }
       }
