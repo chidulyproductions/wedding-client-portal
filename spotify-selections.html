@@ -248,6 +248,49 @@
       cursor: pointer; font-size: 0.85rem; padding: 0;
     }
     .audio-remove:hover { color: #ff6b6b; }
+    /* When a section has a custom edit, the player leads and the Spotify link
+       is demoted to a labelled backup underneath. Done with flex order rather
+       than moving nodes, so every existing element keeps its place and its
+       handlers. Sections without audio are untouched. */
+    .music-section.has-edit .section-body { display: flex; flex-direction: column; }
+    .music-section.has-edit .section-body > *                   { order: 5; }
+    .music-section.has-edit .section-body > .audio-area         { order: 1; margin-top: 0; }
+    .music-section.has-edit .section-body > .audio-attach-row   { order: 2; }
+    .music-section.has-edit .section-body > .embed-area         { order: 3; }
+    .music-section.has-edit .section-body > .audio-backup-head  { order: 3; }
+    .music-section.has-edit .section-body > .audio-backup-why   { order: 3; }
+    .music-section.has-edit .section-body > .audio-backup-link  { order: 3; }
+
+    .audio-backup-head {
+      font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--muted); margin: 16px 0 6px;
+      padding-top: 14px; border-top: 1px dashed var(--border-rose);
+    }
+    .audio-backup-why {
+      font-size: 0.76rem; color: var(--muted); line-height: 1.55; margin-bottom: 10px;
+    }
+    /* Quieted, but still a working input — the couple can change the underlying
+       song without going through the DJ. */
+    .music-section.has-edit .audio-backup-link .text-input {
+      background: rgba(0,0,0,0.02); color: var(--muted); font-size: 0.8rem; padding: 9px 13px;
+    }
+    .music-section.has-edit .audio-backup-link .btn {
+      padding: 9px 15px; font-size: 0.8rem; opacity: 0.75;
+    }
+
+    /* Only the name half of the label is editable — the title half is owned by
+       the selection and can change under it when oEmbed resolves. */
+    .audio-label-name { outline: none; cursor: text; padding: 1px 3px; border-radius: 4px; }
+    .audio-label-name:hover { text-decoration: underline dotted rgba(183,110,121,0.5); }
+    .audio-label-name:focus {
+      text-decoration: none; background: rgba(255,255,255,0.95);
+      box-shadow: 0 0 0 2px var(--border-rose);
+    }
+    .audio-label-name.empty::before {
+      content: 'Name this edit'; color: var(--muted); font-style: italic;
+    }
+    .audio-label-name.empty:focus::before { content: none; }
+
     .audio-actions.confirming { flex-wrap: wrap; gap: 10px; }
     .audio-confirm-msg {
       flex-basis: 100%; font-size: 0.8rem; color: var(--muted); line-height: 1.5;
@@ -2294,6 +2337,7 @@
           song_title: null,
           artist: null,
           audio_url: null,
+          audio_name: null,
           entered_by: 'client',
           updated_at: new Date().toISOString()
         }, { onConflict: 'client_key,section_id' });
@@ -2510,6 +2554,7 @@
     const AUDIO_MAX_BYTES = 26214400; // 25 MB — must match the bucket's file_size_limit
     const AUDIO_URL_PREFIX = SUPABASE_URL + '/storage/v1/object/public/' + AUDIO_BUCKET + '/';
     const audioUrls = {};   // sectionId -> public URL of its audio, when it has any
+    const audioNames = {};  // sectionId -> name of the cut, e.g. "Quick Hitter"
     const songTitles = {};  // sectionId -> latest known title, for the download filename
     let portalLocked = false;
 
@@ -2632,6 +2677,92 @@
       el.classList.toggle('error', !!isError);
     }
 
+    // Pulls a readable name for the cut out of the DJ's filename — the last
+    // parenthetical, minus his own name. Only ever a PREFILL: tested against
+    // every real edit, half came out unusable ("Wedding Edit", a typo, the
+    // couple's own names), so the label is editable and this is the guess.
+    function editNameFromFileName(fileName) {
+      const base = (fileName || '').replace(/\.[a-z0-9]{1,5}$/i, '');
+      const groups = base.match(/\(([^()]*)\)/g);
+      if (!groups) return '';
+      let g = groups[groups.length - 1].slice(1, -1).replace(/_/g, ' ');
+      const parts = g.split(' - ').map(p => p.trim());
+      const named = parts.filter(p => /chi\s*duly/i.test(p));
+      let seg = named.length ? named[named.length - 1] : g;
+      if (/^chi\s*duly$/i.test(seg.trim())) {           // his name alone says nothing
+        const others = parts.filter(p => !/^chi\s*duly$/i.test(p.trim()));
+        seg = others.length ? others[others.length - 1] : seg;
+      }
+      return seg.replace(/chi\s*duly/ig, '').replace(/\s+/g, ' ').trim().replace(/^[-–—\s]+|[-–—\s]+$/g, '');
+    }
+
+    async function saveAudioName(sectionId, name) {
+      if (!sb) return false;
+      const { error } = await sb.from('wedding_selections').upsert({
+        client_key: getClientKey(),
+        section_id: sectionId,
+        audio_name: name || null,
+        entered_by: 'client',
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'client_key,section_id' });
+      if (error) { console.log('Audio name save error:', error); return false; }
+      return true;
+    }
+
+    // The link input lives at different nesting depths across sections (some
+    // wrapped in .input-group, some not). Flex `order` only applies to direct
+    // children of the flex container, so find the one that is one.
+    function linkRowNode(sectionId) {
+      const input = document.getElementById(sectionId + '-link');
+      if (!input) return null;
+      const body = input.closest('.section-body');
+      if (!body) return null;
+      let n = input;
+      while (n.parentElement && n.parentElement !== body) n = n.parentElement;
+      return n.parentElement === body ? n : null;
+    }
+
+    // Switches a section between "normal selection" and "custom edit" framing:
+    // player first, link demoted under a backup heading. Idempotent both ways.
+    function applyEditLayout(sectionId, hasAudio) {
+      const section = document.getElementById('section-' + sectionId);
+      const linkRow = linkRowNode(sectionId);
+      if (!section) return;
+      section.classList.toggle('has-edit', !!hasAudio);
+
+      const badge = section.querySelector('.section-number');
+      if (badge) {
+        if (hasAudio) {
+          if (!badge.dataset.originalLabel) badge.dataset.originalLabel = badge.textContent;
+          badge.textContent = 'Custom Edit';
+        } else if (badge.dataset.originalLabel) {
+          badge.textContent = badge.dataset.originalLabel;
+        }
+      }
+
+      let head = document.getElementById(sectionId + '-backup-head');
+      let why = document.getElementById(sectionId + '-backup-why');
+
+      if (hasAudio) {
+        if (linkRow) linkRow.classList.add('audio-backup-link');
+        if (!head && linkRow) {
+          head = document.createElement('div');
+          head.className = 'audio-backup-head';
+          head.id = sectionId + '-backup-head';
+          head.textContent = 'Spotify backup link';
+          why = document.createElement('div');
+          why.className = 'audio-backup-why';
+          why.id = sectionId + '-backup-why';
+          why.textContent = 'Not the version that plays. Kept only so your whole program can be rebuilt as a Spotify playlist if something goes wrong on the day.';
+          linkRow.before(head, why);
+        }
+      } else {
+        if (linkRow) linkRow.classList.remove('audio-backup-link');
+        if (head) head.remove();
+        if (why) why.remove();
+      }
+    }
+
     function setAttachLabel(sectionId, text) {
       const row = document.getElementById(sectionId + '-audio-attach');
       const label = row ? row.querySelector('.audio-attach-label') : null;
@@ -2645,9 +2776,55 @@
       const area = document.getElementById(sectionId + '-audio-area');
       if (!area) return;
 
+      // Title and name are separate spans, and only the NAME is editable.
+      // They were briefly one editable string, which broke: the title half is
+      // rewritten asynchronously when the Spotify oEmbed lookup returns a
+      // longer title, so parsing the name back out of the combined text stored
+      // the whole label as the name. Never make one field out of two sources.
       const label = document.createElement('div');
       label.className = 'audio-label';
-      label.textContent = 'Custom edit';
+      label.id = sectionId + '-audio-label';
+
+      const titleSpan = document.createElement('span');
+      titleSpan.className = 'audio-label-title';
+      titleSpan.id = sectionId + '-audio-label-title';
+      titleSpan.textContent = songTitles[sectionId] || '';
+
+      const sep = document.createElement('span');
+      sep.className = 'audio-label-sep';
+      sep.textContent = ' — ';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'audio-label-name';
+      nameSpan.id = sectionId + '-audio-label-name';
+      nameSpan.contentEditable = 'plaintext-only';
+      nameSpan.spellcheck = false;
+      nameSpan.title = 'Click to rename this edit';
+      nameSpan.textContent = audioNames[sectionId] || '';
+
+      const paintLabel = () => {
+        const t = songTitles[sectionId] || '';
+        const n = audioNames[sectionId] || '';
+        titleSpan.textContent = t || (n ? '' : 'Custom edit');
+        sep.hidden = !(t && n);
+        nameSpan.textContent = n;
+        nameSpan.classList.toggle('empty', !n);
+      };
+
+      nameSpan.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); nameSpan.blur(); }
+        if (e.key === 'Escape') { nameSpan.textContent = audioNames[sectionId] || ''; nameSpan.blur(); }
+      });
+      nameSpan.addEventListener('blur', () => {
+        const name = nameSpan.textContent.replace(/\s+/g, ' ').trim();
+        if (name === (audioNames[sectionId] || '')) { paintLabel(); return; }
+        audioNames[sectionId] = name;
+        paintLabel();
+        saveAudioName(sectionId, name);
+      });
+
+      label.append(titleSpan, sep, nameSpan);
+      paintLabel();
 
       const player = document.createElement('audio');
       player.controls = true;
@@ -2677,6 +2854,7 @@
       area.replaceChildren(label, player, actions);
       area.classList.add('visible');
       setAttachLabel(sectionId, '🎵 Replace custom edit');
+      applyEditLayout(sectionId, true);
     }
 
     // Swaps the actions row for a confirm prompt. Cancel re-renders the normal
@@ -2704,11 +2882,15 @@
       no.focus();
     }
 
+    // Every removal path funnels through here, so restoring the normal layout
+    // and dropping the cut's name belong here rather than in each caller.
     function clearAudioUI(sectionId) {
       const area = document.getElementById(sectionId + '-audio-area');
       if (area) { area.replaceChildren(); area.classList.remove('visible'); }
       setAttachLabel(sectionId, '🎵 Attach custom edit');
       showAudioStatus(sectionId, '', false);
+      delete audioNames[sectionId];
+      applyEditLayout(sectionId, false);
     }
 
     async function handleAudioUpload(sectionId, file) {
@@ -2745,6 +2927,12 @@
       audioUrls[sectionId] = publicUrl;
       if (previous && previous !== publicUrl) await deleteAudioObject(previous);
 
+      // Name the cut from the filename. A replacement supersedes the old name,
+      // since it is a different file — but never blank out a name the DJ typed
+      // by hand with a guess that came back empty.
+      const derived = editNameFromFileName(file.name);
+      if (derived) { audioNames[sectionId] = derived; await saveAudioName(sectionId, derived); }
+
       // An audio-only moment has no link to borrow a title from, so reuse the
       // existing manual-title field and prefill it from the filename.
       const linkInput = document.getElementById(sectionId + '-link');
@@ -2779,6 +2967,7 @@
       clearAudioUI(sectionId);
       if (url) {
         await saveAudioUrl(sectionId, null);
+        await saveAudioName(sectionId, null);  // the name describes a file that no longer exists
         await deleteAudioObject(url);
       }
       const linkInput = document.getElementById(sectionId + '-link');
@@ -2917,6 +3106,8 @@
           if (row.audio_url) {
             sectionsWithData.add(sid);
             if (row.song_title) songTitles[sid] = row.song_title;
+            // Must be set before renderAudio, which composes the player label.
+            if (row.audio_name) audioNames[sid] = row.audio_name;
             // No link means no oEmbed title, so surface the saved name for editing.
             if (!row.spotify_url) {
               const manualArea = getOrCreateManualArea(sid);
