@@ -1957,11 +1957,67 @@
       updateAnnouncingAs('');
       if (dateParam) {
         const d = new Date(dateParam + 'T00:00:00');
-        const formatted = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        document.getElementById('program-date').textContent = formatted;
+        document.getElementById('program-date').textContent = formatWeddingDate(d);
       }
     }
 
+
+    // ── DATE ──
+    // "August 29th, 2026". Intl has no ordinal-day option, so the month and
+    // year come from Intl and the day gets a suffix from the usual English
+    // rule — 11th/12th/13th are the exceptions that break the mod-10 pattern.
+    function ordinalDay(n) {
+      const rem100 = n % 100;
+      if (rem100 >= 11 && rem100 <= 13) return n + 'th';
+      return n + ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th');
+    }
+
+    function formatWeddingDate(d) {
+      if (isNaN(d)) return '';
+      const month = d.toLocaleDateString('en-US', { month: 'long' });
+      return month + ' ' + ordinalDay(d.getDate()) + ', ' + d.getFullYear();
+    }
+
+    // ── ARTIST CREDITS ──
+    // Spotify credits a duo as its own artist alongside each member, so
+    // "Can't Hold Us" arrives as "Macklemore, Ryan Lewis, Macklemore & Ryan
+    // Lewis, Ray Dalton" — every name twice. Drop any credit whose words are
+    // already contained in another credit (the members inside the duo), then
+    // drop anyone the title's feat. clause already names. Falls back to the
+    // original string rather than ever returning empty.
+    function artistTokens(s) {
+      return (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean);
+    }
+
+    // Does token list A contain token list B as a contiguous run? Token-based
+    // rather than substring so "Sia" is not treated as part of "Sian".
+    function tokensContain(a, b) {
+      if (!b.length || b.length > a.length) return false;
+      for (let i = 0; i + b.length <= a.length; i++) {
+        if (b.every((t, j) => a[i + j] === t)) return true;
+      }
+      return false;
+    }
+
+    function tidyArtists(artistStr, title) {
+      const parts = (artistStr || '').split(',').map(s => s.trim()).filter(Boolean);
+      if (parts.length < 2) return artistStr || '';
+
+      // A credit is redundant when another, longer credit spells it out.
+      let kept = parts.filter(p => !parts.some(other => {
+        const A = artistTokens(other), B = artistTokens(p);
+        return other !== p && B.length < A.length && tokensContain(A, B);
+      }));
+
+      const feat = (title || '').match(/\bfeat\.?\s+([^)]+)/i);
+      if (feat) {
+        const featToks = artistTokens(feat[1]);
+        const trimmed = kept.filter(p => !tokensContain(featToks, artistTokens(p)));
+        if (trimmed.length) kept = trimmed;
+      }
+
+      return kept.length ? kept.join(', ') : artistStr;
+    }
 
     // ── SECTION TO PROGRAM MAPPING ──
     const sectionProgramMap = {
@@ -2034,7 +2090,11 @@
             displayText = artist ? artist + ' - ' + title : title;
           }
           song.innerHTML = '<a href="#section-' + sectionId + '" class="program-song-link">' + displayText + '</a>';
-          if (audioUrls[sectionId]) {
+          // The tag only earns its place when the edit's own title doesn't
+          // already say so. Chris names his cuts "… (K+L Wedding Edit)", which
+          // made the brochure read "(K+L Wedding Edit) CUSTOM EDIT". An untitled
+          // or plainly-named edit still needs the marker, so keep it for those.
+          if (audioUrls[sectionId] && !/\bedit\b/i.test(title || '')) {
             const tag = document.createElement('span');
             tag.className = 'program-edit-tag';
             tag.textContent = 'custom edit';
@@ -2094,7 +2154,7 @@
           if (fnRes.ok) {
             const data = await fnRes.json();
             title = data.title || null;
-            artist = data.artist || '';
+            artist = tidyArtists(data.artist || '', title);
           } else {
             // Fallback: oEmbed (title-only) so the form still progresses if
             // the edge function is unhealthy. Artist will be empty here.
