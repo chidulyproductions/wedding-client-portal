@@ -2880,6 +2880,10 @@
       if (!section) return;
       section.classList.toggle('has-edit', !!hasAudio);
 
+      // The badge stays: it reads "Song Link" by default, which stops being
+      // true the moment a file replaces the link, so "Custom Edit" is the
+      // honest label. The duplication lived in the attach button next to it —
+      // see setAttachLabel below, which now says just "Replace".
       const badge = section.querySelector('.section-number');
       if (badge) {
         if (hasAudio) {
@@ -2996,7 +3000,9 @@
 
       area.replaceChildren(label, player, actions);
       area.classList.add('visible');
-      setAttachLabel(sectionId, '🎵 Replace custom edit');
+      // "Replace" alone — the badge directly above already says Custom Edit,
+      // and the player between them is titled with the edit's own name.
+      setAttachLabel(sectionId, '🎵 Replace');
       applyEditLayout(sectionId, true);
     }
 
