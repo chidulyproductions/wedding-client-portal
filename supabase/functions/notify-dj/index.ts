@@ -17,7 +17,7 @@ const SECTION_LABELS: Record<string, string> = {
   "guest-seating":            "Guest Seating",
   "wedding-party-walk":       "Wedding Party Walk",
   "bride-walk":               "Bride Walk",
-  "the-kiss":                 "The Kiss",
+  "the-kiss":                 "Recessional",
   "ceremony-exit":            "Ceremony Exit",
   "cocktail-hour":            "Cocktail Hour",
   "dinner-hour":              "Dinner Hour",

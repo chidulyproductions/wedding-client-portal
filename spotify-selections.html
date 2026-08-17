@@ -1086,8 +1086,8 @@
           <li id="brochure-guest-seating"><span class="program-moment">Guest Seating</span><span class="program-song">— —</span></li>
           <li id="brochure-wedding-party-walk"><span class="program-moment">Wedding Party Walk</span><span class="program-song">— —</span></li>
           <li id="brochure-bride-walk"><span class="program-moment">Bride Walk</span><span class="program-song">— —</span></li>
-          <li id="brochure-the-kiss"><span class="program-moment">The Kiss</span><span class="program-song">— —</span></li>
-          <li id="brochure-ceremony-exit"><span class="program-moment">Ceremony Exit</span><span class="program-song">— —</span></li>
+          <li id="brochure-the-kiss"><span class="program-moment">Recessional</span><span class="program-song">— —</span></li>
+          <li id="brochure-ceremony-exit" style="display:none"><span class="program-moment">Ceremony Exit</span><span class="program-song">— —</span></li>
         </ul>
       </div>
 
@@ -1268,7 +1268,7 @@
       <div class="section-header" style="position:relative;">
         <div class="section-header-left">
           <div class="section-number">Song Link</div>
-          <div class="section-title">THE KISS</div>
+          <div class="section-title">RECESSIONAL</div>
         </div>
         <button class="remove-btn" onclick="removeSection('the-kiss')" id="remove-the-kiss" title="Remove section">🗑</button>
       </div>
@@ -1294,7 +1294,10 @@
     </div>
 
     <!-- CEREMONY EXIT -->
-    <div class="music-section" id="section-ceremony-exit" data-section="ceremony-exit">
+    <!-- Retired: duplicated the recessional (see #section-the-kiss). Hidden by
+         default so it never appears for a new couple; loadSelections un-hides it
+         for couples whose song already lives here. -->
+    <div class="music-section removed" id="section-ceremony-exit" data-section="ceremony-exit">
       <div class="section-header" style="position:relative;">
         <div class="section-header-left">
           <div class="section-number">Song Link</div>
@@ -1778,8 +1781,8 @@
       <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.1s ease both;">
         <div class="section-header">
           <div>
-            <div class="section-number">Guest Seating</div>
-            <div class="section-title">WELCOME</div>
+            <div class="section-number">Piano</div>
+            <div class="section-title">GUEST SEATING</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1787,12 +1790,26 @@
         </div>
       </div>
 
-      <!-- Bride Walk -->
+      <!-- Guest Seating — vocal. Sits immediately after the piano card so the
+           two guest-seating options render side by side in the grid. -->
       <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.2s ease both;">
         <div class="section-header">
           <div>
-            <div class="section-number">Processional</div>
-            <div class="section-title">BRIDE WALK</div>
+            <div class="section-number">Vocal</div>
+            <div class="section-title">GUEST SEATING</div>
+          </div>
+        </div>
+        <div class="section-body" style="padding: 20px 24px;">
+          <iframe src="https://open.spotify.com/embed/playlist/7eDrLKGCPZSEHGaDkCpqBr?utm_source=generator&theme=0" width="100%" height="152" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+        </div>
+      </div>
+
+      <!-- Bride Walk -->
+      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.3s ease both;">
+        <div class="section-header">
+          <div>
+            <div class="section-number">Bride Walk</div>
+            <div class="section-title">PROCESSIONAL</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1801,11 +1818,11 @@
       </div>
 
       <!-- The Kiss -->
-      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.3s ease both;">
+      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.4s ease both;">
         <div class="section-header">
           <div>
-            <div class="section-number">Recessional</div>
-            <div class="section-title">THE KISS</div>
+            <div class="section-number">The Kiss</div>
+            <div class="section-title">RECESSIONAL</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1814,7 +1831,7 @@
       </div>
 
       <!-- Cocktails / Dinner -->
-      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.4s ease both;">
+      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.5s ease both;">
         <div class="section-header">
           <div>
             <div class="section-number">Reception</div>
@@ -1827,11 +1844,11 @@
       </div>
 
       <!-- Parent Dances -->
-      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.5s ease both;">
+      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.6s ease both;">
         <div class="section-header">
           <div>
-            <div class="section-number">Parent Dances</div>
-            <div class="section-title">FAMILY MOMENTS</div>
+            <div class="section-number">Family Moments</div>
+            <div class="section-title">PARENT DANCES</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1840,11 +1857,11 @@
       </div>
 
       <!-- First Dance -->
-      <div class="music-section" style="animation: fadeUp 0.5s 0.6s ease both;">
+      <div class="music-section" style="animation: fadeUp 0.5s 0.7s ease both;">
         <div class="section-header">
           <div>
-            <div class="section-number">First Dance</div>
-            <div class="section-title">FOR THE FIRST TIME</div>
+            <div class="section-number">For The First Time</div>
+            <div class="section-title">FIRST DANCE</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1853,11 +1870,11 @@
       </div>
 
       <!-- Cake Cutting -->
-      <div class="music-section" style="animation: fadeUp 0.5s 0.7s ease both;">
+      <div class="music-section" style="animation: fadeUp 0.5s 0.8s ease both;">
         <div class="section-header">
           <div>
-            <div class="section-number">Cake Cutting</div>
-            <div class="section-title">CELEBRATION</div>
+            <div class="section-number">Celebration</div>
+            <div class="section-title">CAKE CUTTING</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1866,11 +1883,11 @@
       </div>
 
       <!-- Bouquet Toss -->
-      <div class="music-section" style="animation: fadeUp 0.5s 0.8s ease both;">
+      <div class="music-section" style="animation: fadeUp 0.5s 0.9s ease both;">
         <div class="section-header">
           <div>
-            <div class="section-number">Bouquet Toss</div>
-            <div class="section-title">FLOWERS</div>
+            <div class="section-number">Flowers</div>
+            <div class="section-title">BOUQUET TOSS</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -2025,7 +2042,7 @@
       'guest-seating':            { category: 'ceremony',  label: 'Guest Seating' },
       'wedding-party-walk':       { category: 'ceremony',  label: 'Wedding Party Walk' },
       'bride-walk':               { category: 'ceremony',  label: 'Bride Walk' },
-      'the-kiss':                 { category: 'ceremony',  label: 'The Kiss' },
+      'the-kiss':                 { category: 'ceremony',  label: 'Recessional' },
       'ceremony-exit':            { category: 'ceremony',  label: 'Ceremony Exit' },
       // Evening Reception (merged from former Reception + Special Dances + Cake Cutting + new Second Look Entrance)
       'cocktail-hour':            { category: 'reception', label: 'Cocktail Hour' },
@@ -3242,6 +3259,15 @@
             deletedSections.add(sid);
             return;
           }
+
+          // Past the tombstone check means this row has real content, so the
+          // section is shown even when the template hides it by default.
+          // ceremony-exit is retired (it duplicated the recessional), but
+          // couples who already put a song there keep it, editable.
+          const retiredEl = document.getElementById('section-' + sid);
+          if (retiredEl) retiredEl.classList.remove('removed');
+          const retiredBrochureEl = document.getElementById('brochure-' + sid);
+          if (retiredBrochureEl) retiredBrochureEl.style.display = '';
 
           // Handle song links (Spotify, YouTube, SoundCloud, or unknown platform)
           if (row.spotify_url) {
