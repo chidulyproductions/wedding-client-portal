@@ -3245,7 +3245,7 @@
             const customId = sid.replace('custom-def-', '');
             const label = row.notes;
             if (label && row.song_title === '__custom_def__') {
-              createCustomMoment(customId, label);
+              createCustomMoment(customId, label, row.anchor_before);
             }
             return;
           }
@@ -3346,7 +3346,10 @@
 
     let customMomentCount = 0;
 
-    function createCustomMoment(savedId, savedLabel) {
+    // anchorBefore (from the custom-def row) names a section this moment renders
+    // immediately before, on both the form and the brochure. Null keeps the old
+    // behaviour: appended to the trailing custom-moments bucket.
+    function createCustomMoment(savedId, savedLabel, anchorBefore) {
       const nameInput = document.getElementById('custom-moment-name');
       const label = savedLabel || (nameInput ? nameInput.value.trim() : '');
       if (!label) return;
@@ -3387,14 +3390,26 @@
           <span>Section removed</span>
           <button class="undo-btn" onclick="undoRemove('${id}')">↩ Undo</button>
         </div>`;
-      container.appendChild(wrapper);
+      // Anchored moments are spliced into the standard run instead of the
+      // trailing bucket. Move the wrapper's children rather than the wrapper
+      // itself — the sections flow expects .music-section as a direct child, and
+      // an extra div around it would sit in that flow as an unstyled node.
+      const anchorEl = anchorBefore && document.getElementById('section-' + anchorBefore);
+      if (anchorEl) {
+        while (wrapper.firstChild) anchorEl.parentNode.insertBefore(wrapper.firstChild, anchorEl);
+      } else {
+        container.appendChild(wrapper);
+      }
       initAudioControls();  // the new section needs its attach control too
 
-      // Register in sectionProgramMap
-      sectionProgramMap[id] = { category: 'custom', label: label };
+      // Register in sectionProgramMap. An anchored moment inherits its
+      // neighbour's category so the brochure groups it with the right block
+      // rather than stranding it under "custom".
+      const anchorEntry = anchorBefore ? sectionProgramMap[anchorBefore] : null;
+      sectionProgramMap[id] = { category: anchorEntry ? anchorEntry.category : 'custom', label: label };
 
       // Add brochure entry
-      addCustomBrochureItem(id, label);
+      addCustomBrochureItem(id, label, anchorBefore);
 
       // Save the custom moment definition to Supabase
       if (!savedId) {
@@ -3413,15 +3428,35 @@
       }
     }
 
-    function addCustomBrochureItem(id, label) {
+    function addCustomBrochureItem(id, label, anchorBefore) {
       const list = document.getElementById('brochure-custom-list');
       const section = document.getElementById('brochure-custom-section');
-      if (!list || !section) return;
       // Don't add duplicate
       if (document.getElementById('brochure-' + id)) return;
+
+      // Built with DOM methods, not a markup string: the label is client-typed
+      // and RLS is off on this table, so it is untrusted input.
       const li = document.createElement('li');
       li.id = 'brochure-' + id;
-      li.innerHTML = '<span class="program-moment">' + label + '</span><span class="program-song">— —</span>';
+      const moment = document.createElement('span');
+      moment.className = 'program-moment';
+      moment.textContent = label;
+      const song = document.createElement('span');
+      song.className = 'program-song';
+      song.textContent = '— —';
+      li.appendChild(moment);
+      li.appendChild(song);
+
+      // Anchored: drop it into whichever group list holds the anchor, right
+      // above it. The custom group stays hidden — revealing it for a moment
+      // that is not in it would print an empty heading.
+      const anchorLi = anchorBefore && document.getElementById('brochure-' + anchorBefore);
+      if (anchorLi && anchorLi.parentNode) {
+        anchorLi.parentNode.insertBefore(li, anchorLi);
+        return;
+      }
+
+      if (!list || !section) return;
       list.appendChild(li);
       section.style.display = '';
     }
