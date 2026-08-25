@@ -3337,6 +3337,30 @@
           if (undoEl) undoEl.classList.add('visible');
         });
 
+        // Per-client reordering. A standard section carrying anchor_before is
+        // moved to sit immediately above that anchor, on the form and on the
+        // brochure. This is how one couple gets a different program order
+        // without changing the template order every other client sees.
+        // custom-def rows are skipped — createCustomMoment already placed them.
+        Object.values(latestBySection).forEach(row => {
+          if (!row.anchor_before) return;
+          if (row.section_id.startsWith('custom-def-')) return;
+          const el = document.getElementById('section-' + row.section_id);
+          const anchor = document.getElementById('section-' + row.anchor_before);
+          if (el && anchor && el !== anchor) {
+            // Carry the undo bar along, or it is orphaned above a section that
+            // moved out from under it.
+            const undo = document.getElementById('undo-' + row.section_id);
+            anchor.parentNode.insertBefore(el, anchor);
+            if (undo) el.parentNode.insertBefore(undo, el.nextSibling);
+          }
+          const li = document.getElementById('brochure-' + row.section_id);
+          const anchorLi = document.getElementById('brochure-' + row.anchor_before);
+          if (li && anchorLi && li !== anchorLi && li.parentNode === anchorLi.parentNode) {
+            anchorLi.parentNode.insertBefore(li, anchorLi);
+          }
+        });
+
       } catch (err) {
         console.log('Load error:', err);
       }
