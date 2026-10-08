@@ -2,20 +2,39 @@
 
 ## Architecture
 
-Static site (no build step) hosted on **GitHub Pages**. Backend is **Supabase** (Postgres + Edge Functions). Some serverless functions on **Netlify**.
+Static site (no build step) served by **GitHub Pages** from `main`. The backend is **Supabase**:
+Postgres, Storage, and Edge Functions. Nothing the pages call runs on Netlify.
 
 ### Key Files
 
 - `spotify-selections.html` — Client-facing music portal. Clients paste Spotify/YouTube/SoundCloud links for each wedding moment. Has brochure (live program preview), per-section notes, additional notes + admin reply display.
-- `admin.html` — Admin dashboard. Manage clients, send magic links, edit name/date/email, toggle lock, delete clients, view client notes and send replies (with email notification).
+- `admin.html` — Admin dashboard. Manage clients, send magic links, edit name/date/email, toggle lock, delete clients, view client notes and send replies (with email notification), export to Spotify.
 - `index.html` — Landing/login page.
-- `netlify/functions/` — Netlify serverless functions (`load-selections.js`, `save-selection.js`, `spotify.js`).
-- `supabase/functions/send-reply-email/` — Supabase Edge Function. Sends email via Resend when admin replies to client notes.
+- `supabase/functions/` — every Edge Function, one folder each (table below).
+- `supabase/migrations/` — schema, plus the trigger that calls `notify-dj`.
+- `.github/workflows/keepalive.yml` — pings the Supabase REST API every 3 days so the free-tier project is not paused (see `ERRORS.md`).
+- `netlify/functions/` — **legacy.** Old Netlify-format copies of `load-selections` and `save-selection`. No page calls them. A Netlify site is still connected to this repo and redeploys on every push, but it is not the site clients use.
+
+### Edge Functions (all deployed on Supabase)
+
+| Function | Called from | Does |
+|---|---|---|
+| `load-selections` | client page, on load | Returns every row for a `client_key`, oldest first. Uses the service-role key. |
+| `save-selection` | client page, `saveCustomMomentDef` only | Writes a custom-moment definition row. Uses the service-role key. |
+| `spotify` | client page | Looks up track / playlist / album metadata for a Spotify URL. |
+| `notify-dj` | database trigger on `wedding_selections` | Emails the DJ when a client saves or changes a selection. |
+| `send-reply-email` | admin page | Emails the client via Resend when the admin replies to a note. |
+| `admin-delete-client` | admin page | Deletes a client. |
+| `spotify-auth`, `spotify-callback` | admin page | OAuth connect for the DJ's Spotify account. |
+| `spotify-export` | admin page | Builds Spotify playlists from a client's program. |
+
+`load-selections` and `save-selection` were deployed in March 2026 and their source was never
+committed. It was downloaded from Supabase into this repo on 2026-10-08, unchanged.
 
 ### Data Flow
 
-- **Save**: Client page uses Supabase JS client (`sb`) to upsert into `wedding_selections` table directly.
-- **Load**: Client page calls Netlify edge function `load-selections` which queries Supabase and returns all rows for a `client_key`.
+- **Load**: the client page fetches `…supabase.co/functions/v1/load-selections?clientKey=…`.
+- **Save**: the client page upserts into `wedding_selections` directly with the Supabase JS client (`sb`) and the public anon key. The one exception is a custom-moment definition, which goes through the `save-selection` function.
 - **Client key**: Derived from URL params `name` + `date`, lowercased, non-alphanumeric replaced with `-`. Example: `madison---mitchell-2026-05-09`.
 
 ### Supabase Tables
@@ -39,10 +58,24 @@ Static site (no build step) hosted on **GitHub Pages**. Backend is **Supabase** 
 
 ## Deployment
 
-- **Frontend**: Push to `main` → GitHub Pages auto-deploys (~1 min).
-- **Supabase Edge Functions**: Deploy via CLI: `supabase functions deploy <name> --no-verify-jwt`
-- **Netlify Functions**: Auto-deploy from repo.
+- **Frontend**: push to `main` → GitHub Pages rebuilds (~1 min). Live at
+  `https://chidulyproductions.github.io/wedding-client-portal/`. Clients use this site, so
+  work on a branch and merge when it is ready.
+- **Edge Functions**: not deployed by a push. Deploy each by hand:
+  `supabase functions deploy <name> --project-ref lfnlftxqdelcrmbceiob --no-verify-jwt`
+  (`send-reply-email` is the exception: `config.toml` sets `verify_jwt = true` for it.)
+  See what is live with `supabase functions list --project-ref lfnlftxqdelcrmbceiob`.
 - **Supabase secrets**: `supabase secrets set KEY=VALUE`
+
+## Tests
+
+```bash
+cd supabase/functions/spotify-export && deno test   # export section selection
+cd supabase/functions/notify-dj && deno test        # notification line formatting
+```
+
+The HTML pages have no automated tests. When a function test passes but production is
+wrong, compare the fixture with a real row from Supabase (see `ERRORS.md`).
 
 ## Environment
 
@@ -78,3 +111,10 @@ Static site (no build step) hosted on **GitHub Pages**. Backend is **Supabase** 
 - **`updateProgram` pins the title itself** when the moment has an edit — it ignores whatever title the caller passed and uses `audioNames[sectionId]`. Guarding call sites was not enough: `fetchSongInfo` calls `updateProgram` *internally* and repaints asynchronously after load, so the brochure would revert to Spotify's title seconds after showing the right one. Enforce invariants at the paint point, not at the callers.
 - Downloads use Supabase's `?download=<filename>` parameter, not the HTML `download` attribute — the attribute is ignored cross-origin, and the page and the file are on different origins.
 - `saveAudioUrl` writes only `audio_url`; PostgREST leaves omitted columns alone. Any hand-written REST upsert must pass `?on_conflict=client_key,section_id` in the query string or it 409s on the unique constraint.
+
+## Tracking
+
+- Deferred work: `TODOS.md`. Failed approaches and their fixes: `ERRORS.md`.
+- This repo is **public** and GitHub Pages serves every file in it, this one included. Keep
+  secrets out of the repo, and remember that the notes above about RLS and the upload bucket
+  are readable by anyone.

@@ -65,3 +65,41 @@ Add an "Uploaded audio" list to each client in admin.html — every section with
 **Depends on:** Custom audio upload shipped
 
 The `client-audio` bucket accepts anon uploads (the anon key is public), capped at 25 MB per file but not in total, against a 1 GB free-tier ceiling. No monitoring exists. Worth either a periodic size check or scoping uploads to a client-key-prefixed path so abuse can be traced and rate-limited. Raised in the Task 1 code-quality review.
+
+## Check `save-selection` for silent failures
+**Priority:** P2 | **Effort:** S (human: ~1 hour / CC: ~15 min)
+**Deferred because:** found 2026-10-08 while documenting the functions; out of scope for a docs change.
+
+The deployed `save-selection` function posts to `wedding_selections` with
+`Prefer: resolution=merge-duplicates` but no `?on_conflict=client_key,section_id`, and it never
+checks the response before returning `{ success: true }`. `CLAUDE.md` already notes that a REST
+upsert without `on_conflict` 409s on the unique constraint. If that applies here, re-saving an
+existing custom-moment definition fails without the client page knowing. **Unverified:** test by
+saving the same custom moment twice against a throwaway `client_key` and reading the row back.
+
+## Merge or close PR #36 (8 commits not live)
+**Priority:** P2 | **Effort:** S
+**Deferred because:** found 2026-10-08; these are unfinished feature decisions, not a docs matter.
+
+Branch `fix/brochure-redundancy-and-date` holds 8 commits from 2026-08-15 to 08-24 that are not
+on `main`, so clients do not see them: the brochure credit and date fixes, the Recessional rename,
+the Grand Entrance sample card, custom moments anchoring into the program run, and per-client
+section reordering. Six of the eight had never been pushed until 2026-10-08. PR #36 is still open.
+
+## Retire the legacy Netlify copy
+**Priority:** P3 | **Effort:** S
+**Deferred because:** found 2026-10-08; harmless today.
+
+Netlify site `clinquant-starlight-9bcdfa` is still connected to this repo and redeploys a second
+public copy of the site on every push, along with the unused `netlify/functions/`. Nothing calls
+it. Disconnect the site in Netlify, then delete `netlify/` and `netlify.toml`.
+
+## Decide whether this repo should stay public
+**Priority:** P2 | **Effort:** S
+**Deferred because:** found 2026-10-08; a policy call for Chris.
+
+The repo is public and GitHub Pages serves every file, including `CLAUDE.md`, which documents
+that RLS is off on `wedding_selections` and that anyone can upload to the `client-audio` bucket.
+GitHub Pages on a private repo needs a paid plan; the alternative is moving hosting to Netlify
+(already connected) and making the repo private.
+
