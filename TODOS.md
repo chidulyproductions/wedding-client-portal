@@ -22,12 +22,6 @@ Notify the DJ when a client saves or updates a music selection. Implementation o
 
 Add `@media print` styles so clients can print the wedding program. Current glassmorphism and gradient backgrounds won't render on paper. Black text on white, clean Playfair Display serif, no animations.
 
-## Client Portal: Save/Loading State Styling
-**Priority:** P2 | **Effort:** S (human: ~1 hour / CC: ~10 min)
-**Depends on:** Aesthetic overhaul complete
-
-Design and add explicit styling for intermediate save states (saving in-progress, network error) to the saved pill component. Current spec only covers the "saved" success state. Error state needs distinct styling — not rose gold, something clearly different.
-
 ## Client Portal: Lock Overlay Font Alignment
 **Priority:** P3 | **Effort:** S (human: ~30 min / CC: ~5 min)
 **Depends on:** Aesthetic overhaul complete

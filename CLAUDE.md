@@ -53,7 +53,8 @@ Static site (no build step) hosted on **GitHub Pages**. Backend is **Supabase** 
 
 ## Gotchas
 
-- The `saveSelection` function shows "Save failed" / "Connection error" in the saved pill if the write fails. Check this if saves seem broken.
+- The saved pill has three states, all set through `setSavePill(pill, state, detail)`: `saving` (muted, dashed, breathing), `saved` (rose outline), and `error` (filled brick red, deliberately not rose gold). Error text is a client-friendly "Connection error — not saved" / "Offline — not saved" / "Save failed — try again" from `saveErrorMessage`; the raw error is in the pill's `title` tooltip and the console. Check this if saves seem broken. Selections, notes and the announcement all report through it — never set the pill's `textContent` directly, or a stale `is-error` class outlives the failure.
+- Pure client-page logic lives in `portal-helpers.js` (a plain script loaded before the inline one — no build step) so it can be tested: `node --test tests/*.test.js`.
 - Playlist sections (guest-seating, cocktail, dinner, dance-floor) use the same `embedSpotify` flow as single tracks — the embed height adjusts based on `extracted.type`.
 - `fetchSongInfo` calls oEmbed APIs. If oEmbed fails, the title stays null but the URL still saves.
 - The brochure (program card at top of client page) updates live via `updateProgram()` and is driven by `sectionProgramMap`.

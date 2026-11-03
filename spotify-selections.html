@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="portal-helpers.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -569,6 +570,30 @@
     }
 
     .saved-pill.visible { display: inline-block; }
+
+    /* In flight — quieter than "saved": muted text, dashed outline, a slow
+       breathe so it reads as "working" without a spinner. */
+    .saved-pill.is-saving {
+      color: var(--muted);
+      border-style: dashed;
+      border-color: var(--muted);
+      animation: pillBreathe 1.2s ease-in-out infinite;
+    }
+
+    /* Failed — deliberately NOT rose gold. A filled brick-red pill with a solid
+       border, so it can't be mistaken for the rose "saved" outline at a glance,
+       on the cream cards or on the dark announcement card. */
+    .saved-pill.is-error {
+      color: #8E1F1F;
+      background: #FBE9E7;
+      border: 1px solid #8E1F1F;
+      font-weight: 500;
+    }
+
+    @keyframes pillBreathe {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.45; }
+    }
 
     /* ── REMOVE BUTTON ── */
     .remove-btn {
@@ -2468,8 +2493,11 @@
     async function saveAnnouncement() {
       const text = document.getElementById('announcement-text').value.trim();
       if (!text) return;
+      const pill = document.getElementById('announcement-saved');
+      let failure = sb ? null : 'connection unavailable';
       try {
         if (sb) {
+          setSavePill(pill, 'saving');
           const { error } = await sb.from('wedding_selections').upsert({
             client_key: getClientKey(),
             section_id: 'announcement',
@@ -2480,13 +2508,16 @@
             entered_by: 'client',
             updated_at: new Date().toISOString()
           }, { onConflict: 'client_key,section_id' });
-          if (error) console.log('Announcement save error:', error);
+          if (error) { console.log('Announcement save error:', error); failure = error; }
         }
-      } catch(e) { console.log('Announcement save error:', e); }
+      } catch(e) { console.log('Announcement save error:', e); failure = e || 'save failed'; }
       updateAnnouncingAs(text);
-      const pill = document.getElementById('announcement-saved');
-      pill.classList.add('visible');
-      setTimeout(() => pill.classList.remove('visible'), 3000);
+      // Previously this said "Saved" whether or not the write landed.
+      if (failure) { setSavePill(pill, 'error', failure); return; }   // an error stays up
+      setSavePill(pill, 'saved');
+      setTimeout(() => {
+        if (!pill.classList.contains('is-error') && !pill.classList.contains('is-saving')) pill.classList.remove('visible');
+      }, 3000);
     }
 
     // Updates the brochure headline. When `text` is set, display the announcement with leading/trailing
@@ -2550,15 +2581,39 @@
       _fitHeadlineResizeTimer = setTimeout(fitHeadlineToOneLine, 150);
     });
 
+    // ── SAVED PILL STATES ──
+    // One place that knows the pill's three looks: 'saving' (in flight),
+    // 'saved', and 'error'. Always go through here rather than writing
+    // textContent directly, or a stale .is-error class outlives the failure.
+    function setSavePill(pill, state, detail) {
+      if (!pill) return;
+      pill.classList.remove('is-saving', 'is-error');
+      pill.removeAttribute('title');
+      pill.setAttribute('role', 'status');
+      if (state === 'saving') {
+        pill.textContent = 'Saving…';
+        pill.classList.add('is-saving');
+      } else if (state === 'error') {
+        pill.textContent = '⚠ ' + saveErrorMessage(detail, navigator.onLine);
+        pill.classList.add('is-error');
+        const raw = detail && (detail.message || detail.code || String(detail));
+        if (raw) pill.title = raw;   // the real reason, for whoever is debugging
+      } else {
+        pill.textContent = '✓ Saved';
+      }
+      pill.classList.add('visible');
+    }
+
     // ── SAVE SELECTION TO SUPABASE ──
     async function saveSelection(sectionId, spotifyUrl, songTitle, artist) {
       const savedPill = document.getElementById(sectionId + '-saved');
       try {
         if (!sb) {
           console.log('Save skipped: Supabase client not initialized');
-          if (savedPill) { savedPill.textContent = '⚠ Connection error'; savedPill.classList.add('visible'); }
+          setSavePill(savedPill, 'error', 'connection unavailable');
           return false;
         }
+        setSavePill(savedPill, 'saving');
         const { error } = await sb.from('wedding_selections').upsert({
           client_key: getClientKey(),
           section_id: sectionId,
@@ -2570,22 +2625,23 @@
         }, { onConflict: 'client_key,section_id' });
         if (error) {
           console.log('Save error:', error);
-          if (savedPill) { savedPill.textContent = '⚠ ' + (error.message || error.code || 'Save failed'); savedPill.classList.add('visible'); }
+          setSavePill(savedPill, 'error', error);
           return false;
         }
-        if (savedPill) { savedPill.textContent = '✓ Saved'; savedPill.classList.add('visible'); }
+        setSavePill(savedPill, 'saved');
         return true;
       } catch (err) {
         console.log('Save error:', err);
-        if (savedPill) { savedPill.textContent = '⚠ ' + (err.message || 'Save failed'); savedPill.classList.add('visible'); }
+        setSavePill(savedPill, 'error', err);
         return false;
       }
     }
 
     // ── SAVE NOTES TO SUPABASE ──
+    // Returns null on success, or the error (truthy) so the caller can show it.
     async function saveNotes(sectionId, notes) {
       try {
-        if (!sb) return;
+        if (!sb) return 'connection unavailable';
         const { error } = await sb.from('wedding_selections').upsert({
           client_key: getClientKey(),
           section_id: sectionId + '-notes',
@@ -2593,9 +2649,11 @@
           entered_by: 'client',
           updated_at: new Date().toISOString()
         }, { onConflict: 'client_key,section_id' });
-        if (error) console.log('Save notes error:', error);
+        if (error) { console.log('Save notes error:', error); return error; }
+        return null;
       } catch (err) {
         console.log('Save notes error:', err);
+        return err || 'save failed';
       }
     }
 
@@ -2608,7 +2666,7 @@
 
       if (linkInput) linkInput.value = '';
       if (embedArea) embedArea.innerHTML = '';
-      if (savedPill) savedPill.classList.remove('visible');
+      if (savedPill) savedPill.classList.remove('visible', 'is-saving', 'is-error');
       if (clearBtn) clearBtn.classList.remove('visible');
       const manualArea = document.getElementById(sectionId + '-manual');
       if (manualArea) {
@@ -3142,8 +3200,7 @@
       showAudioStatus(sectionId, '', false);
       const clearEl = document.getElementById(sectionId + '-clear');
       if (clearEl) clearEl.classList.add('visible');
-      const savedPill = document.getElementById(sectionId + '-saved');
-      if (savedPill) { savedPill.textContent = '✓ Saved'; savedPill.classList.add('visible'); }
+      setSavePill(document.getElementById(sectionId + '-saved'), 'saved');
 
       const knownTitle = songTitles[sectionId];
       if (knownTitle) {
@@ -3533,9 +3590,14 @@
         const baseId = t.id.replace(/-notes$/, '');
         clearTimeout(notesTimers.get(baseId));
         notesTimers.set(baseId, setTimeout(async () => {
-          await saveNotes(baseId, t.value);
           const pill = document.getElementById(baseId + '-saved');
-          if (pill) { pill.classList.add('visible'); setTimeout(() => pill.classList.remove('visible'), 2000); }
+          setSavePill(pill, 'saving');
+          const failure = await saveNotes(baseId, t.value);
+          if (failure) { setSavePill(pill, 'error', failure); return; }   // an error stays up
+          setSavePill(pill, 'saved');
+          if (pill) setTimeout(() => {
+            if (!pill.classList.contains('is-error') && !pill.classList.contains('is-saving')) pill.classList.remove('visible');
+          }, 2000);
         }, 1500));
       });
     })();
