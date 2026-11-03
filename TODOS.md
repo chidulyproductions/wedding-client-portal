@@ -16,12 +16,6 @@ Notify the DJ when a client saves or updates a music selection. Implementation o
 
 **Context:** This was accepted in the CEO review (Expansion #9). Split from PR1 because it requires email service integration.
 
-## Client Portal: Print Styles
-**Priority:** P3 | **Effort:** S (human: ~2 hours / CC: ~5 min)
-**Depends on:** Aesthetic overhaul complete
-
-Add `@media print` styles so clients can print the wedding program. Current glassmorphism and gradient backgrounds won't render on paper. Black text on white, clean Playfair Display serif, no animations.
-
 ## Client Portal: Lock Overlay Font Alignment
 **Priority:** P3 | **Effort:** S (human: ~30 min / CC: ~5 min)
 **Depends on:** Aesthetic overhaul complete

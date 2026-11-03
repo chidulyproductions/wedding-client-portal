@@ -1059,6 +1059,81 @@
       .input-row { flex-direction: column; }
       .btn { width: 100%; justify-content: center; }
     }
+
+    /* ── PRINT ── */
+    /* Printing gives the couple their program: the brochure card alone, black
+       on white in Playfair Display. Everything else on the page is a form for
+       making choices (inputs, embeds, upload controls) and means nothing on
+       paper. The lock overlay is hidden too — a couple whose program is
+       finalized is exactly who wants a printout. */
+    @media print {
+      @page { margin: 0.6in; }
+
+      html, body { background: #fff !important; color: #000 !important; }
+      body::before, body::after { display: none !important; }
+      body > *:not(.program-wrapper) { display: none !important; }
+
+      /* No motion, and undo the opacity:0 start states the entrance
+         animations would normally lift. */
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+      }
+      .program-section, .heart-ornament, .program-couple { opacity: 1 !important; transform: none !important; }
+
+      .program-wrapper { padding: 0; display: block; }
+      .program {
+        max-width: none;
+        background: #fff !important;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+      }
+      .program, .program *, .program *::before, .program *::after { font-family: var(--font-display) !important; color: #000 !important; }
+
+      /* Gradient-clipped headline → plain black type. */
+      .program-couple {
+        background: none !important;
+        -webkit-text-fill-color: #000 !important;
+        white-space: normal;
+      }
+      /* No announcement yet: print nothing rather than the "Announcing As…" prompt. */
+      .program-couple-wrap:has(.program-couple.is-placeholder) { display: none; }
+      .heart-ornament svg { stroke: #000; stroke-dashoffset: 0 !important; }
+
+      /* Gradient rules → hairlines. Backgrounds don't print by default, so
+         rules are drawn as borders. */
+      .program-rule { background: none !important; height: 0; border-top: 1px solid #000; opacity: 1; }
+      .program-rule-thin { background: none !important; height: 0; border-top: 0.5pt solid #000; }
+      .program-rule-thin::after {
+        background: #fff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        opacity: 1;
+      }
+      .program-category { border-bottom: 0.5pt solid #000; }
+
+      /* Unchosen moments: a blank line, not a "Make Selection" button. */
+      .program-make-selection { display: none !important; }
+      .program-song:has(.program-make-selection)::before { content: '— —'; }
+      .program-song-link { text-decoration: none; }
+      .program-footer { opacity: 1; }
+
+      /* Tighter rhythm than on screen so a full program fits on as few pages
+         as possible. Sections may split across pages (keeping each one whole
+         left half-empty pages); a moment and its song never split, and a
+         category heading never ends a page alone. */
+      .program-header { margin-bottom: 16px; }
+      .program-date { margin-bottom: 16px; }
+      .program-section { padding: 16px 0 14px; }
+      .program-category { margin-bottom: 12px; padding-bottom: 8px; }
+      .program-list { gap: 10px; }
+      .program-list li { gap: 2px; break-inside: avoid; page-break-inside: avoid; }
+      .program-category { break-after: avoid; page-break-after: avoid; }
+      .program-footer { margin-top: 20px; }
+    }
   </style>
 </head>
 <body>
