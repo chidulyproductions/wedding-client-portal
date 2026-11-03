@@ -18,6 +18,30 @@ function saveErrorMessage(err, online) {
   return 'Save failed — try again';
 }
 
+// Progress through the program. `moments` is one entry per moment the page
+// knows about (standard and custom): { removed, hasLink, hasAudio }. A moment
+// the couple removed — or a retired one the template hides — is not part of
+// their program, so it counts toward neither number. A moment is selected when
+// a link has been saved for it or a custom edit is attached (an audio-only
+// moment has no link and still counts).
+function momentProgress(moments) {
+  let selected = 0;
+  let total = 0;
+  for (const m of moments || []) {
+    if (!m || m.removed) continue;
+    total++;
+    if (m.hasLink || m.hasAudio) selected++;
+  }
+  return { selected, total };
+}
+
+function progressLabel(progress) {
+  const { selected, total } = progress || {};
+  if (!total) return '';
+  if (selected >= total) return total === 1 ? 'Your moment is selected' : 'All ' + total + ' moments selected';
+  return selected + ' of ' + total + (total === 1 ? ' moment' : ' moments') + ' selected';
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { saveErrorMessage };
+  module.exports = { saveErrorMessage, momentProgress, progressLabel };
 }

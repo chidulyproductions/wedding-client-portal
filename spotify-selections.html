@@ -778,6 +778,35 @@
       margin-bottom: 32px;
     }
 
+    /* Progress — a quiet line under the date: tracked caps plus a hairline
+       bar. Hidden until the saved program has loaded, so it never flashes
+       "0 of 18" before the couple's choices arrive. */
+    .program-progress { margin: -16px auto 28px; text-align: center; }
+    .program-progress[hidden] { display: none; }
+    .program-progress-text {
+      font-family: var(--font-body);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .program-progress-track {
+      width: 140px;
+      height: 2px;
+      margin: 0 auto;
+      background: var(--border-rose);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .program-progress-fill {
+      height: 100%;
+      width: 0;
+      background: var(--blush);
+      transition: width 500ms ease-out;
+    }
+    .program-progress.is-complete .program-progress-text { color: var(--blush); }
+
     .program-rule {
       width: 100%;
       height: 1px;
@@ -1072,6 +1101,7 @@
       html, body { background: #fff !important; color: #000 !important; }
       body::before, body::after { display: none !important; }
       body > *:not(.program-wrapper) { display: none !important; }
+      .program-progress { display: none !important; }   /* form status, not program */
 
       /* No motion, and undo the opacity:0 start states the entrance
          animations would normally lift. */
@@ -1177,6 +1207,12 @@
           </div>
         </div>
         <div class="program-date" id="program-date"></div>
+        <div class="program-progress" id="program-progress" hidden>
+          <div class="program-progress-text" id="program-progress-text" aria-live="polite"></div>
+          <div class="program-progress-track" id="program-progress-bar" role="progressbar" aria-label="Moments selected" aria-valuemin="0">
+            <div class="program-progress-fill" id="program-progress-fill"></div>
+          </div>
+        </div>
         <div class="program-rule"></div>
       </div>
 
@@ -2498,6 +2534,7 @@
       if (brochureItem) brochureItem.style.display = 'none';
       // Delete from Supabase
       deleteSelection(sectionId);
+      refreshProgress();
     }
 
     async function undoRemove(sectionId) {
@@ -2506,6 +2543,9 @@
       // Restore brochure entry
       const brochureItem = document.getElementById('brochure-' + sectionId);
       if (brochureItem) brochureItem.style.display = '';
+      // Counts as unselected until the re-save below lands (deleteSelection
+      // wrote a tombstone), then saveSelection counts it again.
+      refreshProgress();
       // Re-save whatever is in the input. Deliberately NOT silent: silent mode
       // repaints the embed without writing, which left the tombstone row in
       // place, so an undone section came back hidden on the next reload.
@@ -2537,6 +2577,7 @@
         // it — deliberate, and it keeps the bucket free of unreferenced objects.
         const removedAudio = audioUrls[sectionId];
         delete audioUrls[sectionId];
+        delete savedLinks[sectionId];
         clearAudioUI(sectionId);
         const { error } = await sb.from('wedding_selections').upsert({
           client_key: getClientKey(),
@@ -2704,6 +2745,8 @@
           return false;
         }
         setSavePill(savedPill, 'saved');
+        savedLinks[sectionId] = !!spotifyUrl;
+        refreshProgress();
         return true;
       } catch (err) {
         console.log('Save error:', err);
@@ -2769,7 +2812,9 @@
       const clearedAudio = audioUrls[sectionId];
       delete audioUrls[sectionId];
       delete songTitles[sectionId];
+      delete savedLinks[sectionId];
       clearAudioUI(sectionId);
+      refreshProgress();
       if (clearedAudio) await deleteAudioObject(clearedAudio);
 
       // Delete the row entirely so section loads fresh on next visit
@@ -2799,6 +2844,33 @@
     const songTitles = {};   // sectionId -> latest known title, for the download filename
     const songArtists = {};  // sectionId -> latest known artist, so a retitle doesn't drop it
     let portalLocked = false;
+    const savedLinks = {};  // sectionId -> true once a link for it is in the database
+
+    // ── PROGRESS ──
+    // Moments selected out of the moments in this couple's program. Called after
+    // anything that can change either number; it reads current state rather
+    // than being told what changed, so a missed call self-corrects on the next.
+    let progressReady = false;  // stays false if the saved program failed to load
+    function refreshProgress() {
+      const wrap = document.getElementById('program-progress');
+      if (!wrap || !progressReady) return;
+      const progress = momentProgress(Object.keys(sectionProgramMap).map(id => {
+        const section = document.getElementById('section-' + id);
+        return {
+          removed: !section || section.classList.contains('removed'),
+          hasLink: !!savedLinks[id],
+          hasAudio: !!audioUrls[id],
+        };
+      }));
+      wrap.hidden = progress.total === 0;
+      wrap.classList.toggle('is-complete', progress.total > 0 && progress.selected >= progress.total);
+      document.getElementById('program-progress-text').textContent = progressLabel(progress);
+      const bar = document.getElementById('program-progress-bar');
+      bar.setAttribute('aria-valuemax', String(progress.total));
+      bar.setAttribute('aria-valuenow', String(progress.selected));
+      const pct = progress.total ? (100 * progress.selected / progress.total) : 0;
+      document.getElementById('program-progress-fill').style.width = pct + '%';
+    }
 
     // Rows are anon-writable (RLS is off), so a stored audio_url is untrusted
     // input. Only URLs inside our own bucket are ever handed to an <audio> src
@@ -3238,6 +3310,7 @@
         return;
       }
       audioUrls[sectionId] = publicUrl;
+      refreshProgress();
       if (previous && previous !== publicUrl) await deleteAudioObject(previous);
 
       // Name the cut from the file's ID3 title — the string Serato displays and
@@ -3289,6 +3362,7 @@
       const url = audioUrls[sectionId];
       delete audioUrls[sectionId];
       clearAudioUI(sectionId);
+      refreshProgress();
       if (url) {
         await saveAudioUrl(sectionId, null);
         await saveAudioName(sectionId, null);  // the name describes a file that no longer exists
@@ -3420,6 +3494,7 @@
             const linkInput = document.getElementById(sid + '-link');
             if (linkInput) {
               linkInput.value = row.spotify_url;
+              savedLinks[sid] = true;
               sectionsWithData.add(sid);
               const platform = detectPlatform(row.spotify_url);
               if (platform === 'unknown') {
@@ -3493,9 +3568,11 @@
           }
         });
 
+        return true;
       } catch (err) {
         console.log('Load error:', err);
       }
+      return false;
     }
 
     // ── CUSTOM MOMENTS ──
@@ -3566,6 +3643,7 @@
 
       // Add brochure entry
       addCustomBrochureItem(id, label, anchorBefore);
+      refreshProgress();   // a new moment grows the total
 
       // Save the custom moment definition to Supabase
       if (!savedId) {
@@ -3647,7 +3725,9 @@
       checkLockStatus();
       initMakeSelectionLinks();
       initAudioControls();
-      loadSelections();
+      // The progress line appears only once the saved program is in. If the
+      // load failed it stays hidden rather than claiming "0 of 18".
+      loadSelections().then(ok => { progressReady = !!ok; refreshProgress(); });
     });
 
     // ── NOTES AUTO-SAVE ──

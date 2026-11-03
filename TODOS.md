@@ -16,12 +16,6 @@ Notify the DJ when a client saves or updates a music selection. Implementation o
 
 **Context:** This was accepted in the CEO review (Expansion #9). Split from PR1 because it requires email service integration.
 
-## Client Portal: Progress Indicator
-**Priority:** P3 | **Effort:** S
-**Depends on:** Aesthetic overhaul complete
-
-Add a progress indicator to the client portal showing how many moments have been selected out of the total. Style TBD — could be a ring, bar, or counter. Should update live as clients make selections.
-
 ## Client Portal: Admin Dashboard Redesign
 **Priority:** P3 | **Effort:** L
 **Depends on:** Aesthetic overhaul complete
