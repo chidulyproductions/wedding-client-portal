@@ -16,12 +16,6 @@ Notify the DJ when a client saves or updates a music selection. Implementation o
 
 **Context:** This was accepted in the CEO review (Expansion #9). Split from PR1 because it requires email service integration.
 
-## Client Portal: Lock Overlay Font Alignment
-**Priority:** P3 | **Effort:** S (human: ~30 min / CC: ~5 min)
-**Depends on:** Aesthetic overhaul complete
-
-The lock overlay uses inline `style=""` with Bodoni Moda/Raleway. After the aesthetic overhaul, the overlay will use old fonts while the rest of the page uses Playfair Display/DM Sans. Update inline styles on `#locked-overlay` to match the new font stack.
-
 ## Client Portal: Progress Indicator
 **Priority:** P3 | **Effort:** S
 **Depends on:** Aesthetic overhaul complete
@@ -53,3 +47,9 @@ Add an "Uploaded audio" list to each client in admin.html — every section with
 **Depends on:** Custom audio upload shipped
 
 The `client-audio` bucket accepts anon uploads (the anon key is public), capped at 25 MB per file but not in total, against a 1 GB free-tier ceiling. No monitoring exists. Worth either a periodic size check or scoping uploads to a client-key-prefixed path so abuse can be traced and rate-limited. Raised in the Task 1 code-quality review.
+
+## Client Portal: Lock Overlay Contact Link Is Broken
+**Priority:** P2 | **Effort:** S (CC: ~5 min, once the address is chosen)
+**Depends on:** Chris choosing which contact address to show
+
+The last line of `#locked-overlay` renders as "[EMAIL PROTECTED]" and links to `/cdn-cgi/l/email-protection`. That is Cloudflare's email obfuscation, saved into the HTML from a Cloudflare-served copy of the page; GitHub Pages has no `/cdn-cgi/` and no decoder script, so locked couples see a dead link instead of a way to reach the DJ. Found while doing the overlay font alignment (2026-11-03) and left alone because the fix means writing a contact address into a public repo, which is Chris's call. While there, the overlay's colours (`#a07840` gold, `#1a1218`, `#7a7275`, `#b06878`) are still the pre-overhaul palette; only its fonts were aligned.
