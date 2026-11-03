@@ -1086,8 +1086,8 @@
           <li id="brochure-guest-seating"><span class="program-moment">Guest Seating</span><span class="program-song">— —</span></li>
           <li id="brochure-wedding-party-walk"><span class="program-moment">Wedding Party Walk</span><span class="program-song">— —</span></li>
           <li id="brochure-bride-walk"><span class="program-moment">Bride Walk</span><span class="program-song">— —</span></li>
-          <li id="brochure-the-kiss"><span class="program-moment">The Kiss</span><span class="program-song">— —</span></li>
-          <li id="brochure-ceremony-exit"><span class="program-moment">Ceremony Exit</span><span class="program-song">— —</span></li>
+          <li id="brochure-the-kiss"><span class="program-moment">Recessional</span><span class="program-song">— —</span></li>
+          <li id="brochure-ceremony-exit" style="display:none"><span class="program-moment">Ceremony Exit</span><span class="program-song">— —</span></li>
         </ul>
       </div>
 
@@ -1268,7 +1268,7 @@
       <div class="section-header" style="position:relative;">
         <div class="section-header-left">
           <div class="section-number">Song Link</div>
-          <div class="section-title">THE KISS</div>
+          <div class="section-title">RECESSIONAL</div>
         </div>
         <button class="remove-btn" onclick="removeSection('the-kiss')" id="remove-the-kiss" title="Remove section">🗑</button>
       </div>
@@ -1294,7 +1294,10 @@
     </div>
 
     <!-- CEREMONY EXIT -->
-    <div class="music-section" id="section-ceremony-exit" data-section="ceremony-exit">
+    <!-- Retired: duplicated the recessional (see #section-the-kiss). Hidden by
+         default so it never appears for a new couple; loadSelections un-hides it
+         for couples whose song already lives here. -->
+    <div class="music-section removed" id="section-ceremony-exit" data-section="ceremony-exit">
       <div class="section-header" style="position:relative;">
         <div class="section-header-left">
           <div class="section-number">Song Link</div>
@@ -1778,21 +1781,35 @@
       <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.1s ease both;">
         <div class="section-header">
           <div>
-            <div class="section-number">Guest Seating</div>
-            <div class="section-title">WELCOME</div>
+            <div class="section-number">Piano</div>
+            <div class="section-title">GUEST SEATING</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
-          <iframe src="https://open.spotify.com/embed/playlist/7n5PT8DgebKlRXNBaBX7Pt?utm_source=generator&theme=0" width="100%" height="152" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+          <iframe src="https://open.spotify.com/embed/playlist/5bDqffajPvlIh4hOj98LHm?utm_source=generator&theme=0" width="100%" height="152" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+        </div>
+      </div>
+
+      <!-- Guest Seating — vocal. Sits immediately after the piano card so the
+           two guest-seating options render side by side in the grid. -->
+      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.2s ease both;">
+        <div class="section-header">
+          <div>
+            <div class="section-number">Vocal</div>
+            <div class="section-title">GUEST SEATING</div>
+          </div>
+        </div>
+        <div class="section-body" style="padding: 20px 24px;">
+          <iframe src="https://open.spotify.com/embed/playlist/7eDrLKGCPZSEHGaDkCpqBr?utm_source=generator&theme=0" width="100%" height="152" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
         </div>
       </div>
 
       <!-- Bride Walk -->
-      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.2s ease both;">
+      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.3s ease both;">
         <div class="section-header">
           <div>
-            <div class="section-number">Processional</div>
-            <div class="section-title">BRIDE WALK</div>
+            <div class="section-number">Bride Walk</div>
+            <div class="section-title">PROCESSIONAL</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1801,11 +1818,11 @@
       </div>
 
       <!-- The Kiss -->
-      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.3s ease both;">
+      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.4s ease both;">
         <div class="section-header">
           <div>
-            <div class="section-number">Recessional</div>
-            <div class="section-title">THE KISS</div>
+            <div class="section-number">The Kiss</div>
+            <div class="section-title">RECESSIONAL</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1814,7 +1831,7 @@
       </div>
 
       <!-- Cocktails / Dinner -->
-      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.4s ease both;">
+      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.5s ease both;">
         <div class="section-header">
           <div>
             <div class="section-number">Reception</div>
@@ -1826,12 +1843,26 @@
         </div>
       </div>
 
-      <!-- Parent Dances -->
-      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.5s ease both;">
+      <!-- The Grand Entrance — reception, not a ceremony walk. Sits after
+           cocktails/dinner to match sectionProgramMap's reception order. -->
+      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.6s ease both;">
         <div class="section-header">
           <div>
-            <div class="section-number">Parent Dances</div>
-            <div class="section-title">FAMILY MOMENTS</div>
+            <div class="section-number">Wedding Party / Bride Entry</div>
+            <div class="section-title">THE GRAND ENTRANCE</div>
+          </div>
+        </div>
+        <div class="section-body" style="padding: 20px 24px;">
+          <iframe src="https://open.spotify.com/embed/playlist/3JykspfC1ZPqR39C3SPOCC?utm_source=generator&theme=0" width="100%" height="152" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+        </div>
+      </div>
+
+      <!-- Parent Dances -->
+      <div class="music-section playlist-section" style="animation: fadeUp 0.5s 0.7s ease both;">
+        <div class="section-header">
+          <div>
+            <div class="section-number">Family Moments</div>
+            <div class="section-title">PARENT DANCES</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1840,11 +1871,11 @@
       </div>
 
       <!-- First Dance -->
-      <div class="music-section" style="animation: fadeUp 0.5s 0.6s ease both;">
+      <div class="music-section" style="animation: fadeUp 0.5s 0.8s ease both;">
         <div class="section-header">
           <div>
-            <div class="section-number">First Dance</div>
-            <div class="section-title">FOR THE FIRST TIME</div>
+            <div class="section-number">For The First Time</div>
+            <div class="section-title">FIRST DANCE</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1853,11 +1884,11 @@
       </div>
 
       <!-- Cake Cutting -->
-      <div class="music-section" style="animation: fadeUp 0.5s 0.7s ease both;">
+      <div class="music-section" style="animation: fadeUp 0.5s 0.9s ease both;">
         <div class="section-header">
           <div>
-            <div class="section-number">Cake Cutting</div>
-            <div class="section-title">CELEBRATION</div>
+            <div class="section-number">Celebration</div>
+            <div class="section-title">CAKE CUTTING</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1866,11 +1897,11 @@
       </div>
 
       <!-- Bouquet Toss -->
-      <div class="music-section" style="animation: fadeUp 0.5s 0.8s ease both;">
+      <div class="music-section" style="animation: fadeUp 0.5s 1.0s ease both;">
         <div class="section-header">
           <div>
-            <div class="section-number">Bouquet Toss</div>
-            <div class="section-title">FLOWERS</div>
+            <div class="section-number">Flowers</div>
+            <div class="section-title">BOUQUET TOSS</div>
           </div>
         </div>
         <div class="section-body" style="padding: 20px 24px;">
@@ -1957,11 +1988,67 @@
       updateAnnouncingAs('');
       if (dateParam) {
         const d = new Date(dateParam + 'T00:00:00');
-        const formatted = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        document.getElementById('program-date').textContent = formatted;
+        document.getElementById('program-date').textContent = formatWeddingDate(d);
       }
     }
 
+
+    // ── DATE ──
+    // "August 29th, 2026". Intl has no ordinal-day option, so the month and
+    // year come from Intl and the day gets a suffix from the usual English
+    // rule — 11th/12th/13th are the exceptions that break the mod-10 pattern.
+    function ordinalDay(n) {
+      const rem100 = n % 100;
+      if (rem100 >= 11 && rem100 <= 13) return n + 'th';
+      return n + ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th');
+    }
+
+    function formatWeddingDate(d) {
+      if (isNaN(d)) return '';
+      const month = d.toLocaleDateString('en-US', { month: 'long' });
+      return month + ' ' + ordinalDay(d.getDate()) + ', ' + d.getFullYear();
+    }
+
+    // ── ARTIST CREDITS ──
+    // Spotify credits a duo as its own artist alongside each member, so
+    // "Can't Hold Us" arrives as "Macklemore, Ryan Lewis, Macklemore & Ryan
+    // Lewis, Ray Dalton" — every name twice. Drop any credit whose words are
+    // already contained in another credit (the members inside the duo), then
+    // drop anyone the title's feat. clause already names. Falls back to the
+    // original string rather than ever returning empty.
+    function artistTokens(s) {
+      return (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean);
+    }
+
+    // Does token list A contain token list B as a contiguous run? Token-based
+    // rather than substring so "Sia" is not treated as part of "Sian".
+    function tokensContain(a, b) {
+      if (!b.length || b.length > a.length) return false;
+      for (let i = 0; i + b.length <= a.length; i++) {
+        if (b.every((t, j) => a[i + j] === t)) return true;
+      }
+      return false;
+    }
+
+    function tidyArtists(artistStr, title) {
+      const parts = (artistStr || '').split(',').map(s => s.trim()).filter(Boolean);
+      if (parts.length < 2) return artistStr || '';
+
+      // A credit is redundant when another, longer credit spells it out.
+      let kept = parts.filter(p => !parts.some(other => {
+        const A = artistTokens(other), B = artistTokens(p);
+        return other !== p && B.length < A.length && tokensContain(A, B);
+      }));
+
+      const feat = (title || '').match(/\bfeat\.?\s+([^)]+)/i);
+      if (feat) {
+        const featToks = artistTokens(feat[1]);
+        const trimmed = kept.filter(p => !tokensContain(featToks, artistTokens(p)));
+        if (trimmed.length) kept = trimmed;
+      }
+
+      return kept.length ? kept.join(', ') : artistStr;
+    }
 
     // ── SECTION TO PROGRAM MAPPING ──
     const sectionProgramMap = {
@@ -1969,7 +2056,7 @@
       'guest-seating':            { category: 'ceremony',  label: 'Guest Seating' },
       'wedding-party-walk':       { category: 'ceremony',  label: 'Wedding Party Walk' },
       'bride-walk':               { category: 'ceremony',  label: 'Bride Walk' },
-      'the-kiss':                 { category: 'ceremony',  label: 'The Kiss' },
+      'the-kiss':                 { category: 'ceremony',  label: 'Recessional' },
       'ceremony-exit':            { category: 'ceremony',  label: 'Ceremony Exit' },
       // Evening Reception (merged from former Reception + Special Dances + Cake Cutting + new Second Look Entrance)
       'cocktail-hour':            { category: 'reception', label: 'Cocktail Hour' },
@@ -2034,7 +2121,11 @@
             displayText = artist ? artist + ' - ' + title : title;
           }
           song.innerHTML = '<a href="#section-' + sectionId + '" class="program-song-link">' + displayText + '</a>';
-          if (audioUrls[sectionId]) {
+          // The tag only earns its place when the edit's own title doesn't
+          // already say so. Chris names his cuts "… (K+L Wedding Edit)", which
+          // made the brochure read "(K+L Wedding Edit) CUSTOM EDIT". An untitled
+          // or plainly-named edit still needs the marker, so keep it for those.
+          if (audioUrls[sectionId] && !/\bedit\b/i.test(title || '')) {
             const tag = document.createElement('span');
             tag.className = 'program-edit-tag';
             tag.textContent = 'custom edit';
@@ -2094,7 +2185,7 @@
           if (fnRes.ok) {
             const data = await fnRes.json();
             title = data.title || null;
-            artist = data.artist || '';
+            artist = tidyArtists(data.artist || '', title);
           } else {
             // Fallback: oEmbed (title-only) so the form still progresses if
             // the edge function is unhealthy. Artist will be empty here.
@@ -2820,6 +2911,10 @@
       if (!section) return;
       section.classList.toggle('has-edit', !!hasAudio);
 
+      // The badge stays: it reads "Song Link" by default, which stops being
+      // true the moment a file replaces the link, so "Custom Edit" is the
+      // honest label. The duplication lived in the attach button next to it —
+      // see setAttachLabel below, which now says just "Replace".
       const badge = section.querySelector('.section-number');
       if (badge) {
         if (hasAudio) {
@@ -2936,7 +3031,9 @@
 
       area.replaceChildren(label, player, actions);
       area.classList.add('visible');
-      setAttachLabel(sectionId, '🎵 Replace custom edit');
+      // "Replace" alone — the badge directly above already says Custom Edit,
+      // and the player between them is titled with the edit's own name.
+      setAttachLabel(sectionId, '🎵 Replace');
       applyEditLayout(sectionId, true);
     }
 
@@ -3148,7 +3245,7 @@
             const customId = sid.replace('custom-def-', '');
             const label = row.notes;
             if (label && row.song_title === '__custom_def__') {
-              createCustomMoment(customId, label);
+              createCustomMoment(customId, label, row.anchor_before);
             }
             return;
           }
@@ -3176,6 +3273,15 @@
             deletedSections.add(sid);
             return;
           }
+
+          // Past the tombstone check means this row has real content, so the
+          // section is shown even when the template hides it by default.
+          // ceremony-exit is retired (it duplicated the recessional), but
+          // couples who already put a song there keep it, editable.
+          const retiredEl = document.getElementById('section-' + sid);
+          if (retiredEl) retiredEl.classList.remove('removed');
+          const retiredBrochureEl = document.getElementById('brochure-' + sid);
+          if (retiredBrochureEl) retiredBrochureEl.style.display = '';
 
           // Handle song links (Spotify, YouTube, SoundCloud, or unknown platform)
           if (row.spotify_url) {
@@ -3231,6 +3337,30 @@
           if (undoEl) undoEl.classList.add('visible');
         });
 
+        // Per-client reordering. A standard section carrying anchor_before is
+        // moved to sit immediately above that anchor, on the form and on the
+        // brochure. This is how one couple gets a different program order
+        // without changing the template order every other client sees.
+        // custom-def rows are skipped — createCustomMoment already placed them.
+        Object.values(latestBySection).forEach(row => {
+          if (!row.anchor_before) return;
+          if (row.section_id.startsWith('custom-def-')) return;
+          const el = document.getElementById('section-' + row.section_id);
+          const anchor = document.getElementById('section-' + row.anchor_before);
+          if (el && anchor && el !== anchor) {
+            // Carry the undo bar along, or it is orphaned above a section that
+            // moved out from under it.
+            const undo = document.getElementById('undo-' + row.section_id);
+            anchor.parentNode.insertBefore(el, anchor);
+            if (undo) el.parentNode.insertBefore(undo, el.nextSibling);
+          }
+          const li = document.getElementById('brochure-' + row.section_id);
+          const anchorLi = document.getElementById('brochure-' + row.anchor_before);
+          if (li && anchorLi && li !== anchorLi && li.parentNode === anchorLi.parentNode) {
+            anchorLi.parentNode.insertBefore(li, anchorLi);
+          }
+        });
+
       } catch (err) {
         console.log('Load error:', err);
       }
@@ -3240,7 +3370,10 @@
 
     let customMomentCount = 0;
 
-    function createCustomMoment(savedId, savedLabel) {
+    // anchorBefore (from the custom-def row) names a section this moment renders
+    // immediately before, on both the form and the brochure. Null keeps the old
+    // behaviour: appended to the trailing custom-moments bucket.
+    function createCustomMoment(savedId, savedLabel, anchorBefore) {
       const nameInput = document.getElementById('custom-moment-name');
       const label = savedLabel || (nameInput ? nameInput.value.trim() : '');
       if (!label) return;
@@ -3281,14 +3414,26 @@
           <span>Section removed</span>
           <button class="undo-btn" onclick="undoRemove('${id}')">↩ Undo</button>
         </div>`;
-      container.appendChild(wrapper);
+      // Anchored moments are spliced into the standard run instead of the
+      // trailing bucket. Move the wrapper's children rather than the wrapper
+      // itself — the sections flow expects .music-section as a direct child, and
+      // an extra div around it would sit in that flow as an unstyled node.
+      const anchorEl = anchorBefore && document.getElementById('section-' + anchorBefore);
+      if (anchorEl) {
+        while (wrapper.firstChild) anchorEl.parentNode.insertBefore(wrapper.firstChild, anchorEl);
+      } else {
+        container.appendChild(wrapper);
+      }
       initAudioControls();  // the new section needs its attach control too
 
-      // Register in sectionProgramMap
-      sectionProgramMap[id] = { category: 'custom', label: label };
+      // Register in sectionProgramMap. An anchored moment inherits its
+      // neighbour's category so the brochure groups it with the right block
+      // rather than stranding it under "custom".
+      const anchorEntry = anchorBefore ? sectionProgramMap[anchorBefore] : null;
+      sectionProgramMap[id] = { category: anchorEntry ? anchorEntry.category : 'custom', label: label };
 
       // Add brochure entry
-      addCustomBrochureItem(id, label);
+      addCustomBrochureItem(id, label, anchorBefore);
 
       // Save the custom moment definition to Supabase
       if (!savedId) {
@@ -3307,15 +3452,35 @@
       }
     }
 
-    function addCustomBrochureItem(id, label) {
+    function addCustomBrochureItem(id, label, anchorBefore) {
       const list = document.getElementById('brochure-custom-list');
       const section = document.getElementById('brochure-custom-section');
-      if (!list || !section) return;
       // Don't add duplicate
       if (document.getElementById('brochure-' + id)) return;
+
+      // Built with DOM methods, not a markup string: the label is client-typed
+      // and RLS is off on this table, so it is untrusted input.
       const li = document.createElement('li');
       li.id = 'brochure-' + id;
-      li.innerHTML = '<span class="program-moment">' + label + '</span><span class="program-song">— —</span>';
+      const moment = document.createElement('span');
+      moment.className = 'program-moment';
+      moment.textContent = label;
+      const song = document.createElement('span');
+      song.className = 'program-song';
+      song.textContent = '— —';
+      li.appendChild(moment);
+      li.appendChild(song);
+
+      // Anchored: drop it into whichever group list holds the anchor, right
+      // above it. The custom group stays hidden — revealing it for a moment
+      // that is not in it would print an empty heading.
+      const anchorLi = anchorBefore && document.getElementById('brochure-' + anchorBefore);
+      if (anchorLi && anchorLi.parentNode) {
+        anchorLi.parentNode.insertBefore(li, anchorLi);
+        return;
+      }
+
+      if (!list || !section) return;
       list.appendChild(li);
       section.style.display = '';
     }
