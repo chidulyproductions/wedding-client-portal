@@ -6,6 +6,8 @@ A premium wedding DJ client portal. The design communicates elegance, warmth, an
 ## Color Tokens
 
 ### Client Portal — Light Mode (default)
+> Superseded by the aesthetic overhaul. The live client-portal tokens are the `:root` custom properties in `spotify-selections.html`: rose gold `--blush` `#B76E79`, `--champagne` `#F7E7CE`, `--lavender` `#D5B9E4`, `--charcoal` `#2D2D2D`, `--muted` `#9A8A8E`, and cream `--brochure-bg` `#FFFDF7` cards on a dark `#1a1818` page. The old values below are kept for reference only.
+
 ```
 --background:  #f5f0ea   warm cream
 --card:        #faf6f1   off-white
@@ -52,20 +54,22 @@ A premium wedding DJ client portal. The design communicates elegance, warmth, an
 ## Typography
 
 ### Font Stack
-- **Display/Headings:** Bodoni Moda (Google Fonts) — serif, italic for emphasis
-- **Body/UI:** Raleway (Google Fonts) — sans-serif, weights 200-800
+- **Display/Headings:** Playfair Display (Google Fonts) — serif, italic for emphasis. CSS token `--font-display`.
+- **Body/UI:** DM Sans (Google Fonts) — sans-serif, weights 300/400/500/700. CSS token `--font-body`.
 - **Landing page:** Bebas Neue (display) + DM Sans (body)
 
 ### Type Scale
+> Sizes and styles below predate the client-portal aesthetic overhaul (only the font names have been updated). Where they disagree with the CSS in `spotify-selections.html`, the CSS wins.
+
 | Role | Font | Size | Weight | Style | Tracking |
 |------|------|------|--------|-------|----------|
-| Display | Bodoni Moda | 2.5rem (40px) | 700 | italic | normal |
-| Page title | Bodoni Moda | 2rem (32px) | 700 | italic | normal |
-| Section group | Bodoni Moda | 1.5rem (24px) | 400 | italic | normal |
-| Section title | Raleway | 0.85rem (13.6px) | 600 | uppercase | 0.2em |
-| Body | Raleway | 0.95rem (15.2px) | 300 | normal | normal |
-| Caption | Raleway | 0.8rem (12.8px) | 300 | italic | normal |
-| Badge | Raleway | 0.7rem (11.2px) | 600 | uppercase | 0.2em |
+| Display | Playfair Display | 2.5rem (40px) | 700 | italic | normal |
+| Page title | Playfair Display | 2rem (32px) | 700 | italic | normal |
+| Section group | Playfair Display | 1.5rem (24px) | 400 | italic | normal |
+| Section title | DM Sans | 0.85rem (13.6px) | 600 | uppercase | 0.2em |
+| Body | DM Sans | 0.95rem (15.2px) | 300 | normal | normal |
+| Caption | DM Sans | 0.8rem (12.8px) | 300 | italic | normal |
+| Badge | DM Sans | 0.7rem (11.2px) | 600 | uppercase | 0.2em |
 
 ## Spacing Scale
 Based on 4px grid (Tailwind default):
@@ -110,7 +114,7 @@ Based on 4px grid (Tailwind default):
 
 ### Brochure / Program
 - Centered card, distinct from selection cards (no top accent, larger padding)
-- Couple names: Display type, Bodoni Moda italic
+- Couple names: Display type, Playfair Display italic
 - Section list: dot-leader pattern (moment ......... song title)
 - "Make Selection" links: blush color, scroll to corresponding section
 - Progress ring: inside brochure header, gold fill animation

@@ -1,46 +1,35 @@
 # TODOS
 
-## PR2: Spotify Folder Export
-**Priority:** P2 | **Effort:** L (human: ~1 week / CC: ~45 min)
-**Depends on:** PR1 core rebuild complete + Spotify developer app approved
-
-Export the wedding music program to Spotify. Each wedding moment becomes a Spotify playlist with the selected song. Requires Spotify developer app registration, OAuth user authorization flow, and Spotify Web API playlist creation calls. Build an /admin/spotify-export page with OAuth connect button and per-client export action. The DJ authenticates their Spotify account once, then can export any client's program.
-
-**Context:** This was accepted in the CEO review (Expansion #10) but split from PR1 because Spotify developer app approval may not be instant.
-
-## PR2: Email Notifications on Client Updates
-**Priority:** P2 | **Effort:** M (human: ~3 days / CC: ~20 min)
-**Depends on:** PR1 core rebuild complete + email service account (Resend free tier recommended)
-
-Notify the DJ when a client saves or updates a music selection. Implementation options: (a) Supabase database webhook → Resend API, or (b) Supabase Edge Function trigger on wedding_selections INSERT/UPDATE. Should batch/debounce notifications to avoid spamming (e.g., one email per client per 15 minutes summarizing changes).
-
-**Context:** This was accepted in the CEO review (Expansion #9). Split from PR1 because it requires email service integration.
-
 ## Client Portal: Admin Dashboard Redesign
 **Priority:** P3 | **Effort:** L
-**Depends on:** Aesthetic overhaul complete
+**Depends on:** nothing (the client-portal aesthetic overhaul has landed)
 
 Bring admin.html into the same aesthetic family as the redesigned client portal. Target audience: other wedding DJs if/when this becomes a product.
 
-## Post-Deploy: Decommission Original Site
-**Priority:** P1 (after PR1 deployed) | **Effort:** S (human: ~2 hours / CC: ~10 min)
-**Depends on:** PR1 deployed to Vercel + validated with at least 2 real clients
+## Remove the Legacy Netlify Functions
+**Priority:** P3 | **Effort:** S (human: ~30 min / CC: ~5 min)
+**Depends on:** Chris disconnecting the Netlify site in the Netlify dashboard
 
-Clean up the original infrastructure: remove Netlify functions (save-selection.js, load-selections.js, spotify.js), archive original HTML files, decommission Supabase edge functions (save-selection, load-selections), update DNS if applicable, and remove netlify.toml.
+`netlify/functions/load-selections.js` and `save-selection.js` are old copies that no page calls. The client page uses the **Supabase** functions of the same names, which must stay. A Netlify site is still connected to this repo and redeploys on every push, but clients don't use it. Once that site is disconnected, delete `netlify/` and `netlify.toml` and drop the Netlify references in `CLAUDE.md`.
 
-**Context:** Both sites hit the same Supabase DB. Running them in parallel during migration is safe, but leaving both live long-term risks confusion and stale behavior.
+**Context:** This entry used to be "Decommission Original Site". It assumed a Next.js/Vercel rebuild (`REBUILD-PLAN.md`) that never shipped, and it listed the Supabase `load-selections` / `save-selection` functions for removal. Those are now the live load and save path, so removing them would break the portal. Rewritten 2026-11-04.
 
 ## Admin: Per-Client Uploaded Audio Listing
 **Priority:** P3 | **Effort:** S
-**Depends on:** Custom audio upload shipped
+**Depends on:** nothing (custom audio upload has shipped)
 
 Add an "Uploaded audio" list to each client in admin.html — every section with an `audio_url`, labelled by moment, with download links — so every custom edit for one wedding can be pulled in one pass instead of scrolling the client portal. Deferred from the custom-audio-upload design (2026-08-05); portal-level download was enough to ship.
 
 ## Storage: Watch the client-audio bucket
 **Priority:** P3 | **Effort:** S
-**Depends on:** Custom audio upload shipped
+**Depends on:** nothing (custom audio upload has shipped)
 
-The `client-audio` bucket accepts anon uploads (the anon key is public), capped at 25 MB per file but not in total, against a 1 GB free-tier ceiling. No monitoring exists. Worth either a periodic size check or scoping uploads to a client-key-prefixed path so abuse can be traced and rate-limited. Raised in the Task 1 code-quality review.
+The `client-audio` bucket accepts anon uploads (the anon key is public). Each file is capped at 25 MB, but nothing caps the total. **Budget: 500 MB** (Chris's call, 2026-11-04), roughly 20 max-size files, set below the Supabase free-tier storage quota. Nothing enforces or reports that budget yet. Options:
+- a periodic size check (for example, a scheduled GitHub Action alongside `keepalive.yml` that sums object sizes and fails above ~400 MB);
+- scoping uploads to a client-key-prefixed path so abuse can be traced and rate-limited;
+- a hard cap through a storage policy, which needs a migration.
+
+Raised in the Task 1 code-quality review.
 
 ## Client Portal: Lock Overlay Palette
 **Priority:** P3 | **Effort:** S (CC: ~5 min)
