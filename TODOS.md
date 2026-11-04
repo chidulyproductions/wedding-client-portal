@@ -42,8 +42,8 @@ Add an "Uploaded audio" list to each client in admin.html — every section with
 
 The `client-audio` bucket accepts anon uploads (the anon key is public), capped at 25 MB per file but not in total, against a 1 GB free-tier ceiling. No monitoring exists. Worth either a periodic size check or scoping uploads to a client-key-prefixed path so abuse can be traced and rate-limited. Raised in the Task 1 code-quality review.
 
-## Client Portal: Lock Overlay Contact Link Is Broken
-**Priority:** P2 | **Effort:** S (CC: ~5 min, once the address is chosen)
-**Depends on:** Chris choosing which contact address to show
+## Client Portal: Lock Overlay Palette
+**Priority:** P3 | **Effort:** S (CC: ~5 min)
+**Depends on:** nothing
 
-The last line of `#locked-overlay` renders as "[EMAIL PROTECTED]" and links to `/cdn-cgi/l/email-protection`. That is Cloudflare's email obfuscation, saved into the HTML from a Cloudflare-served copy of the page; GitHub Pages has no `/cdn-cgi/` and no decoder script, so locked couples see a dead link instead of a way to reach the DJ. Found while doing the overlay font alignment (2026-11-03) and left alone because the fix means writing a contact address into a public repo, which is Chris's call. While there, the overlay's colours (`#a07840` gold, `#1a1218`, `#7a7275`, `#b06878`) are still the pre-overhaul palette; only its fonts were aligned.
+`#locked-overlay` uses inline pre-overhaul colours (`#a07840` gold, `#1a1218`, `#7a7275`, `#b06878`) on a cream `rgba(245,240,234,0.97)` backdrop. Its fonts were aligned with the overhaul (2026-11-03) but its colours were not. Swap them for the `:root` tokens (`--blush`, `--charcoal`, `--muted`) and check the result against the dark page behind it.
