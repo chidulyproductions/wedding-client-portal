@@ -6,6 +6,7 @@
   <title>Admin — Chi Duly Productions</title>
   <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;1,6..96,400&family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="portal-helpers.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -849,6 +850,11 @@
       });
 
 
+      // Every value below goes through esc() (HTML text/attributes) or jsArg()
+      // (string arguments inside onclick). Client notes, replies and the Serato
+      // link come from wedding_selections, which anyone with the public anon
+      // key can write, so unescaped they would run script in this signed-in
+      // admin session.
       const rows = visibleClients.map(c => {
         const url = `${BASE_URL}?name=${encodeURIComponent(c.name)}&date=${encodeURIComponent(c.wedding_date)}`;
         const dateFormatted = new Date(c.wedding_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -859,30 +865,31 @@
         // Stored in wedding_selections (not clients) so the client-facing page,
         // which reads with the anon key, can see it too — clients is RLS-blocked.
         const seratoLink = notesMap[ck]?.['dj-setup-link']?.notes || '';
+        const seratoUrl = safeHttpUrl(seratoLink);   // only http(s) is ever opened
         return `
           <tr>
             <td>
-              <div class="client-name">${c.name}</div>
-              <div class="edit-inline-form" id="edit-name-${c.id}">
-                <input class="edit-inline-input" type="text" id="edit-name-input-${c.id}" value="${c.name}" />
-                <button class="edit-inline-save" onclick="saveEditName('${c.id}')">Save</button>
-                <button class="edit-inline-cancel" onclick="hideEdit('edit-name-${c.id}')">✕</button>
+              <div class="client-name">${esc(c.name)}</div>
+              <div class="edit-inline-form" id="edit-name-${esc(c.id)}">
+                <input class="edit-inline-input" type="text" id="edit-name-input-${esc(c.id)}" value="${esc(c.name)}" />
+                <button class="edit-inline-save" onclick="saveEditName(${jsArg(c.id)})">Save</button>
+                <button class="edit-inline-cancel" onclick="hideEdit(${jsArg('edit-name-' + c.id)})">✕</button>
               </div>
             </td>
             <td>
-              <div class="client-date">${dateFormatted}</div>
-              <div class="edit-inline-form" id="edit-date-${c.id}">
-                <input class="edit-inline-input" type="date" id="edit-date-input-${c.id}" value="${c.wedding_date}" />
-                <button class="edit-inline-save" onclick="saveEditDate('${c.id}')">Save</button>
-                <button class="edit-inline-cancel" onclick="hideEdit('edit-date-${c.id}')">✕</button>
+              <div class="client-date">${esc(dateFormatted)}</div>
+              <div class="edit-inline-form" id="edit-date-${esc(c.id)}">
+                <input class="edit-inline-input" type="date" id="edit-date-input-${esc(c.id)}" value="${esc(c.wedding_date)}" />
+                <button class="edit-inline-save" onclick="saveEditDate(${jsArg(c.id)})">Save</button>
+                <button class="edit-inline-cancel" onclick="hideEdit(${jsArg('edit-date-' + c.id)})">✕</button>
               </div>
             </td>
             <td>
-              <div>${c.email}</div>
-              <div class="edit-email-form" id="edit-email-${c.id}">
-                <input class="edit-email-input" type="email" id="edit-email-input-${c.id}" value="${c.email}" />
-                <button class="edit-email-save" onclick="saveEditEmail('${c.id}')">Save</button>
-                <button class="edit-email-cancel" onclick="hideEditEmail('${c.id}')">✕</button>
+              <div>${esc(c.email)}</div>
+              <div class="edit-email-form" id="edit-email-${esc(c.id)}">
+                <input class="edit-email-input" type="email" id="edit-email-input-${esc(c.id)}" value="${esc(c.email)}" />
+                <button class="edit-email-save" onclick="saveEditEmail(${jsArg(c.id)})">Save</button>
+                <button class="edit-email-cancel" onclick="hideEditEmail(${jsArg(c.id)})">✕</button>
               </div>
             </td>
             <td>
@@ -892,58 +899,58 @@
               ${c.deleted_at ? `<div class="archived-meta">Archived ${new Date(c.deleted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>` : ''}
             </td>
             <td class="link-cell">
-              <a href="${url}" target="_blank">View Page ↗</a>
-              <button class="copy-btn" onclick="copyLink('${url}', this)">Copy Link</button>
+              <a href="${esc(url)}" target="_blank">View Page ↗</a>
+              <button class="copy-btn" onclick="copyLink(${jsArg(url)}, this)">Copy Link</button>
             </td>
             <td>
               ${c.deleted_at ? `
-                <button class="action-btn restore" onclick="restoreClient('${c.id}')">Restore</button>
-                <button class="action-btn purge" onclick="showDeleteConfirm('${c.id}')">Purge</button>
+                <button class="action-btn restore" onclick="restoreClient(${jsArg(c.id)})">Restore</button>
+                <button class="action-btn purge" onclick="showDeleteConfirm(${jsArg(c.id)})">Purge</button>
               ` : `
-                <button class="action-btn resend" onclick="openSendModal('${c.email}', '${c.name}', '${c.wedding_date}')">Send Link</button>
-                <button class="action-btn" onclick="showEdit('edit-name-${c.id}', 'edit-name-input-${c.id}')">Edit Name</button>
-                <button class="action-btn" onclick="showEdit('edit-date-${c.id}', 'edit-date-input-${c.id}')">Edit Date</button>
-                <button class="action-btn" onclick="showEditEmail('${c.id}')">Edit Email</button>
-                <button class="action-btn lock" onclick="toggleLock('${c.id}', ${c.locked})">${c.locked ? 'Unlock' : 'Lock'}</button>
-                <button class="action-btn" onclick="toggleNotesRow('${c.id}')" style="${clientNote ? 'color:#b06878;font-weight:600;' : ''}">Notes${clientNote ? ' ●' : ''}</button>
-                <button class="action-btn" onclick="exportToSpotify('${ck}', '${c.name.replace(/'/g, "\\'")}', this)">Export ♫</button>
-                <button class="action-btn" data-link="${seratoLink}" onclick="seratoSetup('${c.id}', this)"
-                  title="${seratoLink ? 'Open the Serato Setup folder' : 'No Serato Setup folder linked yet — click to add one'}"
-                  style="${seratoLink ? 'color:#7fb069;' : ''}">Serato Setup${seratoLink ? ' ↗' : ''}</button>
-                ${seratoLink ? `<button class="action-btn" onclick="showSeratoEdit('${c.id}')" title="Change the Serato Setup link">✎</button>` : ''}
-                <button class="action-btn delete" onclick="archiveClient('${c.id}')">Archive</button>
-                <div class="edit-email-form serato-link-form" id="serato-link-${c.id}">
-                  <input class="edit-email-input" type="url" id="serato-link-input-${c.id}"
-                    placeholder="Paste the Serato Setup folder link (Dropbox)" value="${seratoLink}" />
-                  <button class="edit-email-save" onclick="saveSeratoLink('${c.id}', '${ck}')">Save</button>
-                  <button class="edit-email-cancel" onclick="hideSeratoEdit('${c.id}')">✕</button>
+                <button class="action-btn resend" onclick="openSendModal(${jsArg(c.email)}, ${jsArg(c.name)}, ${jsArg(c.wedding_date)})">Send Link</button>
+                <button class="action-btn" onclick="showEdit(${jsArg('edit-name-' + c.id)}, ${jsArg('edit-name-input-' + c.id)})">Edit Name</button>
+                <button class="action-btn" onclick="showEdit(${jsArg('edit-date-' + c.id)}, ${jsArg('edit-date-input-' + c.id)})">Edit Date</button>
+                <button class="action-btn" onclick="showEditEmail(${jsArg(c.id)})">Edit Email</button>
+                <button class="action-btn lock" onclick="toggleLock(${jsArg(c.id)}, ${c.locked ? 'true' : 'false'})">${c.locked ? 'Unlock' : 'Lock'}</button>
+                <button class="action-btn" onclick="toggleNotesRow(${jsArg(c.id)})" style="${clientNote ? 'color:#b06878;font-weight:600;' : ''}">Notes${clientNote ? ' ●' : ''}</button>
+                <button class="action-btn" onclick="exportToSpotify(${jsArg(ck)}, ${jsArg(c.name)}, this)">Export ♫</button>
+                <button class="action-btn" data-link="${esc(seratoUrl)}" onclick="seratoSetup(${jsArg(c.id)}, this)"
+                  title="${seratoUrl ? 'Open the Serato Setup folder' : (seratoLink ? 'The stored link is not a web address — click to replace it' : 'No Serato Setup folder linked yet — click to add one')}"
+                  style="${seratoUrl ? 'color:#7fb069;' : ''}">Serato Setup${seratoUrl ? ' ↗' : ''}</button>
+                ${seratoLink ? `<button class="action-btn" onclick="showSeratoEdit(${jsArg(c.id)})" title="Change the Serato Setup link">✎</button>` : ''}
+                <button class="action-btn delete" onclick="archiveClient(${jsArg(c.id)})">Archive</button>
+                <div class="edit-email-form serato-link-form" id="serato-link-${esc(c.id)}">
+                  <input class="edit-email-input" type="url" id="serato-link-input-${esc(c.id)}"
+                    placeholder="Paste the Serato Setup folder link (Dropbox)" value="${esc(seratoLink)}" />
+                  <button class="edit-email-save" onclick="saveSeratoLink(${jsArg(c.id)}, ${jsArg(ck)})">Save</button>
+                  <button class="edit-email-cancel" onclick="hideSeratoEdit(${jsArg(c.id)})">✕</button>
                 </div>
               `}
-              <div class="delete-confirm" id="delete-confirm-${c.id}">
+              <div class="delete-confirm" id="delete-confirm-${esc(c.id)}">
                 <div class="delete-confirm-msg">
                   <strong>⚠ Purge cannot be undone.</strong>
-                  Permanently remove archived client <em>${c.name}</em> and all related data?
+                  Permanently remove archived client <em>${esc(c.name)}</em> and all related data?
                 </div>
-                <input class="delete-confirm-input" id="delete-confirm-input-${c.id}" placeholder="Type DELETE to purge" />
+                <input class="delete-confirm-input" id="delete-confirm-input-${esc(c.id)}" placeholder="Type DELETE to purge" />
                 <div class="delete-confirm-actions">
-                  <button class="delete-cancel-btn" onclick="hideDeleteConfirm('${c.id}')">Cancel</button>
-                  <button class="delete-confirm-btn" onclick="confirmDelete('${c.id}')">Yes, Purge Permanently</button>
+                  <button class="delete-cancel-btn" onclick="hideDeleteConfirm(${jsArg(c.id)})">Cancel</button>
+                  <button class="delete-confirm-btn" onclick="confirmDelete(${jsArg(c.id)})">Yes, Purge Permanently</button>
                 </div>
               </div>
             </td>
           </tr>
-          <tr id="notes-row-${c.id}" style="display:none;">
+          <tr id="notes-row-${esc(c.id)}" style="display:none;">
             <td colspan="6" style="padding:16px 24px; background:#141118; border-top:none;">
               <div style="display:grid; gap:12px;">
                 <div>
                   <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.15em; color:#7a7385; margin-bottom:4px;">Client Notes</div>
-                  <div style="color:#f0ecf5; white-space:pre-wrap; padding:10px; background:#1a1720; border-radius:6px; min-height:40px;">${clientNote || '<em style="color:#7a7385;">No notes yet</em>'}</div>
+                  <div style="color:#f0ecf5; white-space:pre-wrap; padding:10px; background:#1a1720; border-radius:6px; min-height:40px;">${clientNote ? esc(clientNote) : '<em style="color:#7a7385;">No notes yet</em>'}</div>
                 </div>
                 <div>
-                  <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.15em; color:#a07840; margin-bottom:4px;">Your Reply${replyTime ? ' (' + new Date(replyTime).toLocaleDateString() + ')' : ''}</div>
-                  <textarea id="reply-${ck}" style="width:100%; min-height:80px; resize:vertical; background:#2a2330; border:1px solid #3e3a45; border-radius:6px; padding:10px; font-family:'Raleway',sans-serif; font-size:0.9rem; color:#f0ecf5;">${adminReply}</textarea>
+                  <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.15em; color:#a07840; margin-bottom:4px;">Your Reply${replyTime ? ' (' + esc(new Date(replyTime).toLocaleDateString()) + ')' : ''}</div>
+                  <textarea id="reply-${esc(ck)}" style="width:100%; min-height:80px; resize:vertical; background:#2a2330; border:1px solid #3e3a45; border-radius:6px; padding:10px; font-family:'Raleway',sans-serif; font-size:0.9rem; color:#f0ecf5;">${esc(adminReply)}</textarea>
                   <div style="display:flex; justify-content:flex-end; margin-top:8px;">
-                    <button class="action-btn" onclick="sendReply('${ck}', '${c.email}', '${c.name.replace(/'/g, "\\'")}')" style="background:#a07840; color:#fff; border:none;">Send Reply</button>
+                    <button class="action-btn" onclick="sendReply(${jsArg(ck)}, ${jsArg(c.email)}, ${jsArg(c.name)})" style="background:#a07840; color:#fff; border:none;">Send Reply</button>
                   </div>
                 </div>
               </div>
@@ -1198,7 +1205,7 @@
     }
 
     function seratoSetup(id, btn) {
-      const link = btn.dataset.link;
+      const link = safeHttpUrl(btn.dataset.link);
       if (link) { window.open(link, '_blank', 'noopener'); return; }
       showSeratoEdit(id);   // nothing stored yet — prompt for it
     }

@@ -1,4 +1,4 @@
-// Pure helpers for spotify-selections.html. No DOM, no network — kept in their
+// Pure helpers for spotify-selections.html and admin.html. No DOM, no network — kept in their
 // own file so they can be tested with `node --test tests/*.test.js` (this repo has no
 // build step, so the page loads this as a plain classic script and the
 // functions become globals; the module.exports line at the bottom is only for
@@ -42,6 +42,37 @@ function progressLabel(progress) {
   return selected + ' of ' + total + (total === 1 ? ' moment' : ' moments') + ' selected';
 }
 
+// ── Output escaping ──
+// wedding_selections has RLS off and the anon key ships in every page, so any
+// value read back from it (notes, replies, links, titles) may have been written
+// by anyone. Escape it before it reaches markup.
+
+// HTML text content and quoted attribute values.
+function esc(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, ch => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
+  ));
+}
+
+// A JavaScript string literal for an inline handler: onclick="fn(${jsArg(x)})".
+// JSON.stringify makes it a valid JS string; esc() then keeps the quotes from
+// ending the HTML attribute. The browser decodes the entities before running
+// the handler, so the function receives the original string.
+function jsArg(value) {
+  return esc(JSON.stringify(String(value == null ? '' : value)));
+}
+
+// The URL if it is an absolute http(s) address, else ''. Stops javascript:,
+// data: and other schemes from reaching an href or window.open.
+function safeHttpUrl(value) {
+  try {
+    const url = new URL(String(value == null ? '' : value).trim());
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : '';
+  } catch (e) {
+    return '';
+  }
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { saveErrorMessage, momentProgress, progressLabel };
+  module.exports = { saveErrorMessage, momentProgress, progressLabel, esc, jsArg, safeHttpUrl };
 }

@@ -3462,7 +3462,8 @@
           // prepping the program for another DJ, whoever steps in can be handed
           // everything immediately. Not a song row — bail before the rest.
           if (sid === 'dj-setup-link') {
-            const link = (row.notes || '').trim();
+            // The row is anon-writable, so only an http(s) link may become an href.
+            const link = safeHttpUrl(row.notes);
             if (link) {
               const a = document.getElementById('dj-setup-badge');
               const plain = document.getElementById('header-badge');
