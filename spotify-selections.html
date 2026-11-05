@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="portal-helpers.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -570,6 +571,30 @@
 
     .saved-pill.visible { display: inline-block; }
 
+    /* In flight — quieter than "saved": muted text, dashed outline, a slow
+       breathe so it reads as "working" without a spinner. */
+    .saved-pill.is-saving {
+      color: var(--muted);
+      border-style: dashed;
+      border-color: var(--muted);
+      animation: pillBreathe 1.2s ease-in-out infinite;
+    }
+
+    /* Failed — deliberately NOT rose gold. A filled brick-red pill with a solid
+       border, so it can't be mistaken for the rose "saved" outline at a glance,
+       on the cream cards or on the dark announcement card. */
+    .saved-pill.is-error {
+      color: #8E1F1F;
+      background: #FBE9E7;
+      border: 1px solid #8E1F1F;
+      font-weight: 500;
+    }
+
+    @keyframes pillBreathe {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.45; }
+    }
+
     /* ── REMOVE BUTTON ── */
     .remove-btn {
       background: none;
@@ -752,6 +777,35 @@
       color: var(--muted);
       margin-bottom: 32px;
     }
+
+    /* Progress — a quiet line under the date: tracked caps plus a hairline
+       bar. Hidden until the saved program has loaded, so it never flashes
+       "0 of 18" before the couple's choices arrive. */
+    .program-progress { margin: -16px auto 28px; text-align: center; }
+    .program-progress[hidden] { display: none; }
+    .program-progress-text {
+      font-family: var(--font-body);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .program-progress-track {
+      width: 140px;
+      height: 2px;
+      margin: 0 auto;
+      background: var(--border-rose);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .program-progress-fill {
+      height: 100%;
+      width: 0;
+      background: var(--blush);
+      transition: width 500ms ease-out;
+    }
+    .program-progress.is-complete .program-progress-text { color: var(--blush); }
 
     .program-rule {
       width: 100%;
@@ -1034,16 +1088,92 @@
       .input-row { flex-direction: column; }
       .btn { width: 100%; justify-content: center; }
     }
+
+    /* ── PRINT ── */
+    /* Printing gives the couple their program: the brochure card alone, black
+       on white in Playfair Display. Everything else on the page is a form for
+       making choices (inputs, embeds, upload controls) and means nothing on
+       paper. The lock overlay is hidden too — a couple whose program is
+       finalized is exactly who wants a printout. */
+    @media print {
+      @page { margin: 0.6in; }
+
+      html, body { background: #fff !important; color: #000 !important; }
+      body::before, body::after { display: none !important; }
+      body > *:not(.program-wrapper) { display: none !important; }
+      .program-progress { display: none !important; }   /* form status, not program */
+
+      /* No motion, and undo the opacity:0 start states the entrance
+         animations would normally lift. */
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+      }
+      .program-section, .heart-ornament, .program-couple { opacity: 1 !important; transform: none !important; }
+
+      .program-wrapper { padding: 0; display: block; }
+      .program {
+        max-width: none;
+        background: #fff !important;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+      }
+      .program, .program *, .program *::before, .program *::after { font-family: var(--font-display) !important; color: #000 !important; }
+
+      /* Gradient-clipped headline → plain black type. */
+      .program-couple {
+        background: none !important;
+        -webkit-text-fill-color: #000 !important;
+        white-space: normal;
+      }
+      /* No announcement yet: print nothing rather than the "Announcing As…" prompt. */
+      .program-couple-wrap:has(.program-couple.is-placeholder) { display: none; }
+      .heart-ornament svg { stroke: #000; stroke-dashoffset: 0 !important; }
+
+      /* Gradient rules → hairlines. Backgrounds don't print by default, so
+         rules are drawn as borders. */
+      .program-rule { background: none !important; height: 0; border-top: 1px solid #000; opacity: 1; }
+      .program-rule-thin { background: none !important; height: 0; border-top: 0.5pt solid #000; }
+      .program-rule-thin::after {
+        background: #fff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        opacity: 1;
+      }
+      .program-category { border-bottom: 0.5pt solid #000; }
+
+      /* Unchosen moments: a blank line, not a "Make Selection" button. */
+      .program-make-selection { display: none !important; }
+      .program-song:has(.program-make-selection)::before { content: '— —'; }
+      .program-song-link { text-decoration: none; }
+      .program-footer { opacity: 1; }
+
+      /* Tighter rhythm than on screen so a full program fits on as few pages
+         as possible. Sections may split across pages (keeping each one whole
+         left half-empty pages); a moment and its song never split, and a
+         category heading never ends a page alone. */
+      .program-header { margin-bottom: 16px; }
+      .program-date { margin-bottom: 16px; }
+      .program-section { padding: 16px 0 14px; }
+      .program-category { margin-bottom: 12px; padding-bottom: 8px; }
+      .program-list { gap: 10px; }
+      .program-list li { gap: 2px; break-inside: avoid; page-break-inside: avoid; }
+      .program-category { break-after: avoid; page-break-after: avoid; }
+      .program-footer { margin-top: 20px; }
+    }
   </style>
 </head>
 <body>
 
   <!-- LOCKED OVERLAY -->
-  <div id="locked-overlay" style="display:none; position:fixed; inset:0; background:rgba(245,240,234,0.97); z-index:9999; display:none; align-items:center; justify-content:center; flex-direction:column; text-align:center; padding:40px; font-family:'Raleway',sans-serif;">
-    <div style="font-family:'Bodoni Moda',serif; font-size:1rem; font-style:italic; color:#a07840; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:16px;">Chi Duly Productions</div>
-    <div style="font-family:'Bodoni Moda',serif; font-size:clamp(2rem,6vw,3.5rem); font-style:italic; color:#1a1218; line-height:1.1; margin-bottom:20px;">Your selections<br>are finalized.</div>
+  <div id="locked-overlay" style="display:none; position:fixed; inset:0; background:rgba(245,240,234,0.97); z-index:9999; display:none; align-items:center; justify-content:center; flex-direction:column; text-align:center; padding:40px; font-family:var(--font-body);">
+    <div style="font-family:var(--font-display); font-size:1rem; font-style:italic; color:#a07840; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:16px;">Chi Duly Productions</div>
+    <div style="font-family:var(--font-display); font-size:clamp(2rem,6vw,3.5rem); font-style:italic; color:#1a1218; line-height:1.1; margin-bottom:20px;">Your selections<br>are finalized.</div>
     <div style="font-size:0.9rem; color:#7a7275; max-width:380px; line-height:1.7;">Your music program has been locked by Chi Duly Productions. If you need to make changes, please reach out directly.</div>
-    <div style="margin-top:32px; font-size:0.75rem; letter-spacing:0.2em; text-transform:uppercase; color:#b06878;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="abc3cec7c7c4ebc8c3c2cfdec7d2dbd9c4cfdec8dfc2c4c5d885c8c4c6">[email&#160;protected]</a></div>
+    <div style="margin-top:32px; font-size:0.75rem; letter-spacing:0.2em; text-transform:uppercase; color:#b06878;"><a href="mailto:hello@chidulyproductions.com" style="color:inherit; text-transform:none; letter-spacing:0.08em; font-size:0.85rem;">hello@chidulyproductions.com</a></div>
   </div>
 
   <!-- HEADER -->
@@ -1077,6 +1207,12 @@
           </div>
         </div>
         <div class="program-date" id="program-date"></div>
+        <div class="program-progress" id="program-progress" hidden>
+          <div class="program-progress-text" id="program-progress-text" aria-live="polite"></div>
+          <div class="program-progress-track" id="program-progress-bar" role="progressbar" aria-label="Moments selected" aria-valuemin="0">
+            <div class="program-progress-fill" id="program-progress-fill"></div>
+          </div>
+        </div>
         <div class="program-rule"></div>
       </div>
 
@@ -1115,7 +1251,7 @@
       <div class="program-section">
         <div class="program-category">Reception - Late Night</div>
         <ul class="program-list">
-          <li id="brochure-dance-floor-must-plays"><span class="program-moment">Dance Floor Must Plays</span><span class="program-song">— —</span></li>
+          <li id="brochure-dance-floor"><span class="program-moment">Dance Floor Must Plays</span><span class="program-song">— —</span></li>
           <li id="brochure-last-song-of-the-night"><span class="program-moment">Last Song of the Night</span><span class="program-song">— —</span></li>
           <li id="brochure-last-dance-private"><span class="program-moment">Last Dance (Private)</span><span class="program-song">— —</span></li>
         </ul>
@@ -1977,10 +2113,10 @@
       if (name) {
         const decoded = decodeURIComponent(name);
         document.getElementById('hero-tag').textContent = decoded + "'s Spotify Picks";
-        document.getElementById('client-name').innerHTML = '<span style="color:#F8F1E9; font-style:normal;">Details for </span>' + decoded + '.';
+        document.getElementById('client-name').innerHTML = '<span style="color:#F8F1E9; font-style:normal;">Details for </span>' + esc(decoded) + '.';
         const programNameEl = document.getElementById('program-name');
         if (programNameEl) {
-          programNameEl.innerHTML = '<span style="color:#F8F1E9; font-style:normal;">Music Program for </span>' + decoded + '.';
+          programNameEl.innerHTML = '<span style="color:#F8F1E9; font-style:normal;">Music Program for </span>' + esc(decoded) + '.';
         }
         document.title = decoded + "'s Music Selections | Chi Duly Productions";
       }
@@ -2088,7 +2224,7 @@
         const match = Object.entries(sectionProgramMap).find(([, v]) => v.label === label);
         if (match && song.textContent.trim() === '— —') {
           const sectionId = match[0];
-          song.innerHTML = '<a href="#section-' + sectionId + '" class="program-make-selection">Make Selection</a>';
+          song.innerHTML = '<a href="#section-' + esc(sectionId) + '" class="program-make-selection">Make Selection</a>';
         }
       });
     }
@@ -2120,7 +2256,9 @@
           } else {
             displayText = artist ? artist + ' - ' + title : title;
           }
-          song.innerHTML = '<a href="#section-' + sectionId + '" class="program-song-link">' + displayText + '</a>';
+          // Titles and artists come from the database (anon-writable) and from
+          // oEmbed, so they are text, never markup.
+          song.innerHTML = '<a href="#section-' + esc(sectionId) + '" class="program-song-link">' + esc(displayText) + '</a>';
           // The tag only earns its place when the edit's own title doesn't
           // already say so. Chris names his cuts "… (K+L Wedding Edit)", which
           // made the brochure read "(K+L Wedding Edit) CUSTOM EDIT". An untitled
@@ -2222,11 +2360,18 @@
         area = document.createElement('div');
         area.className = 'manual-title-area';
         area.id = sectionId + '-manual';
-        area.innerHTML =
-          '<span class="manual-title-label">Song name (for your music program)</span>' +
-          '<input type="text" class="manual-title-input" id="' + sectionId + '-manual-input"' +
-          ' placeholder="e.g. Thinking Out Loud – Ed Sheeran"' +
-          ' oninput="saveManualTitle(\'' + sectionId + '\')" />';
+        // DOM methods, not a markup string: a custom moment's id comes from
+        // the database, so it must never be spliced into HTML or a handler.
+        const label = document.createElement('span');
+        label.className = 'manual-title-label';
+        label.textContent = 'Song name (for your music program)';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'manual-title-input';
+        input.id = sectionId + '-manual-input';
+        input.placeholder = 'e.g. Thinking Out Loud – Ed Sheeran';
+        input.addEventListener('input', () => saveManualTitle(sectionId));
+        area.append(label, input);
         const embedArea = document.getElementById(sectionId + '-embed');
         if (embedArea) embedArea.after(area);
       }
@@ -2262,7 +2407,7 @@
         const match = Object.entries(sectionProgramMap).find(([, v]) => v.label === label);
         if (match && song.textContent.trim() === '— —') {
           const sectionId = match[0];
-          song.innerHTML = '<a href="#section-' + sectionId + '" class="program-make-selection">Make Selection</a>';
+          song.innerHTML = '<a href="#section-' + esc(sectionId) + '" class="program-make-selection">Make Selection</a>';
         }
       });
     }
@@ -2398,6 +2543,7 @@
       if (brochureItem) brochureItem.style.display = 'none';
       // Delete from Supabase
       deleteSelection(sectionId);
+      refreshProgress();
     }
 
     async function undoRemove(sectionId) {
@@ -2406,6 +2552,9 @@
       // Restore brochure entry
       const brochureItem = document.getElementById('brochure-' + sectionId);
       if (brochureItem) brochureItem.style.display = '';
+      // Counts as unselected until the re-save below lands (deleteSelection
+      // wrote a tombstone), then saveSelection counts it again.
+      refreshProgress();
       // Re-save whatever is in the input. Deliberately NOT silent: silent mode
       // repaints the embed without writing, which left the tombstone row in
       // place, so an undone section came back hidden on the next reload.
@@ -2437,6 +2586,7 @@
         // it — deliberate, and it keeps the bucket free of unreferenced objects.
         const removedAudio = audioUrls[sectionId];
         delete audioUrls[sectionId];
+        delete savedLinks[sectionId];
         clearAudioUI(sectionId);
         const { error } = await sb.from('wedding_selections').upsert({
           client_key: getClientKey(),
@@ -2468,8 +2618,11 @@
     async function saveAnnouncement() {
       const text = document.getElementById('announcement-text').value.trim();
       if (!text) return;
+      const pill = document.getElementById('announcement-saved');
+      let failure = sb ? null : 'connection unavailable';
       try {
         if (sb) {
+          setSavePill(pill, 'saving');
           const { error } = await sb.from('wedding_selections').upsert({
             client_key: getClientKey(),
             section_id: 'announcement',
@@ -2480,13 +2633,16 @@
             entered_by: 'client',
             updated_at: new Date().toISOString()
           }, { onConflict: 'client_key,section_id' });
-          if (error) console.log('Announcement save error:', error);
+          if (error) { console.log('Announcement save error:', error); failure = error; }
         }
-      } catch(e) { console.log('Announcement save error:', e); }
+      } catch(e) { console.log('Announcement save error:', e); failure = e || 'save failed'; }
       updateAnnouncingAs(text);
-      const pill = document.getElementById('announcement-saved');
-      pill.classList.add('visible');
-      setTimeout(() => pill.classList.remove('visible'), 3000);
+      // Previously this said "Saved" whether or not the write landed.
+      if (failure) { setSavePill(pill, 'error', failure); return; }   // an error stays up
+      setSavePill(pill, 'saved');
+      setTimeout(() => {
+        if (!pill.classList.contains('is-error') && !pill.classList.contains('is-saving')) pill.classList.remove('visible');
+      }, 3000);
     }
 
     // Updates the brochure headline. When `text` is set, display the announcement with leading/trailing
@@ -2550,15 +2706,39 @@
       _fitHeadlineResizeTimer = setTimeout(fitHeadlineToOneLine, 150);
     });
 
+    // ── SAVED PILL STATES ──
+    // One place that knows the pill's three looks: 'saving' (in flight),
+    // 'saved', and 'error'. Always go through here rather than writing
+    // textContent directly, or a stale .is-error class outlives the failure.
+    function setSavePill(pill, state, detail) {
+      if (!pill) return;
+      pill.classList.remove('is-saving', 'is-error');
+      pill.removeAttribute('title');
+      pill.setAttribute('role', 'status');
+      if (state === 'saving') {
+        pill.textContent = 'Saving…';
+        pill.classList.add('is-saving');
+      } else if (state === 'error') {
+        pill.textContent = '⚠ ' + saveErrorMessage(detail, navigator.onLine);
+        pill.classList.add('is-error');
+        const raw = detail && (detail.message || detail.code || String(detail));
+        if (raw) pill.title = raw;   // the real reason, for whoever is debugging
+      } else {
+        pill.textContent = '✓ Saved';
+      }
+      pill.classList.add('visible');
+    }
+
     // ── SAVE SELECTION TO SUPABASE ──
     async function saveSelection(sectionId, spotifyUrl, songTitle, artist) {
       const savedPill = document.getElementById(sectionId + '-saved');
       try {
         if (!sb) {
           console.log('Save skipped: Supabase client not initialized');
-          if (savedPill) { savedPill.textContent = '⚠ Connection error'; savedPill.classList.add('visible'); }
+          setSavePill(savedPill, 'error', 'connection unavailable');
           return false;
         }
+        setSavePill(savedPill, 'saving');
         const { error } = await sb.from('wedding_selections').upsert({
           client_key: getClientKey(),
           section_id: sectionId,
@@ -2570,22 +2750,25 @@
         }, { onConflict: 'client_key,section_id' });
         if (error) {
           console.log('Save error:', error);
-          if (savedPill) { savedPill.textContent = '⚠ ' + (error.message || error.code || 'Save failed'); savedPill.classList.add('visible'); }
+          setSavePill(savedPill, 'error', error);
           return false;
         }
-        if (savedPill) { savedPill.textContent = '✓ Saved'; savedPill.classList.add('visible'); }
+        setSavePill(savedPill, 'saved');
+        savedLinks[sectionId] = !!spotifyUrl;
+        refreshProgress();
         return true;
       } catch (err) {
         console.log('Save error:', err);
-        if (savedPill) { savedPill.textContent = '⚠ ' + (err.message || 'Save failed'); savedPill.classList.add('visible'); }
+        setSavePill(savedPill, 'error', err);
         return false;
       }
     }
 
     // ── SAVE NOTES TO SUPABASE ──
+    // Returns null on success, or the error (truthy) so the caller can show it.
     async function saveNotes(sectionId, notes) {
       try {
-        if (!sb) return;
+        if (!sb) return 'connection unavailable';
         const { error } = await sb.from('wedding_selections').upsert({
           client_key: getClientKey(),
           section_id: sectionId + '-notes',
@@ -2593,9 +2776,11 @@
           entered_by: 'client',
           updated_at: new Date().toISOString()
         }, { onConflict: 'client_key,section_id' });
-        if (error) console.log('Save notes error:', error);
+        if (error) { console.log('Save notes error:', error); return error; }
+        return null;
       } catch (err) {
         console.log('Save notes error:', err);
+        return err || 'save failed';
       }
     }
 
@@ -2608,7 +2793,7 @@
 
       if (linkInput) linkInput.value = '';
       if (embedArea) embedArea.innerHTML = '';
-      if (savedPill) savedPill.classList.remove('visible');
+      if (savedPill) savedPill.classList.remove('visible', 'is-saving', 'is-error');
       if (clearBtn) clearBtn.classList.remove('visible');
       const manualArea = document.getElementById(sectionId + '-manual');
       if (manualArea) {
@@ -2625,7 +2810,7 @@
           const moment = item.querySelector('.program-moment');
           const song = item.querySelector('.program-song');
           if (moment && moment.textContent.trim() === map.label) {
-            song.innerHTML = '<a href="#section-' + sectionId + '" class="program-make-selection">Make Selection</a>';
+            song.innerHTML = '<a href="#section-' + esc(sectionId) + '" class="program-make-selection">Make Selection</a>';
             song.style.color = '';
           }
         });
@@ -2636,7 +2821,9 @@
       const clearedAudio = audioUrls[sectionId];
       delete audioUrls[sectionId];
       delete songTitles[sectionId];
+      delete savedLinks[sectionId];
       clearAudioUI(sectionId);
+      refreshProgress();
       if (clearedAudio) await deleteAudioObject(clearedAudio);
 
       // Delete the row entirely so section loads fresh on next visit
@@ -2666,6 +2853,33 @@
     const songTitles = {};   // sectionId -> latest known title, for the download filename
     const songArtists = {};  // sectionId -> latest known artist, so a retitle doesn't drop it
     let portalLocked = false;
+    const savedLinks = {};  // sectionId -> true once a link for it is in the database
+
+    // ── PROGRESS ──
+    // Moments selected out of the moments in this couple's program. Called after
+    // anything that can change either number; it reads current state rather
+    // than being told what changed, so a missed call self-corrects on the next.
+    let progressReady = false;  // stays false if the saved program failed to load
+    function refreshProgress() {
+      const wrap = document.getElementById('program-progress');
+      if (!wrap || !progressReady) return;
+      const progress = momentProgress(Object.keys(sectionProgramMap).map(id => {
+        const section = document.getElementById('section-' + id);
+        return {
+          removed: !section || section.classList.contains('removed'),
+          hasLink: !!savedLinks[id],
+          hasAudio: !!audioUrls[id],
+        };
+      }));
+      wrap.hidden = progress.total === 0;
+      wrap.classList.toggle('is-complete', progress.total > 0 && progress.selected >= progress.total);
+      document.getElementById('program-progress-text').textContent = progressLabel(progress);
+      const bar = document.getElementById('program-progress-bar');
+      bar.setAttribute('aria-valuemax', String(progress.total));
+      bar.setAttribute('aria-valuenow', String(progress.selected));
+      const pct = progress.total ? (100 * progress.selected / progress.total) : 0;
+      document.getElementById('program-progress-fill').style.width = pct + '%';
+    }
 
     // Rows are anon-writable (RLS is off), so a stored audio_url is untrusted
     // input. Only URLs inside our own bucket are ever handed to an <audio> src
@@ -3105,6 +3319,7 @@
         return;
       }
       audioUrls[sectionId] = publicUrl;
+      refreshProgress();
       if (previous && previous !== publicUrl) await deleteAudioObject(previous);
 
       // Name the cut from the file's ID3 title — the string Serato displays and
@@ -3142,8 +3357,7 @@
       showAudioStatus(sectionId, '', false);
       const clearEl = document.getElementById(sectionId + '-clear');
       if (clearEl) clearEl.classList.add('visible');
-      const savedPill = document.getElementById(sectionId + '-saved');
-      if (savedPill) { savedPill.textContent = '✓ Saved'; savedPill.classList.add('visible'); }
+      setSavePill(document.getElementById(sectionId + '-saved'), 'saved');
 
       const knownTitle = songTitles[sectionId];
       if (knownTitle) {
@@ -3157,6 +3371,7 @@
       const url = audioUrls[sectionId];
       delete audioUrls[sectionId];
       clearAudioUI(sectionId);
+      refreshProgress();
       if (url) {
         await saveAudioUrl(sectionId, null);
         await saveAudioName(sectionId, null);  // the name describes a file that no longer exists
@@ -3256,7 +3471,8 @@
           // prepping the program for another DJ, whoever steps in can be handed
           // everything immediately. Not a song row — bail before the rest.
           if (sid === 'dj-setup-link') {
-            const link = (row.notes || '').trim();
+            // The row is anon-writable, so only an http(s) link may become an href.
+            const link = safeHttpUrl(row.notes);
             if (link) {
               const a = document.getElementById('dj-setup-badge');
               const plain = document.getElementById('header-badge');
@@ -3288,6 +3504,7 @@
             const linkInput = document.getElementById(sid + '-link');
             if (linkInput) {
               linkInput.value = row.spotify_url;
+              savedLinks[sid] = true;
               sectionsWithData.add(sid);
               const platform = detectPlatform(row.spotify_url);
               if (platform === 'unknown') {
@@ -3361,9 +3578,11 @@
           }
         });
 
+        return true;
       } catch (err) {
         console.log('Load error:', err);
       }
+      return false;
     }
 
     // ── CUSTOM MOMENTS ──
@@ -3388,31 +3607,33 @@
       // Build the form section HTML
       const container = document.getElementById('custom-moments-container');
       const wrapper = document.createElement('div');
+      // id and label come from a custom-def row, which anyone with the anon key
+      // can write, so both are escaped: esc() for markup, jsArg() for handlers.
       wrapper.innerHTML = `
-        <div class="music-section" id="section-${id}" data-section="${id}">
+        <div class="music-section" id="section-${esc(id)}" data-section="${esc(id)}">
           <div class="section-header" style="position:relative;">
             <div class="section-header-left">
               <div class="section-number">Song Link</div>
-              <div class="section-title" style="font-family:'Bodoni Moda',serif;font-style:italic;color:#b06878;">${label}</div>
+              <div class="section-title" style="font-family:'Bodoni Moda',serif;font-style:italic;color:#b06878;">${esc(label)}</div>
             </div>
-            <button class="remove-btn" onclick="removeSection('${id}')" id="remove-${id}" title="Remove section">🗑</button>
+            <button class="remove-btn" onclick="removeSection(${jsArg(id)})" id="remove-${esc(id)}" title="Remove section">🗑</button>
           </div>
           <div class="section-body">
             <div class="input-row">
-              <input type="text" class="text-input" id="${id}-link" placeholder="Paste song link here (Spotify, YouTube, SoundCloud...)" />
-              <button class="btn" onclick="embedSpotify('${id}')">upload</button>
+              <input type="text" class="text-input" id="${esc(id)}-link" placeholder="Paste song link here (Spotify, YouTube, SoundCloud...)" />
+              <button class="btn" onclick="embedSpotify(${jsArg(id)})">upload</button>
             </div>
-            <div class="embed-area" id="${id}-embed"></div>
+            <div class="embed-area" id="${esc(id)}-embed"></div>
             <div class="input-group" style="margin-top:12px;">
-              <textarea class="text-input" id="${id}-notes" placeholder="e.g. start song at [time mark]" style="height:80px; resize:vertical;"></textarea>
+              <textarea class="text-input" id="${esc(id)}-notes" placeholder="e.g. start song at [time mark]" style="height:80px; resize:vertical;"></textarea>
             </div>
-            <div class="saved-pill" id="${id}-saved">✓ Song Saved</div>
-            <button class="clear-btn" id="${id}-clear" onclick="clearSelection('${id}')">✕ Clear Selection</button>
+            <div class="saved-pill" id="${esc(id)}-saved">✓ Song Saved</div>
+            <button class="clear-btn" id="${esc(id)}-clear" onclick="clearSelection(${jsArg(id)})">✕ Clear Selection</button>
           </div>
         </div>
-        <div class="undo-bar" id="undo-${id}">
+        <div class="undo-bar" id="undo-${esc(id)}">
           <span>Section removed</span>
-          <button class="undo-btn" onclick="undoRemove('${id}')">↩ Undo</button>
+          <button class="undo-btn" onclick="undoRemove(${jsArg(id)})">↩ Undo</button>
         </div>`;
       // Anchored moments are spliced into the standard run instead of the
       // trailing bucket. Move the wrapper's children rather than the wrapper
@@ -3434,6 +3655,7 @@
 
       // Add brochure entry
       addCustomBrochureItem(id, label, anchorBefore);
+      refreshProgress();   // a new moment grows the total
 
       // Save the custom moment definition to Supabase
       if (!savedId) {
@@ -3515,7 +3737,9 @@
       checkLockStatus();
       initMakeSelectionLinks();
       initAudioControls();
-      loadSelections();
+      // The progress line appears only once the saved program is in. If the
+      // load failed it stays hidden rather than claiming "0 of 18".
+      loadSelections().then(ok => { progressReady = !!ok; refreshProgress(); });
     });
 
     // ── NOTES AUTO-SAVE ──
@@ -3533,9 +3757,14 @@
         const baseId = t.id.replace(/-notes$/, '');
         clearTimeout(notesTimers.get(baseId));
         notesTimers.set(baseId, setTimeout(async () => {
-          await saveNotes(baseId, t.value);
           const pill = document.getElementById(baseId + '-saved');
-          if (pill) { pill.classList.add('visible'); setTimeout(() => pill.classList.remove('visible'), 2000); }
+          setSavePill(pill, 'saving');
+          const failure = await saveNotes(baseId, t.value);
+          if (failure) { setSavePill(pill, 'error', failure); return; }   // an error stays up
+          setSavePill(pill, 'saved');
+          if (pill) setTimeout(() => {
+            if (!pill.classList.contains('is-error') && !pill.classList.contains('is-saving')) pill.classList.remove('visible');
+          }, 2000);
         }, 1500));
       });
     })();

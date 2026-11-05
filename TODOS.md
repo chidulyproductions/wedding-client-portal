@@ -1,67 +1,35 @@
 # TODOS
 
-## PR2: Spotify Folder Export
-**Priority:** P2 | **Effort:** L (human: ~1 week / CC: ~45 min)
-**Depends on:** PR1 core rebuild complete + Spotify developer app approved
-
-Export the wedding music program to Spotify. Each wedding moment becomes a Spotify playlist with the selected song. Requires Spotify developer app registration, OAuth user authorization flow, and Spotify Web API playlist creation calls. Build an /admin/spotify-export page with OAuth connect button and per-client export action. The DJ authenticates their Spotify account once, then can export any client's program.
-
-**Context:** This was accepted in the CEO review (Expansion #10) but split from PR1 because Spotify developer app approval may not be instant.
-
-## PR2: Email Notifications on Client Updates
-**Priority:** P2 | **Effort:** M (human: ~3 days / CC: ~20 min)
-**Depends on:** PR1 core rebuild complete + email service account (Resend free tier recommended)
-
-Notify the DJ when a client saves or updates a music selection. Implementation options: (a) Supabase database webhook → Resend API, or (b) Supabase Edge Function trigger on wedding_selections INSERT/UPDATE. Should batch/debounce notifications to avoid spamming (e.g., one email per client per 15 minutes summarizing changes).
-
-**Context:** This was accepted in the CEO review (Expansion #9). Split from PR1 because it requires email service integration.
-
-## Client Portal: Print Styles
-**Priority:** P3 | **Effort:** S (human: ~2 hours / CC: ~5 min)
-**Depends on:** Aesthetic overhaul complete
-
-Add `@media print` styles so clients can print the wedding program. Current glassmorphism and gradient backgrounds won't render on paper. Black text on white, clean Playfair Display serif, no animations.
-
-## Client Portal: Save/Loading State Styling
-**Priority:** P2 | **Effort:** S (human: ~1 hour / CC: ~10 min)
-**Depends on:** Aesthetic overhaul complete
-
-Design and add explicit styling for intermediate save states (saving in-progress, network error) to the saved pill component. Current spec only covers the "saved" success state. Error state needs distinct styling — not rose gold, something clearly different.
-
-## Client Portal: Lock Overlay Font Alignment
-**Priority:** P3 | **Effort:** S (human: ~30 min / CC: ~5 min)
-**Depends on:** Aesthetic overhaul complete
-
-The lock overlay uses inline `style=""` with Bodoni Moda/Raleway. After the aesthetic overhaul, the overlay will use old fonts while the rest of the page uses Playfair Display/DM Sans. Update inline styles on `#locked-overlay` to match the new font stack.
-
-## Client Portal: Progress Indicator
-**Priority:** P3 | **Effort:** S
-**Depends on:** Aesthetic overhaul complete
-
-Add a progress indicator to the client portal showing how many moments have been selected out of the total. Style TBD — could be a ring, bar, or counter. Should update live as clients make selections.
-
 ## Client Portal: Admin Dashboard Redesign
 **Priority:** P3 | **Effort:** L
-**Depends on:** Aesthetic overhaul complete
+**Depends on:** nothing (the client-portal aesthetic overhaul has landed)
 
 Bring admin.html into the same aesthetic family as the redesigned client portal. Target audience: other wedding DJs if/when this becomes a product.
 
-## Post-Deploy: Decommission Original Site
-**Priority:** P1 (after PR1 deployed) | **Effort:** S (human: ~2 hours / CC: ~10 min)
-**Depends on:** PR1 deployed to Vercel + validated with at least 2 real clients
+## Remove the Legacy Netlify Functions
+**Priority:** P3 | **Effort:** S (human: ~30 min / CC: ~5 min)
+**Depends on:** Chris disconnecting the Netlify site in the Netlify dashboard
 
-Clean up the original infrastructure: remove Netlify functions (save-selection.js, load-selections.js, spotify.js), archive original HTML files, decommission Supabase edge functions (save-selection, load-selections), update DNS if applicable, and remove netlify.toml.
+`netlify/functions/load-selections.js` and `save-selection.js` are old copies that no page calls. The client page uses the **Supabase** functions of the same names, which must stay. A Netlify site is still connected to this repo and redeploys on every push, but clients don't use it. Once that site is disconnected, delete `netlify/` and `netlify.toml` and drop the Netlify references in `CLAUDE.md`.
 
-**Context:** Both sites hit the same Supabase DB. Running them in parallel during migration is safe, but leaving both live long-term risks confusion and stale behavior.
+**Context:** This entry used to be "Decommission Original Site". It assumed a Next.js/Vercel rebuild (`REBUILD-PLAN.md`) that never shipped, and it listed the Supabase `load-selections` / `save-selection` functions for removal. Those are now the live load and save path, so removing them would break the portal. Rewritten 2026-11-04.
 
 ## Admin: Per-Client Uploaded Audio Listing
 **Priority:** P3 | **Effort:** S
-**Depends on:** Custom audio upload shipped
+**Depends on:** nothing (custom audio upload has shipped)
 
 Add an "Uploaded audio" list to each client in admin.html — every section with an `audio_url`, labelled by moment, with download links — so every custom edit for one wedding can be pulled in one pass instead of scrolling the client portal. Deferred from the custom-audio-upload design (2026-08-05); portal-level download was enough to ship.
 
-## Storage: Watch the client-audio bucket
-**Priority:** P3 | **Effort:** S
-**Depends on:** Custom audio upload shipped
+## Storage: Scope or Cap client-audio Uploads
+**Priority:** P3 | **Effort:** S–M
+**Depends on:** nothing
 
-The `client-audio` bucket accepts anon uploads (the anon key is public), capped at 25 MB per file but not in total, against a 1 GB free-tier ceiling. No monitoring exists. Worth either a periodic size check or scoping uploads to a client-key-prefixed path so abuse can be traced and rate-limited. Raised in the Task 1 code-quality review.
+The `client-audio` bucket accepts anon uploads (the anon key is public). Each file is capped at 25 MB, but nothing caps the total against the **500 MB budget** (Chris's call, 2026-11-04). The daily `storage-watch` workflow (2026-11-05) now reports usage and unreferenced files, and fails at 400 MB, so overuse is noticed but not prevented. Remaining options, if abuse ever shows up in that report:
+- scope uploads to a client-key-prefixed path, so abuse can be traced and rate-limited;
+- a hard cap through a storage policy, which needs a migration.
+
+## Client Portal: Lock Overlay Palette
+**Priority:** P3 | **Effort:** S (CC: ~5 min)
+**Depends on:** nothing
+
+`#locked-overlay` uses inline pre-overhaul colours (`#a07840` gold, `#1a1218`, `#7a7275`, `#b06878`) on a cream `rgba(245,240,234,0.97)` backdrop. Its fonts were aligned with the overhaul (2026-11-03) but its colours were not. Swap them for the `:root` tokens (`--blush`, `--charcoal`, `--muted`) and check the result against the dark page behind it.
