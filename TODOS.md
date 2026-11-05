@@ -30,16 +30,13 @@ Bring admin.html into the same aesthetic family as the redesigned client portal.
 
 Add an "Uploaded audio" list to each client in admin.html — every section with an `audio_url`, labelled by moment, with download links — so every custom edit for one wedding can be pulled in one pass instead of scrolling the client portal. Deferred from the custom-audio-upload design (2026-08-05); portal-level download was enough to ship.
 
-## Storage: Watch the client-audio bucket
-**Priority:** P3 | **Effort:** S
-**Depends on:** nothing (custom audio upload has shipped)
+## Storage: Scope or Cap client-audio Uploads
+**Priority:** P3 | **Effort:** S–M
+**Depends on:** nothing
 
-The `client-audio` bucket accepts anon uploads (the anon key is public). Each file is capped at 25 MB, but nothing caps the total. **Budget: 500 MB** (Chris's call, 2026-11-04), roughly 20 max-size files, set below the Supabase free-tier storage quota. Nothing enforces or reports that budget yet. Options:
-- a periodic size check (for example, a scheduled GitHub Action alongside `keepalive.yml` that sums object sizes and fails above ~400 MB);
-- scoping uploads to a client-key-prefixed path so abuse can be traced and rate-limited;
+The `client-audio` bucket accepts anon uploads (the anon key is public). Each file is capped at 25 MB, but nothing caps the total against the **500 MB budget** (Chris's call, 2026-11-04). The daily `storage-watch` workflow (2026-11-05) now reports usage and unreferenced files, and fails at 400 MB, so overuse is noticed but not prevented. Remaining options, if abuse ever shows up in that report:
+- scope uploads to a client-key-prefixed path, so abuse can be traced and rate-limited;
 - a hard cap through a storage policy, which needs a migration.
-
-Raised in the Task 1 code-quality review.
 
 ## Client Portal: Lock Overlay Palette
 **Priority:** P3 | **Effort:** S (CC: ~5 min)

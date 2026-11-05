@@ -26,7 +26,7 @@ Static site (no build step) hosted on **GitHub Pages**. Backend is **Supabase** 
 ### Supabase Storage
 
 - `client-audio` — public bucket for uploaded custom audio. Objects are named with a random UUID plus the original extension, so URLs are public but unguessable. The bucket itself enforces a 25 MB file size limit and an audio-only MIME allowlist; anon may read, insert, and delete.
-- **Known exposure:** because the anon key is public, anyone can upload to this bucket without any relationship to a real client. Per-file limits are enforced but total volume is not. **Budget: 500 MB** (~20 max-size files; Chris's call, 2026-11-04), deliberately under the free-tier storage quota. Nothing enforces or reports it yet (see `TODOS.md`). If uploads ever look wrong, list the bucket and cross-check every object against an `audio_url` in `wedding_selections` — anything unreferenced is junk.
+- **Known exposure:** because the anon key is public, anyone can upload to this bucket without any relationship to a real client. Per-file limits are enforced but total volume is not. **Budget: 500 MB** (~20 max-size files; Chris's call, 2026-11-04), deliberately under the free-tier storage quota. Nothing enforces it, but `.github/workflows/storage-watch.yml` checks it daily (`scripts/storage-watch.js`, read-only). The run fails at 400 MB, so GitHub emails a warning, and the job summary lists any files no row points at. If uploads ever look wrong, list the bucket and cross-check every object against an `audio_url` in `wedding_selections` — anything unreferenced is junk.
 
 ### Special section_id Conventions
 

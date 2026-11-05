@@ -1,0 +1,33 @@
+name: client-audio storage watch
+
+# Daily check of the client-audio bucket against its 500 MB budget (CLAUDE.md,
+# "Supabase Storage"). Anyone with the public anon key can upload, and nothing
+# caps the total, so this is the early warning. The run fails at 400 MB, which
+# makes GitHub email the notification; the job summary lists usage and any
+# files no wedding_selections row points at.
+#
+# Read-only, with the same public anon key secret as keepalive.yml.
+
+on:
+  schedule:
+    - cron: "37 14 * * *"   # daily, 14:37 UTC
+  workflow_dispatch:         # run it by hand from the Actions tab
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Unit tests for the checker
+        run: node --test tests/storage-watch.test.js
+      - name: Check bucket usage
+        env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: node scripts/storage-watch.js
