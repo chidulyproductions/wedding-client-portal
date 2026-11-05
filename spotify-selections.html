@@ -2113,10 +2113,10 @@
       if (name) {
         const decoded = decodeURIComponent(name);
         document.getElementById('hero-tag').textContent = decoded + "'s Spotify Picks";
-        document.getElementById('client-name').innerHTML = '<span style="color:#F8F1E9; font-style:normal;">Details for </span>' + decoded + '.';
+        document.getElementById('client-name').innerHTML = '<span style="color:#F8F1E9; font-style:normal;">Details for </span>' + esc(decoded) + '.';
         const programNameEl = document.getElementById('program-name');
         if (programNameEl) {
-          programNameEl.innerHTML = '<span style="color:#F8F1E9; font-style:normal;">Music Program for </span>' + decoded + '.';
+          programNameEl.innerHTML = '<span style="color:#F8F1E9; font-style:normal;">Music Program for </span>' + esc(decoded) + '.';
         }
         document.title = decoded + "'s Music Selections | Chi Duly Productions";
       }
@@ -2224,7 +2224,7 @@
         const match = Object.entries(sectionProgramMap).find(([, v]) => v.label === label);
         if (match && song.textContent.trim() === '— —') {
           const sectionId = match[0];
-          song.innerHTML = '<a href="#section-' + sectionId + '" class="program-make-selection">Make Selection</a>';
+          song.innerHTML = '<a href="#section-' + esc(sectionId) + '" class="program-make-selection">Make Selection</a>';
         }
       });
     }
@@ -2256,7 +2256,9 @@
           } else {
             displayText = artist ? artist + ' - ' + title : title;
           }
-          song.innerHTML = '<a href="#section-' + sectionId + '" class="program-song-link">' + displayText + '</a>';
+          // Titles and artists come from the database (anon-writable) and from
+          // oEmbed, so they are text, never markup.
+          song.innerHTML = '<a href="#section-' + esc(sectionId) + '" class="program-song-link">' + esc(displayText) + '</a>';
           // The tag only earns its place when the edit's own title doesn't
           // already say so. Chris names his cuts "… (K+L Wedding Edit)", which
           // made the brochure read "(K+L Wedding Edit) CUSTOM EDIT". An untitled
@@ -2358,11 +2360,18 @@
         area = document.createElement('div');
         area.className = 'manual-title-area';
         area.id = sectionId + '-manual';
-        area.innerHTML =
-          '<span class="manual-title-label">Song name (for your music program)</span>' +
-          '<input type="text" class="manual-title-input" id="' + sectionId + '-manual-input"' +
-          ' placeholder="e.g. Thinking Out Loud – Ed Sheeran"' +
-          ' oninput="saveManualTitle(\'' + sectionId + '\')" />';
+        // DOM methods, not a markup string: a custom moment's id comes from
+        // the database, so it must never be spliced into HTML or a handler.
+        const label = document.createElement('span');
+        label.className = 'manual-title-label';
+        label.textContent = 'Song name (for your music program)';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'manual-title-input';
+        input.id = sectionId + '-manual-input';
+        input.placeholder = 'e.g. Thinking Out Loud – Ed Sheeran';
+        input.addEventListener('input', () => saveManualTitle(sectionId));
+        area.append(label, input);
         const embedArea = document.getElementById(sectionId + '-embed');
         if (embedArea) embedArea.after(area);
       }
@@ -2398,7 +2407,7 @@
         const match = Object.entries(sectionProgramMap).find(([, v]) => v.label === label);
         if (match && song.textContent.trim() === '— —') {
           const sectionId = match[0];
-          song.innerHTML = '<a href="#section-' + sectionId + '" class="program-make-selection">Make Selection</a>';
+          song.innerHTML = '<a href="#section-' + esc(sectionId) + '" class="program-make-selection">Make Selection</a>';
         }
       });
     }
@@ -2801,7 +2810,7 @@
           const moment = item.querySelector('.program-moment');
           const song = item.querySelector('.program-song');
           if (moment && moment.textContent.trim() === map.label) {
-            song.innerHTML = '<a href="#section-' + sectionId + '" class="program-make-selection">Make Selection</a>';
+            song.innerHTML = '<a href="#section-' + esc(sectionId) + '" class="program-make-selection">Make Selection</a>';
             song.style.color = '';
           }
         });
@@ -3598,31 +3607,33 @@
       // Build the form section HTML
       const container = document.getElementById('custom-moments-container');
       const wrapper = document.createElement('div');
+      // id and label come from a custom-def row, which anyone with the anon key
+      // can write, so both are escaped: esc() for markup, jsArg() for handlers.
       wrapper.innerHTML = `
-        <div class="music-section" id="section-${id}" data-section="${id}">
+        <div class="music-section" id="section-${esc(id)}" data-section="${esc(id)}">
           <div class="section-header" style="position:relative;">
             <div class="section-header-left">
               <div class="section-number">Song Link</div>
-              <div class="section-title" style="font-family:'Bodoni Moda',serif;font-style:italic;color:#b06878;">${label}</div>
+              <div class="section-title" style="font-family:'Bodoni Moda',serif;font-style:italic;color:#b06878;">${esc(label)}</div>
             </div>
-            <button class="remove-btn" onclick="removeSection('${id}')" id="remove-${id}" title="Remove section">🗑</button>
+            <button class="remove-btn" onclick="removeSection(${jsArg(id)})" id="remove-${esc(id)}" title="Remove section">🗑</button>
           </div>
           <div class="section-body">
             <div class="input-row">
-              <input type="text" class="text-input" id="${id}-link" placeholder="Paste song link here (Spotify, YouTube, SoundCloud...)" />
-              <button class="btn" onclick="embedSpotify('${id}')">upload</button>
+              <input type="text" class="text-input" id="${esc(id)}-link" placeholder="Paste song link here (Spotify, YouTube, SoundCloud...)" />
+              <button class="btn" onclick="embedSpotify(${jsArg(id)})">upload</button>
             </div>
-            <div class="embed-area" id="${id}-embed"></div>
+            <div class="embed-area" id="${esc(id)}-embed"></div>
             <div class="input-group" style="margin-top:12px;">
-              <textarea class="text-input" id="${id}-notes" placeholder="e.g. start song at [time mark]" style="height:80px; resize:vertical;"></textarea>
+              <textarea class="text-input" id="${esc(id)}-notes" placeholder="e.g. start song at [time mark]" style="height:80px; resize:vertical;"></textarea>
             </div>
-            <div class="saved-pill" id="${id}-saved">✓ Song Saved</div>
-            <button class="clear-btn" id="${id}-clear" onclick="clearSelection('${id}')">✕ Clear Selection</button>
+            <div class="saved-pill" id="${esc(id)}-saved">✓ Song Saved</div>
+            <button class="clear-btn" id="${esc(id)}-clear" onclick="clearSelection(${jsArg(id)})">✕ Clear Selection</button>
           </div>
         </div>
-        <div class="undo-bar" id="undo-${id}">
+        <div class="undo-bar" id="undo-${esc(id)}">
           <span>Section removed</span>
-          <button class="undo-btn" onclick="undoRemove('${id}')">↩ Undo</button>
+          <button class="undo-btn" onclick="undoRemove(${jsArg(id)})">↩ Undo</button>
         </div>`;
       // Anchored moments are spliced into the standard run instead of the
       // trailing bucket. Move the wrapper's children rather than the wrapper

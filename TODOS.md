@@ -1,15 +1,5 @@
 # TODOS
 
-## Client Portal: Escape Stored Text in the Client Page's Markup
-**Priority:** P1 | **Effort:** S (CC: ~20 min plus a browser check)
-**Depends on:** nothing
-
-`spotify-selections.html` still builds some markup from `wedding_selections` values by string concatenation, and anyone with the public anon key can write those values:
-- `updateProgram` puts `artist + ' - ' + title` into `song.innerHTML`.
-- `createCustomMoment` puts the custom moment's `label` and `id` (from `custom-def-*` rows) into an `innerHTML` template, including inline `onclick` handlers.
-
-A planted title or label would run script on that couple's portal page. There is no admin session there, but a planted script could still change or delete the couple's selections, or show them a fake page. The fix is the same as the admin dashboard's (2026-11-05): `esc()` / `jsArg()` from `portal-helpers.js`, or DOM methods like the audio UI uses. Found while fixing the dashboard notes issue; left out of that change to keep it scoped.
-
 ## Client Portal: Admin Dashboard Redesign
 **Priority:** P3 | **Effort:** L
 **Depends on:** nothing (the client-portal aesthetic overhaul has landed)
